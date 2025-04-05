@@ -37,7 +37,7 @@ const FloatingMenu = ({onMenuToggle}: any) => {
       <View style={styles.floatingContainer}>
         {isOpen && (
           <Animated.View style={[styles.menu, animatedStyle]}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createTask")}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createChecklist")}>
               <FontAwesome5 name="tasks" size={24} color="white" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createPomodoro")}>
@@ -48,9 +48,6 @@ const FloatingMenu = ({onMenuToggle}: any) => {
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createNotes")}>
               <MaterialIcons name="notes" size={24} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createRoutine")}>
-              <FontAwesome5 name="clipboard-list" size={24} color="white" />
             </TouchableOpacity>
           </Animated.View>
         )}

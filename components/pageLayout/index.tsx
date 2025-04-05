@@ -13,7 +13,7 @@ import {
 
 interface PageProps {
   children: ReactNode;
-  style: ViewStyle;
+  style?: ViewStyle;
   contentContainerStyle?: ViewStyle;
   backgroundColor?: ColorValue;
   statusBarColor?: StatusBarStyle;

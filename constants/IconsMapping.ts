@@ -1,0 +1,22 @@
+export const getIcon = {
+  Work: { icon: "briefcase", library: "FontAwesome" },
+  Study: { icon: "book", library: "FontAwesome" },
+  Exercise: { icon: "dumbbell", library: "MaterialCommunityIcons" },
+  Coding: { icon: "code", library: "MaterialIcons" },
+  Music: { icon: "music", library: "FontAwesome" },
+  Gaming: { icon: "gamepad-variant", library: "MaterialCommunityIcons" },
+  Learning: { icon: "book-open", library: "MaterialCommunityIcons" },
+  Social: { icon: "account-group", library: "MaterialCommunityIcons" },
+  Hobbies: { icon: "palette", library: "MaterialCommunityIcons" },
+  Meditation: { icon: "spa", library: "MaterialIcons" },
+  "Self-Improvement": { icon: "trending-up", library: "Feather" },
+  "Food & Cooking": {
+    icon: "silverware-fork-knife",
+    library: "MaterialCommunityIcons",
+  },
+  Creativity: { icon: "brush", library: "MaterialCommunityIcons" },
+  Reading: { icon: "book", library: "FontAwesome" },
+  Writing: { icon: "pencil-alt", library: "FontAwesome5" },
+  Personal: { icon: "user", library: "FontAwesome" },
+  Other: { icon: "help-circle", library: "MaterialCommunityIcons" },
+};

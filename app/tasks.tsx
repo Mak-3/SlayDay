@@ -13,6 +13,8 @@ import PageLayout from "@/components/pageLayout";
 import UpcomingTasks from "@/components/upcomingTasks";
 import BackButtonHeader from "@/components/backButtonHeader";
 import TaskStatusCard from "@/components/taskStatusCard";
+import Sunrise from "@/components/checkListTemplates/Sunrise";
+import TaskScreen from "@/components/checkListTemplates/Theme2";
 
 const TasksPage = () => {
   const navigation = useNavigation();
@@ -41,43 +43,45 @@ const TasksPage = () => {
   ];
 
   return (
-    <PageLayout style={styles.container}>
-      <BackButtonHeader title="Tasks" />
-      <UpcomingTasks />
-      <Text style={styles.sectionTitle}>Overview</Text>
-      <View style={styles.overviewContainer}>
-        <TaskStatusCard
-          title="To Do List"
-          tasks={20}
-          bgColor="#2D9CDB"
-          iconName="check-square"
-          bgIconName="check-square"
-        />
+    // <PageLayout style={styles.container}>
+    //   <BackButtonHeader title="Tasks" />
+    //   <UpcomingTasks />
+    //   <Text style={styles.sectionTitle}>Overview</Text>
+    //   <View style={styles.overviewContainer}>
+    //     <TaskStatusCard
+    //       title="To Do List"
+    //       tasks={20}
+    //       bgColor="#2D9CDB"
+    //       iconName="check-square"
+    //       bgIconName="check-square"
+    //     />
 
-        <TaskStatusCard
-          title="In Progress"
-          tasks={15}
-          bgColor="#F2994A"
-          iconName="activity"
-          bgIconName="activity"
-        />
-        <TaskStatusCard
-          title="Review"
-          tasks={10}
-          bgColor="#9B51E0"
-          iconName="search"
-          bgIconName="search"
-        />
+    //     <TaskStatusCard
+    //       title="In Progress"
+    //       tasks={15}
+    //       bgColor="#F2994A"
+    //       iconName="activity"
+    //       bgIconName="activity"
+    //     />
+    //     <TaskStatusCard
+    //       title="Review"
+    //       tasks={10}
+    //       bgColor="#9B51E0"
+    //       iconName="search"
+    //       bgIconName="search"
+    //     />
 
-        <TaskStatusCard
-          title="Completed"
-          tasks={30}
-          bgColor="#27AE60"
-          iconName="check-circle"
-          bgIconName="check-circle"
-        />
-      </View>
-    </PageLayout>
+    //     <TaskStatusCard
+    //       title="Completed"
+    //       tasks={30}
+    //       bgColor="#27AE60"
+    //       iconName="check-circle"
+    //       bgIconName="check-circle"
+    //     />
+    //   </View>
+    // </PageLayout>
+    <Sunrise/>
+    // <TaskScreen/>
   );
 };
 

@@ -6,15 +6,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { PastelTheme, VibrantTheme, EarthyTheme } from '../constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 SplashScreen.preventAutoHideAsync();
 
 const themes: Record<string, Theme> = {
-  pastel: PastelTheme as any,
-  vibrant: VibrantTheme as any,
-  earthy: EarthyTheme as any,
   light: DefaultTheme,
   dark: DarkTheme,
 };
@@ -81,21 +77,29 @@ export default function RootLayout() {
       <SafeAreaView style={{flex: 1}}>
       <Stack>
         <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="createReminder" options={{ headerShown: false }} />
+
+        <Stack.Screen name="home" options={{ headerShown: false }} />
+
+        <Stack.Screen name="pomodoro" options={{ headerShown: false }} />
+        <Stack.Screen name="createPomodoro" options={{ headerShown: false }} />
+        <Stack.Screen name="pomodoroScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="timer" options={{ headerShown: false }} />
+        <Stack.Screen name="pomodoroSessions" options={{ headerShown: false }} />
+
         <Stack.Screen name="reminder" options={{ headerShown: false }} />
+        <Stack.Screen name="createReminder" options={{ headerShown: false }} />
+
+        <Stack.Screen name="createChecklist" options={{ headerShown: false }} />
+        <Stack.Screen name="checklistScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="checkList" options={{ headerShown: false }} />
+
         <Stack.Screen name="editProfile" options={{ headerShown: false }} />
         <Stack.Screen name="tasks" options={{ headerShown: false }} />
-        <Stack.Screen name="todo" options={{ headerShown: false }} />
-        <Stack.Screen name="home" options={{ headerShown: false }} />
-        <Stack.Screen name="createTask" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
         <Stack.Screen name="createNotes" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
-        <Stack.Screen name="pomodoro" options={{ headerShown: false }} />
-        <Stack.Screen name="createRoutine" options={{ headerShown: false }} />
         <Stack.Screen name="routine" options={{ headerShown: false }} />
-        <Stack.Screen name="createPomodoro" options={{ headerShown: false }} />
-        <Stack.Screen name="pomodoroStatistics" options={{ headerShown: false }} />
+        <Stack.Screen name="eisenhower" options={{ headerShown: false }} />
       </Stack>
       </SafeAreaView>
       {/* <Slot /> ✅ Ensure Slot is included for proper navigation */}

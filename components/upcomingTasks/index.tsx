@@ -6,10 +6,12 @@ import {
   Text,
   Animated,
   Dimensions,
+  TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import ProgressBar from "../progressBar";
+import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.8;
@@ -143,7 +145,9 @@ const UpcomingTasks: React.FC = () => {
         <Text style={styles.heading}>
           Priority Tasks <Text style={{color: '#cccccc'}}>(12)</Text>
         </Text>
-        <Text style={styles.link}>View All</Text>
+        <TouchableOpacity onPress={() => router.push('./checkList')}>
+          <Text style={styles.link}>View All</Text> 
+        </TouchableOpacity>
       </View>
       <View style={{ alignItems: "center" }}>
         <FlatList

@@ -1,3 +1,4 @@
+import { CrimsonLuxe } from "@/constants/Colors";
 import { router } from "expo-router";
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
     color: "#374151",
   },
   username: {
-    color: "#FF6B6B",
+    color: CrimsonLuxe.primary400,
     fontWeight: "700",
   },
   profileImage: {

@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, Switch, TouchableOpacity } from 'react-n
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import BackButtonHeader from '@/components/backButtonHeader';
 import { router } from 'expo-router';
+import { CrimsonLuxe } from '@/constants/Colors';
 
 const ProfileScreen = () => {
   const [pushNotifications, setPushNotifications] = React.useState(true);
@@ -69,7 +70,7 @@ const ProfileScreen = () => {
 
       {/* Logout Button */}
       <TouchableOpacity style={styles.logoutButton}>
-        <Feather name="log-out" size={24} color="#E63946" />
+        <Feather name="log-out" size={24} color="#FFFFFF" />
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
     </View>
@@ -158,13 +159,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FDECEC',
+    backgroundColor: CrimsonLuxe.primary400,
     borderRadius: 10,
     paddingVertical: 12,
   },
   logoutText: {
     fontSize: 16,
-    color: '#E63946',
+    color: '#FFFFFF',
     fontWeight: 'bold',
     marginLeft: 8,
   },

@@ -3,46 +3,63 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
-  Switch,
   Platform,
+  Keyboard,
+  Modal,
+  TouchableWithoutFeedback,
+  FlatList,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import PageLayout from "@/components/pageLayout";
+import CustomTextInput from "@/components/textInput";
+import CustomTextArea from "@/components/textArea";
+import { CrimsonLuxe } from "@/constants/Colors";
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 const CreateEventScreen = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedColor, setSelectedColor] = useState("#1E90FF");
-  const [startDateTime, setStartDateTime] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date());
+  const [startTime, setStartTime] = useState(new Date());
 
   const [repeat, setRepeat] = useState(false);
-  const [repeatType, setRepeatType] = useState(""); // daily, weekly, etc.
-  const [customInterval, setCustomInterval] = useState(""); // in days
-
-  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [repeatType, setRepeatType] = useState("");
+  const [customInterval, setCustomInterval] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagsText, setTagsText] = useState("");
 
-  const colorOptions = [
-    "#1E90FF",
-    "#8A2BE2",
-    "#FFD700",
-    "#FF6347",
-    "#FF4500",
-    "#3CB371",
+  const [isOneTime, setIsOneTime] = useState(true);
+  const categories = [
+    "Work",
+    "Personal",
+    "Birthday",
+    "Exercise",
+    "Meeting",
+    "Health",
   ];
-
   const repeatOptions = ["Daily", "Weekly", "Monthly", "Yearly", "Custom"];
 
   const handleCreateEvent = () => {
+    const combinedDateTime = new Date(
+      startDate.getFullYear(),
+      startDate.getMonth(),
+      startDate.getDate(),
+      startTime.getHours(),
+      startTime.getMinutes()
+    );
+
     console.log({
       title,
-      selectedColor,
       description,
-      startDateTime: startDateTime.toISOString(),
+      startDate: startDate.toDateString(),
+      startTime: startTime.toTimeString(),
+      combinedDateTime: combinedDateTime.toISOString(),
       repeat,
       repeatType,
       customInterval,
@@ -53,8 +70,8 @@ const CreateEventScreen = () => {
   const handleCancel = () => {
     setTitle("");
     setDescription("");
-    setSelectedColor("");
-    setStartDateTime(new Date());
+    setStartDate(new Date());
+    setStartTime(new Date());
     setRepeat(false);
     setRepeatType("");
     setCustomInterval("");
@@ -62,8 +79,16 @@ const CreateEventScreen = () => {
     setTagsText("");
   };
 
-  const formatDateTime = (date: Date) => {
-    return date.toLocaleString();
+  const formatDateTime = (date: Date, type: string) => {
+    if (type == "Date") {
+      return date.toLocaleDateString();
+    }
+    if (type == "Time") {
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
   };
 
   const handleTagsChange = (text: string) => {
@@ -79,129 +104,265 @@ const CreateEventScreen = () => {
 
   return (
     <PageLayout style={styles.container}>
-      <BackButtonHeader title="Create Reminder" />
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View>
+          <BackButtonHeader title="Create Reminder" />
 
-      <Text style={styles.label}>Title</Text>
-      <TextInput
-        placeholder="Name of event"
-        value={title}
-        onChangeText={setTitle}
-        maxLength={30}
-        style={styles.input}
-      />
-      <Text style={styles.charCount}>{title.length}/30</Text>
-
-      <Text style={styles.label}>Color</Text>
-      <View style={styles.colorContainer}>
-        {colorOptions.map((color, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.colorCircle,
-              { backgroundColor: color },
-              selectedColor === color && styles.selectedColor,
-            ]}
-            onPress={() => setSelectedColor(color)}
+          <Text style={styles.label}>Title</Text>
+          <CustomTextInput
+            placeholder="Name of task"
+            value={title}
+            onChangeText={setTitle}
+            maxLength={30}
           />
-        ))}
-      </View>
+          <Text style={styles.charCount}>{title.length}/30</Text>
 
-      <Text style={styles.label}>Description</Text>
-      <View style={styles.descriptionBox}>
-        <TextInput
-          placeholder="Details about event"
-          value={description}
-          onChangeText={setDescription}
-          style={styles.descriptionInput}
-          multiline
-        />
-      </View>
+          <Text style={styles.label}>Description</Text>
+          <CustomTextArea
+            placeholder="Details about task"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
 
-      <Text style={styles.label}>Start Date & Time</Text>
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowStartPicker(true)}
-      >
-        <Text style={{ color: startDateTime ? "#333" : "#999" }}>
-          {formatDateTime(startDateTime)}
-        </Text>
-      </TouchableOpacity>
-      {showStartPicker && (
-        <DateTimePicker
-          value={startDateTime}
-          mode="datetime"
-          display={"default"}
-          onChange={(event, selectedDate) => {
-            setShowStartPicker(Platform.OS === "ios");
-            if (selectedDate) setStartDateTime(selectedDate);
-          }}
-        />
-      )}
+          <Text style={styles.label}>Category</Text>
+          <TouchableOpacity
+            style={[styles.input, { flexDirection: "row" }]}
+            onPress={() => setCategoryModalVisible(true)}
+          >
+            <Text
+              style={{ color: selectedCategory ? "#333" : "#999", flex: 1 }}
+            >
+              {selectedCategory || "Select a category"}
+            </Text>
+            <Icon name="arrow-drop-down" size={24} color="#333" />
+          </TouchableOpacity>
 
-      <Text style={styles.label}>Tags</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Comma-separated tags, e.g. Finance, Credit Card"
-        value={tagsText}
-        onChangeText={handleTagsChange}
-      />
-
-      <View style={styles.repeatContainer}>
-        <Switch value={repeat} onValueChange={setRepeat} />
-        <Text style={styles.repeatLabel}>Repeat</Text>
-      </View>
-
-      {repeat && (
-        <>
-          <Text style={styles.label}>Repeat Type</Text>
-          <View style={styles.repeatTypeContainer}>
-            {repeatOptions.map((option) => (
+          <Modal
+            visible={categoryModalVisible}
+            transparent
+            animationType="slide"
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <FlatList
+                  data={categories}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.categoryItem}
+                      onPress={() => {
+                        setSelectedCategory(item);
+                        setCategoryModalVisible(false);
+                      }}
+                    >
+                      <Text style={styles.categoryText}>{item}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </View>
+          </Modal>
+          <View style={styles.dateTimeWrapper}>
+            <View style={styles.dateTimeField}>
+              <Text style={styles.label}>Start Date</Text>
               <TouchableOpacity
-                key={option}
                 style={[
-                  styles.repeatTypeButton,
-                  repeatType === option && styles.selectedRepeatType,
+                  styles.input,
+                  { flexDirection: "row", justifyContent: "space-between" },
                 ]}
-                onPress={() => setRepeatType(option)}
+                onPress={() => setShowDatePicker(true)}
               >
-                <Text
-                  style={[
-                    styles.repeatTypeText,
-                    repeatType === option && styles.selectedRepeatTypeText,
-                  ]}
-                >
-                  {option}
+                <Text style={{ color: startDate ? "#333" : "#999" }}>
+                  {formatDateTime(startDate, "Date")}
                 </Text>
+                <Icon name="calendar-today" size={18} color="#555" />
               </TouchableOpacity>
-            ))}
+            </View>
+            <View style={styles.dateTimeField}>
+              <Text style={styles.label}>Start Time</Text>
+              <TouchableOpacity
+                style={[
+                  styles.input,
+                  { flexDirection: "row", justifyContent: "space-between" },
+                ]}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Text style={{ color: startTime ? "#333" : "#999" }}>
+                  {formatDateTime(startTime, "Time")}
+                </Text>
+                <Icon name="access-time" size={20} color="#555" />
+              </TouchableOpacity>
+            </View>
           </View>
-
-          {repeatType === "Custom" && (
-            <TextInput
-              placeholder="Enter custom interval in days"
-              value={customInterval}
-              onChangeText={(text) => {
-                const numericValue = text.replace(/[^0-9]/g, "");
-                setCustomInterval(numericValue);
+          {showDatePicker && Platform.OS === "android" && (
+            <DateTimePicker
+              value={startDate}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) {
+                  setStartDate(selectedDate);
+                }
               }}
-              style={styles.input}
-              keyboardType="numeric"
             />
           )}
-        </>
-      )}
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={handleCreateEvent}
-        >
-          <Text style={styles.createText}>✓ Create Reminder</Text>
-        </TouchableOpacity>
-      </View>
+          {Platform.OS === "ios" && (
+            <Modal
+              transparent
+              animationType="slide"
+              visible={showDatePicker}
+              onRequestClose={() => setShowDatePicker(false)}
+            >
+              <TouchableWithoutFeedback
+                onPress={() => setShowDatePicker(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.pickerContainer}>
+                    <DateTimePicker
+                      value={startDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={(event, selectedDate) => {
+                        if (selectedDate) setStartDate(selectedDate);
+                      }}
+                    />
+                    <TouchableOpacity
+                      style={styles.doneButton}
+                      onPress={() => setShowDatePicker(false)}
+                    >
+                      <Text style={styles.doneText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
+          )}
+
+          {showTimePicker && Platform.OS === "android" && (
+            <DateTimePicker
+              value={startTime}
+              mode="time"
+              display="default"
+              onChange={(event, selectedTime) => {
+                setShowTimePicker(false);
+                if (selectedTime) {
+                  setStartTime(selectedTime);
+                }
+              }}
+            />
+          )}
+
+          {Platform.OS === "ios" && (
+            <Modal
+              transparent
+              animationType="slide"
+              visible={showTimePicker}
+              onRequestClose={() => setShowTimePicker(false)}
+            >
+              <TouchableWithoutFeedback
+                onPress={() => setShowTimePicker(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.pickerContainer}>
+                    <DateTimePicker
+                      value={startTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(event, selectedTime) => {
+                        if (selectedTime) setStartTime(selectedTime);
+                      }}
+                    />
+                    <TouchableOpacity
+                      style={styles.doneButton}
+                      onPress={() => setShowTimePicker(false)}
+                    >
+                      <Text style={styles.doneText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
+          )}
+
+          <Text style={styles.label}>Tags</Text>
+          <CustomTextInput
+            placeholder="Comma-separated tags, e.g. Finance, Credit Card"
+            value={tagsText}
+            onChangeText={handleTagsChange}
+          />
+
+          <Text style={styles.label}>Task Type</Text>
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              onPress={() => setIsOneTime(true)}
+              style={[styles.toggleOption, isOneTime && styles.selectedOption]}
+            >
+              <Text>One-time</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setIsOneTime(false)}
+              style={[styles.toggleOption, !isOneTime && styles.selectedOption]}
+            >
+              <Text>Repeat</Text>
+            </TouchableOpacity>
+          </View>
+
+          {repeat && (
+            <>
+              <Text style={styles.label}>Repeat Type</Text>
+              <View style={styles.repeatTypeContainer}>
+                {repeatOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[
+                      styles.repeatTypeButton,
+                      repeatType === option && styles.selectedRepeatType,
+                    ]}
+                    onPress={() => setRepeatType(option)}
+                  >
+                    <Text style={styles.repeatTypeText}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {repeatType === "Custom" && (
+                <CustomTextInput
+                  placeholder="Enter custom interval in days"
+                  value={customInterval}
+                  onChangeText={(text) => {
+                    const numericValue = text.replace(/[^0-9]/g, "");
+                    setCustomInterval(numericValue);
+                  }}
+                  keyboardType="numeric"
+                />
+              )}
+            </>
+          )}
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancel}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.createButton,
+                title
+                  ? { backgroundColor: CrimsonLuxe.primary400 }
+                  : { backgroundColor: CrimsonLuxe.primary500 },
+              ]}
+              onPress={handleCreateEvent}
+            >
+              <Text style={styles.createText}>✓ Create Reminder</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
     </PageLayout>
   );
 };
@@ -235,43 +396,33 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 2,
   },
-  colorContainer: {
+  dateTimeWrapper: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginVertical: 5,
   },
-  colorCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "transparent",
+  toggleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 10,
   },
-  selectedColor: {
-    borderColor: "#333",
-  },
-  descriptionBox: {
+  toggleOption: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: "#DDD",
-    borderRadius: 12,
-    marginVertical: 5,
+    borderRadius: 10,
+    marginHorizontal: 5,
   },
-  descriptionInput: {
-    minHeight: 80,
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    textAlignVertical: "top",
-    color: "#333",
+  selectedOption: {
+    backgroundColor: CrimsonLuxe.primary100,
+    borderColor: CrimsonLuxe.primary300,
   },
-  repeatContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 20,
-  },
-  repeatLabel: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: "#333",
+  dateTimeField: {
+    width: "45%",
+    maxWidth: 300,
   },
   repeatTypeContainer: {
     flexDirection: "row",
@@ -289,15 +440,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   selectedRepeatType: {
-    backgroundColor: "#4F46E5",
-    borderColor: "#4F46E5",
+    backgroundColor: CrimsonLuxe.primary100,
+    borderColor: CrimsonLuxe.primary300,
   },
   repeatTypeText: {
     color: "#333",
     fontSize: 14,
-  },
-  selectedRepeatTypeText: {
-    color: "#FFF",
   },
   buttonContainer: {
     flexDirection: "row",
@@ -325,6 +473,43 @@ const styles = StyleSheet.create({
   createText: {
     color: "#FFFFFF",
     fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    width: "80%",
+    borderRadius: 10,
+    padding: 20,
+    maxHeight: 300,
+  },
+  pickerContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  doneButton: {
+    alignItems: "center",
+    marginTop: 10,
+  },
+  doneText: {
+    color: CrimsonLuxe.primary400,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  categoryItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEE",
+  },
+  categoryText: {
+    fontSize: 16,
+    color: "#333",
   },
 });
 

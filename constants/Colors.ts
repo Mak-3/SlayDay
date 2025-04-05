@@ -1,87 +1,72 @@
-const pastelTintLight = '#FFB6C1';
-const pastelTintDark = '#FFD700';
+const pastelTintLight = "#FFB6C1";
+const pastelTintDark = "#FFD700";
 
-const vibrantTintLight = '#FF4500';
-const vibrantTintDark = '#1E90FF';
+const vibrantTintLight = "#FF4500";
+const vibrantTintDark = "#1E90FF";
 
-const earthyTintLight = '#8B4513';
-const earthyTintDark = '#32CD32';
+const earthyTintLight = "#8B4513";
+const earthyTintDark = "#32CD32";
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = "#0a7ea4";
+const tintColorDark = "#fff";
 
-export const PastelTheme = {
-  light: {
-    text: '#4B4453',
-    background: '#FFF0F5',
-    tint: pastelTintLight,
-    icon: '#D8BFD8',
-    tabIconDefault: '#D8BFD8',
-    tabIconSelected: pastelTintLight,
+export const cardColors = [
+  {
+    light: "#D8DBFC",
+    dark: "#4A4F8C",
   },
-  dark: {
-    text: '#FFD1DC',
-    background: '#2E2E3A',
-    tint: pastelTintDark,
-    icon: '#FFE4E1',
-    tabIconDefault: '#FFE4E1',
-    tabIconSelected: pastelTintDark,
-  },
-};
 
-export const VibrantTheme = {
-  light: {
-    text: '#2E2E2E',
-    background: '#FFFAF0',
-    tint: vibrantTintLight,
-    icon: '#FFA500',
-    tabIconDefault: '#FFA500',
-    tabIconSelected: vibrantTintLight,
+  {
+    light: "#F8E8C8",
+    dark: "#A67C3B",
   },
-  dark: {
-    text: '#E0E0E0',
-    background: '#121212',
-    tint: vibrantTintDark,
-    icon: '#ADD8E6',
-    tabIconDefault: '#ADD8E6',
-    tabIconSelected: vibrantTintDark,
-  },
-};
 
-export const EarthyTheme = {
-  light: {
-    text: '#5A3E36',
-    background: '#F5F5DC',
-    tint: earthyTintLight,
-    icon: '#A0522D',
-    tabIconDefault: '#A0522D',
-    tabIconSelected: earthyTintLight,
+  {
+    light: "#D4F6EC",
+    dark: "#4B8975",
   },
-  dark: {
-    text: '#D2B48C',
-    background: '#2F4F4F',
-    tint: earthyTintDark,
-    icon: '#8FBC8F',
-    tabIconDefault: '#8FBC8F',
-    tabIconSelected: earthyTintDark,
+
+  {
+    light: "#EBD8FB",
+    dark: "#8A5BA7",
   },
-};
+
+  {
+    light: "#F9D8D6",
+    dark: "#B35B56",
+  },
+
+  {
+    light: "#C8E6C9",
+    dark: "#4E7D4C",
+  },
+];
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: "#11181C",
+    background: "#fff",
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: "#687076",
+    tabIconDefault: "#687076",
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: "#ECEDEE",
+    background: "#151718",
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: "#9BA1A6",
+    tabIconDefault: "#9BA1A6",
     tabIconSelected: tintColorDark,
   },
+};
+
+export const CrimsonLuxe = {
+  primary100: "#fff3f3",
+  primary200: "#ffedef",
+  primary300: "#f06264",
+  primary400: "#ff575b",
+  primary500: "#e34e4f",
+  primary600: "#cc4649",
+  primary700: "#9f3639",
 };

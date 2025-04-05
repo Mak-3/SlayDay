@@ -4,6 +4,8 @@ import BackButtonHeader from "@/components/backButtonHeader";
 import LineChart from "@/components/lineChart";
 import PageLayout from "@/components/pageLayout";
 import { router } from "expo-router";
+import { CrimsonLuxe } from "@/constants/Colors";
+import dayjs from "dayjs";
 
 const handleNavigation = (route: any) => {
   router.push(route);
@@ -12,21 +14,7 @@ const handleNavigation = (route: any) => {
 const Pomodoro = () => {
   return (
     <PageLayout style={styles.container}>
-      <BackButtonHeader title="Pomodoro" />
-
-      <View style={styles.startSessionContainer}>
-        <Text style={styles.startSessionTitle}>Ready to Focus?</Text>
-        <Text style={styles.startSessionSubtitle}>
-          Start a Pomodoro session and track your progress.
-        </Text>
-
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={() => handleNavigation("/createPomodoro")}
-        >
-          <Text style={styles.startButtonText}>Start Focus Session</Text>
-        </TouchableOpacity>
-      </View>
+      <BackButtonHeader title="Pomodoro Statistics" />
 
       <View style={styles.activeHoursContainer}>
         <Text style={styles.activeHoursLabel}>Active Hours</Text>
@@ -42,7 +30,9 @@ const Pomodoro = () => {
       </View>
       <View style={styles.sessionsContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Events</Text>
+                <Text style={styles.sectionTitle}>
+                  Past Sessions
+                </Text>
           <Text style={styles.sectionLink} onPress={() => {router.push('/pomodoroStatistics')}}>View All</Text>
         </View>
 
@@ -86,7 +76,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
   },
   activeHoursContainer: {
-    backgroundColor: "#E0F2FE",
+    backgroundColor: CrimsonLuxe.primary100,
     borderRadius: 16,
     padding: 20,
     marginVertical: 10,
@@ -97,13 +87,11 @@ const styles = StyleSheet.create({
   },
   activeHoursLabel: {
     fontSize: 16,
-    color: "#0369A1",
     marginBottom: 10,
   },
   activeHoursValue: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#0284C7",
   },
   progressWrapper: {
     marginVertical: 20
@@ -119,7 +107,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionLink: {
-    color: "#3B82F6",
+    color: CrimsonLuxe.primary400,
     fontSize: 16,
   },
   sectionTitle: {

@@ -32,7 +32,7 @@ const Home = () => {
         <Progress />
       </Animated.View>
 
-      <Button onPress={() => handleNavigation("/pomodoro")} title="pomodoro" />
+      <Button onPress={() => handleNavigation("/checklistScreen")} title="pomodoro" />
       <CalendarScreen/>
       <FloatingMenu onMenuToggle={setIsMenuOpen} />
     </PageLayout>

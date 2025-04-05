@@ -21,10 +21,10 @@ const listItemGap = 20;
 
 const TimelineList = () => {
   const [data, setData] = useState<Item[]>([
-    { id: "1", title: "Morning Creativity Boost", isDone: true },
-    { id: "2", title: "Healthy Breakfast Fuel", isDone: false },
-    { id: "3", title: "Planning and Reflection", isDone: false },
-    { id: "4", title: "Review & Wrap Up", isDone: false },
+    { id: "1", title: "Buy groceries", isDone: true },
+    { id: "2", title: "Work on React Native project", isDone: false },
+    { id: "3", title: "Read a book", isDone: false },
+    { id: "4", title: "Exercise for 30 minutes", isDone: false },
   ]);
 
   const animatedCircles = useRef(data.map(() => new Animated.Value(0))).current;
@@ -171,6 +171,7 @@ const TimelineList = () => {
 
   return (
     <FlatList
+      scrollEnabled={false}
       data={data}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
@@ -181,7 +182,7 @@ const TimelineList = () => {
 
 const styles = StyleSheet.create({
   listContainer: {
-    paddingVertical: 20,
+    // paddingVertical: 20,
   },
   row: {
     flexDirection: "row",
@@ -221,11 +222,12 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: "#F3F4F6",
     padding: 16,
     height: listItemHeight,
     borderRadius: 12,
     justifyContent: "center",
+    borderColor: '#F59E0B',
+    borderWidth: 1
   },
   title: {
     fontSize: 16,
