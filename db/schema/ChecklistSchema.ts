@@ -13,7 +13,7 @@ export const ChecklistSchema: Realm.ObjectSchema = {
   properties: {
     _id: "objectId",
     title: "string",
-    Description: "string",
+    description: "string",
     taskType: "string",
     isCompleted: "bool",
     category: "string",

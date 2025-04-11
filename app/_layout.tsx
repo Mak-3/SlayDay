@@ -87,11 +87,12 @@ export default function RootLayout() {
         <Stack.Screen name="pomodoroSessions" options={{ headerShown: false }} />
 
         <Stack.Screen name="reminder" options={{ headerShown: false }} />
-        <Stack.Screen name="createReminder" options={{ headerShown: false }} />
+        <Stack.Screen name="createEvent" options={{ headerShown: false }} />
 
         <Stack.Screen name="createChecklist" options={{ headerShown: false }} />
         <Stack.Screen name="checklistScreen" options={{ headerShown: false }} />
         <Stack.Screen name="checkList" options={{ headerShown: false }} />
+        <Stack.Screen name="checklistOverview" options={{ headerShown: false }} />
 
         <Stack.Screen name="editProfile" options={{ headerShown: false }} />
         <Stack.Screen name="tasks" options={{ headerShown: false }} />
@@ -99,7 +100,6 @@ export default function RootLayout() {
         <Stack.Screen name="createNotes" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen name="routine" options={{ headerShown: false }} />
-        <Stack.Screen name="eisenhower" options={{ headerShown: false }} />
       </Stack>
       </SafeAreaView>
       {/* <Slot /> ✅ Ensure Slot is included for proper navigation */}

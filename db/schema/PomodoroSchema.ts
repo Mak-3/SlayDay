@@ -1,4 +1,4 @@
-export const PomodoroSchema = {
+const PomodoroSchema = {
   name: "Pomodoro",
   properties: {
     _id: "objectId",
@@ -6,8 +6,10 @@ export const PomodoroSchema = {
     taskType: "string",
     time: "int",
     category: "string",
-    createdAt: "int",
-    endAt: "int"
+    createdAt: "date",
+    endAt: "date"
   },
   primaryKey: "_id",
 };
+
+export default PomodoroSchema;

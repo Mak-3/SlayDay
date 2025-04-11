@@ -1,15 +1,14 @@
 import React, { useState } from "react";
-import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { MaterialIcons, FontAwesome5, Feather } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
-const deviceHeight = Dimensions.get('window').height;
+import { CrimsonLuxe } from "@/constants/Colors";
 
 const FloatingMenu = ({onMenuToggle}: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,7 +42,7 @@ const FloatingMenu = ({onMenuToggle}: any) => {
             <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createPomodoro")}>
               <FontAwesome5 name="hourglass-half" size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createReminder")}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createEvent")}>
               <FontAwesome5 name="calendar-check" size={24} color="white" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createNotes")}>
@@ -79,7 +78,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#007AFF",
+    backgroundColor: CrimsonLuxe.primary400,
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,

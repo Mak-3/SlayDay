@@ -1,6 +1,6 @@
 import BackButtonHeader from "@/components/backButtonHeader";
-import { cardColors, CrimsonLuxe } from "@/constants/Colors";
-import React, { useState } from "react";
+import {CrimsonLuxe } from "@/constants/Colors";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,74 +8,127 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { GestureHandlerRootView, Swipeable } from "react-native-gesture-handler";
+import {
+  GestureHandlerRootView,
+  Swipeable,
+} from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { getAllPomodoros } from "@/db/service/PomodoroService";
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import Feather from "react-native-vector-icons/Feather";
 
-const tasks = [
-  { id: "1", title: "Reading Books", duration: "50 minutes", icon: "book", iconLib: "FontAwesome", bg: "#F87171" },
-  { id: "2", title: "Editing Audio", duration: "75 minutes", icon: "music-note", iconLib: "MaterialIcons", bg: "#FBBF24" },
-  { id: "3", title: "Learn Programming", duration: "50 minutes", icon: "code-tags", iconLib: "MaterialCommunityIcons", bg: "#60A5FA" },
-  { id: "4", title: "Dumbbell Exercise", duration: "25 minutes", icon: "dumbbell", iconLib: "MaterialCommunityIcons", bg: "#4ADE80" },
-  { id: "5", title: "Tech Exploration", duration: "50 minutes", icon: "devices", iconLib: "MaterialIcons", bg: "#FACC15" },
-  { id: "6", title: "Meditation", duration: "25 minutes", icon: "spa", iconLib: "MaterialIcons", bg: "#F87171" },
-  { id: "7", title: "Fixing Smartphone", duration: "75 minutes", icon: "smartphone", iconLib: "MaterialIcons", bg: "#9CA3AF" },
-];
+import { getAllPomodoros } from "@/db/service/PomodoroService";
+import { getIcon } from "@/constants/IconsMapping";
+import NoDataPomodoro from "@/components/noData";
+interface pomodoroSessions {
+  id: any;
+  title: string;
+  taskType: string;
+  time: number;
+  category: string;
+  createdAt: Date;
+  endAt: Date;
+}
 
 export default function App() {
-  const pomodoroSessions = getAllPomodoros();
-  const [data, setData] = useState(tasks);
+  const [data, setData] = useState<pomodoroSessions[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPomodoroSessions = async () => {
+      setLoading(true);
+      const result = await getAllPomodoros();
+      setData(result);
+      setLoading(false);
+    };
+    fetchPomodoroSessions();
+  }, []);
 
   const renderRightActions = (id: string) => (
     <TouchableOpacity
       style={styles.deleteButton}
-      onPress={() => setData(data.filter((item) => item.id !== id))}
+      onPress={() => setData((prev) => prev.filter((item) => item.id !== id))}
     >
       <Icon name="delete" size={24} color="#fff" />
     </TouchableOpacity>
   );
 
-  const renderIcon = (icon: string, lib: string, color: string) => {
-    switch (lib) {
+  const formatDuration = (start: Date, end: Date) => {
+    const diffMs = end.getTime() - start.getTime();
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""}`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+    return `${seconds} second${seconds !== 1 ? "s" : ""}`;
+  };
+
+  const renderIcon = (category: string, color: string) => {
+    const iconObj = getIcon[category] || getIcon["Other"];
+    const { icon, library } = iconObj;
+
+    switch (library) {
       case "FontAwesome":
-        return <FontAwesome name={icon} size={24} color="#fff" />;
+        return <FontAwesome name={icon} size={24} color={color} />;
       case "MaterialCommunityIcons":
-        return <MaterialCommunityIcons name={icon} size={24} color="#fff" />;
+        return <MaterialCommunityIcons name={icon} size={24} color={color} />;
       case "MaterialIcons":
+        return <Icon name={icon} size={24} color={color} />;
+      case "FontAwesome5":
+        return <FontAwesome5 name={icon} size={24} color={color} />;
+      case "Feather":
+        return <Feather name={icon} size={24} color={color} />;
       default:
-        return <Icon name={icon} size={24} color="#fff" />;
+        return <Icon name="help" size={24} color={color} />;
     }
   };
 
-  const renderItem = ({ item }: any) => (
-    <Swipeable renderRightActions={() => renderRightActions(item.id)}>
-      <View style={styles.taskContainer}>
-        <View style={[styles.iconBox, { backgroundColor: item.bg }]}>
-          {renderIcon(item.icon, item.iconLib, "#fff")}
+  const renderItem = ({ item, index }: any) => {
+    const formattedStart = new Date(item.createdAt).toLocaleTimeString();
+    const duration = formatDuration(
+      new Date(item.createdAt),
+      new Date(item.endAt)
+    );
+    return (
+      <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+        <View style={styles.taskContainer}>
+          <View
+            style={[
+              styles.iconBox,
+              { backgroundColor: getIcon[item.category].backgroundColor },
+            ]}
+          >
+            {renderIcon(item.category, "#fff")}
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>{item.title}</Text>
+            <View style={styles.timeInfoWrapper}>
+              <Text style={styles.duration}>{formattedStart}</Text>
+              <Text style={styles.duration}>{duration}</Text>
+            </View>
+          </View>
         </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.duration}>{item.duration}</Text>
-        </View>
-        <TouchableOpacity style={styles.playButton}>
-          <Icon name="play-arrow" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    </Swipeable>
-  );
+      </Swipeable>
+    );
+  };
+  console.log(data.length, "dt")
 
+  if (!loading && data.length === 0){
+    return <NoDataPomodoro />
+  }
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#fff", padding: 20}}>
-      <BackButtonHeader title={'Past Sessions'} />
+    <GestureHandlerRootView style={{ flex: 1, padding: 20 }}>
+      <BackButtonHeader title="Pomodoro History" />
       <View style={styles.contentWrapper}>
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
       </View>
     </GestureHandlerRootView>
   );
@@ -83,7 +136,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   contentWrapper: {
-    marginVertical: 10
+    marginVertical: 10,
   },
   taskContainer: {
     flexDirection: "row",
@@ -109,6 +162,11 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
+    gap: 5,
+  },
+  timeInfoWrapper: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   title: {
     fontSize: 16,

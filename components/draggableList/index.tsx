@@ -15,32 +15,35 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MaterialIcons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ProgressBar from "../progressBar";
-
-const initialTasks = [
-  { id: "1", title: "Buy groceries", completed: false },
-  { id: "2", title: "Work on React Native project", completed: false },
-  { id: "3", title: "Read a book", completed: false },
-  { id: "4", title: "Exercise for 30 minutes", completed: false },
-];
-
+import { updateChecklist } from "@/db/service/ChecklistService";
+import { ObjectId } from "bson";
+import { router } from "expo-router";
+import Toast from "react-native-toast-message";
 interface TodoProps {
   item: any;
   drag: any;
   isActive: boolean;
 }
 
+interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 interface DraggableListProps {
   checkboxStyles: ViewStyle;
   checkedStyles: ViewStyle;
-  tasksl: object;
+  items: Task[];
+  checklistID: any;
 }
 
 const DraggableList: React.FC<DraggableListProps> = ({
-  tasksl,
+  items,
   checkboxStyles,
   checkedStyles,
+  checklistID,
 }) => {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(Array.isArray(items) ? items : []);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const toggleComplete = (id: string) => {
@@ -78,6 +81,27 @@ const DraggableList: React.FC<DraggableListProps> = ({
   const handleOutsideClick = () => {
     setEditingTaskId(null);
     setTasks((prev) => prev.filter((t) => t.title != ""));
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateChecklist(new ObjectId(checklistID), {
+        tasks: tasks.map((task) => ({
+          title: task.title,
+          isCompleted: task.completed,
+        })),
+      });
+      router.push("/checklistOverview");
+    } catch (error) {
+      console.error("Failed to update checklist:", error);
+    }
+  };
+
+  const handleShowToast = () => {
+    Toast.show({
+      type: "success",
+      text1: `checklist updated successfully`,
+    });
   };
 
   const renderItem: React.FC<TodoProps> = ({ item, drag, isActive }) => {
@@ -142,7 +166,6 @@ const DraggableList: React.FC<DraggableListProps> = ({
       <TouchableWithoutFeedback onPress={handleOutsideClick}>
         <View style={{ flex: 1 }}>
           <View style={styles.headerContainer}>
-            <Text style={styles.title}>Today</Text>
             <View style={styles.actions}>
               <TouchableOpacity onPress={addTask}>
                 <Icon name="add" size={26} color="#333" />
@@ -155,17 +178,22 @@ const DraggableList: React.FC<DraggableListProps> = ({
                   style={styles.settingsIcon}
                 />
               </TouchableOpacity>
+              <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
             </View>
           </View>
-          <ProgressBar activeColor="#F4A261" showStatus={false} progress={70}/>
-          <DraggableFlatList
-            scrollEnabled={false}
-            data={tasks}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            onDragEnd={({ data }) => setTasks(data)}
-            containerStyle={{ flex: 1 }}
-          />
+          <ProgressBar activeColor="#F4A261" showStatus={false} progress={70} />
+          {tasks && Array.isArray(tasks) && (
+            <DraggableFlatList
+              scrollEnabled={false}
+              data={tasks}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              onDragEnd={({ data }) => setTasks(data)}
+              containerStyle={{ flex: 1 }}
+            />
+          )}
         </View>
       </TouchableWithoutFeedback>
     </GestureHandlerRootView>
@@ -186,6 +214,10 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: "row",
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+
   },
   settingsIcon: {
     marginLeft: 16,
@@ -222,6 +254,19 @@ const styles = StyleSheet.create({
     borderColor: "gray",
     padding: 2,
     marginLeft: 10,
+  },
+  saveButton: {
+    backgroundColor: "#4CAF50",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    margin: 16,
+  },
+
+  saveText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
 

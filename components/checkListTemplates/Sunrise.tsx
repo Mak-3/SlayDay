@@ -4,24 +4,14 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import PageLayout from '../pageLayout';
 import DraggableList from '../draggableList';
 import TimelineList from '../timelineList';
-import ProgressBar from '../progressBar';
 import BackButtonHeader from '../backButtonHeader';
 
-const tasks = [
-  { id: '1', text: 'Have a glass of water.', time: '07:00' },
-  { id: '2', text: 'Morning jogging.', time: '07:30' },
-  { id: '3', text: 'Have lunch with Jenny.', time: '12:00' },
-  { id: '4', text: 'Send email to Tim.', time: '13:30' },
-  { id: '5', text: 'Supermarket shopping list.', time: '15:00' },
-  { id: '6', text: 'Grandma’s birthday.', time: '21:00' },
-];
-
-const Sunrise = () => {
+const Sunrise = ({checklistData}: any) => {
+  const tasks = checklistData.tasks;
   return (
     <PageLayout style={styles.container}>
-      <BackButtonHeader/>
-        <DraggableList tasksl={{}} checkboxStyles={styles.checkbox} checkedStyles={styles.checked}/>
-        {/* <TimelineList/> */}
+      <BackButtonHeader title={checklistData.title}/>
+        <DraggableList checklistID={checklistData._id} items={tasks} checkboxStyles={styles.checkbox} checkedStyles={styles.checked}/>
     </PageLayout>
   );
 };

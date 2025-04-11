@@ -21,45 +21,35 @@ const ChecklistScreen = () => {
         setLoading(false);
       }
     };
-
     if (id) {
       fetchChecklist();
     }
   }, [id]);
 
-//   if (loading) {
-//     return (
-//       <PageLayout>
-//         <ActivityIndicator size="large" />
-//       </PageLayout>
-//     );
-//   }
+  if (loading) {
+    return (
+      <PageLayout>
+        <ActivityIndicator size="large" />
+      </PageLayout>
+    );
+  }
 
-//   if (!checklist) {
-//     return (
-//       <PageLayout>
-//         <Text style={styles.errorText}>Checklist not found.</Text>
-//       </PageLayout>
-//     );
-//   }
+  if (!checklist) {
+    return (
+      <PageLayout>
+        <Text style={styles.errorText}>Checklist not found.</Text>
+      </PageLayout>
+    );
+  }
 
   return (
-    <PageLayout>
-      <Text style={styles.title}>{checklist?.title ? checklist?.title : "Todo List"}</Text>
-      <Sunrise />
-    </PageLayout>
+    <Sunrise checklistData={checklist}/>
   );
 };
 
 export default ChecklistScreen;
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
   errorText: {
     padding: 20,
     fontSize: 16,

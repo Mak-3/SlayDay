@@ -21,30 +21,30 @@ const CreatePomodoroScreen = () => {
   const [taskType, setTaskType] = useState("Pomodoro");
   const [selectedTime, setSelectedTime] = useState(25);
   const [customTime, setCustomTime] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Work");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [isCustomTime, setIsCustomTime] = useState(false);
 
-  const predefinedTimes = [5, 10, 15, 30, 45, 60, 120, "Custom"];
+  const predefinedTimes = [5, 10, 15, 25, 30, 45, 60, 120, "Custom"];
   const categories = [
     "Work",
     "Study",
-    "Exercise",
     "Coding",
-    "Music",
-    "Gaming",
     "Learning",
-    "Social",
-    "Hobbies",
-    "Meditation",
-    "Self-Improvement",
-    "Food & Cooking",
-    "Creativity",
     "Reading",
     "Writing",
+    "Self-Improvement",
     "Personal",
+    "Meditation",
+    "Exercise",
+    "Creativity",
+    "Hobbies",
+    "Music",
+    "Food & Cooking",
+    "Social",
+    "Gaming",
     "Other",
-  ];
+  ];  
 
   const handleCreatePomodoro = async () => {
     const timeToSave = isCustomTime ? Number(customTime) : selectedTime;
@@ -86,6 +86,7 @@ const CreatePomodoroScreen = () => {
             value={title}
             onChangeText={setTitle}
             maxLength={30}
+            required={true}
           />
 
           <Text style={styles.label}>Task Type</Text>

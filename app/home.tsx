@@ -10,6 +10,7 @@ import Button from "@/components/button";
 import { router } from "expo-router";
 import CalendarScreen from "@/components/calenderView";
 import PageLayout from "@/components/pageLayout";
+import { clearRealmDatabase } from "@/db/service/ChecklistService";
 
 const tasks = [
   { id: "1", title: "Finish React Native Project", due: "Today" },
@@ -32,7 +33,8 @@ const Home = () => {
         <Progress />
       </Animated.View>
 
-      <Button onPress={() => handleNavigation("/checklistScreen")} title="pomodoro" />
+      <Button onPress={() => handleNavigation("/checklistOverview")} title="pomodoro" />
+      <Button onPress={() => clearRealmDatabase()} title="clear db" style={{marginVertical: 20}}/>
       <CalendarScreen/>
       <FloatingMenu onMenuToggle={setIsMenuOpen} />
     </PageLayout>
@@ -41,8 +43,7 @@ const Home = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    paddingHorizontal: 20,
+    backgroundColor: '#ffffff'
   },
   content: {
     flex: 1,

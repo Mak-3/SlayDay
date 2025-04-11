@@ -24,11 +24,12 @@ const CreateChecklist = () => {
     try {
       const checklistId = await createChecklist({
         title: title,
-        Description: description,
+        description: description,
         taskType: "OneTime",
         category: "General",
         createdAt: Date.now(),
         endAt: 0,
+        isCompleted: false,
         tasks: [],
       });
 
@@ -48,7 +49,7 @@ const CreateChecklist = () => {
 
   return (
     <PageLayout style={styles.container}>
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} style={{backgroundColor: 'red'}}>
         <View>
           <BackButtonHeader title="Create Checklist" />
           <Text style={styles.label}>Title</Text>

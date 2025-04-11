@@ -10,6 +10,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   FlatList,
+  Pressable,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import PageLayout from "@/components/pageLayout";
@@ -21,18 +22,15 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 const CreateEventScreen = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState(new Date());
-  const [startTime, setStartTime] = useState(new Date());
-
-  const [repeat, setRepeat] = useState(false);
-  const [repeatType, setRepeatType] = useState("");
-  const [customInterval, setCustomInterval] = useState("");
+  const [date, setDate] = useState(new Date());
+  const [time, setTime] = useState(new Date());
   const [selectedCategory, setSelectedCategory] = useState("");
+
+  const [repeatType, setRepeatType] = useState("");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagsText, setTagsText] = useState("");
+  const [interval, setInterval] = useState("1");
 
   const [isOneTime, setIsOneTime] = useState(true);
   const categories = [
@@ -43,40 +41,43 @@ const CreateEventScreen = () => {
     "Meeting",
     "Health",
   ];
-  const repeatOptions = ["Daily", "Weekly", "Monthly", "Yearly", "Custom"];
+  const repeatOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
+  const weekdaysList = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const [weekDays, setWeekDays] = useState<Record<string, boolean>>({
+    Mon: false,
+    Tue: true,
+    Wed: false,
+    Thu: false,
+    Fri: false,
+    Sat: false,
+    Sun: false,
+  });
 
   const handleCreateEvent = () => {
     const combinedDateTime = new Date(
-      startDate.getFullYear(),
-      startDate.getMonth(),
-      startDate.getDate(),
-      startTime.getHours(),
-      startTime.getMinutes()
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      time.getHours(),
+      time.getMinutes()
     );
 
     console.log({
       title,
       description,
-      startDate: startDate.toDateString(),
-      startTime: startTime.toTimeString(),
+      date: date.toDateString(),
+      time: time.toTimeString(),
       combinedDateTime: combinedDateTime.toISOString(),
-      repeat,
       repeatType,
-      customInterval,
-      tags,
     });
   };
 
   const handleCancel = () => {
     setTitle("");
     setDescription("");
-    setStartDate(new Date());
-    setStartTime(new Date());
-    setRepeat(false);
+    setDate(new Date());
+    setTime(new Date());
     setRepeatType("");
-    setCustomInterval("");
-    setTags([]);
-    setTagsText("");
   };
 
   const formatDateTime = (date: Date, type: string) => {
@@ -91,16 +92,65 @@ const CreateEventScreen = () => {
     }
   };
 
-  const handleTagsChange = (text: string) => {
-    setTagsText(text);
-
-    const newTags = text
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
-
-    setTags(newTags);
+  const handleWeekDaySelection = (day: string) => {
+    setWeekDays((prev) => ({ ...prev, [day]: !prev[day] }));
   };
+
+  const renderDaily = () => (
+    <View>
+      <Text style={styles.label}>Frequency</Text>
+      <CustomTextInput
+        keyboardType="numeric"
+        value={interval}
+        onChangeText={setInterval}
+        placeholder="Enter interval in days"
+      />
+      <Text style={styles.helper}>
+        * Task will repeat every{" "}
+        {interval == "1" || interval == "" ? "day" : interval + " days"}
+      </Text>
+    </View>
+  );
+
+  const renderWeekly = () => (
+    <View>
+      <Text style={styles.label}>Every</Text>
+      <CustomTextInput
+        keyboardType="numeric"
+        value={interval}
+        placeholder="Enter interval in weeks"
+        onChangeText={setInterval}
+      />
+      <Text style={styles.label}>week(s) on:</Text>
+      <View style={styles.weekContainer}>
+        {weekdaysList.map((day) => (
+          <Pressable
+            key={day}
+            style={[styles.dayBox, weekDays[day] && styles.dayBoxSelected]}
+            onPress={() => handleWeekDaySelection(day)}
+          >
+            <Text style={styles.dayText}>{day}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+
+  const renderMonthly = () => (
+    <View>
+      <Text style={styles.label}>Every</Text>
+      <CustomTextInput
+        keyboardType="numeric"
+        value={interval}
+        onChangeText={setInterval}
+        placeholder="Enter interval in months"
+      />
+      <Text style={styles.helper}>
+        * Task will repeat every{" "}
+        {interval == "1" || interval == "" ? "month" : interval + " months"}
+      </Text>
+    </View>
+  );
 
   return (
     <PageLayout style={styles.container}>
@@ -165,7 +215,7 @@ const CreateEventScreen = () => {
           </Modal>
           <View style={styles.dateTimeWrapper}>
             <View style={styles.dateTimeField}>
-              <Text style={styles.label}>Start Date</Text>
+              <Text style={styles.label}>Date</Text>
               <TouchableOpacity
                 style={[
                   styles.input,
@@ -173,14 +223,14 @@ const CreateEventScreen = () => {
                 ]}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text style={{ color: startDate ? "#333" : "#999" }}>
-                  {formatDateTime(startDate, "Date")}
+                <Text style={{ color: date ? "#333" : "#999" }}>
+                  {formatDateTime(date, "Date")}
                 </Text>
                 <Icon name="calendar-today" size={18} color="#555" />
               </TouchableOpacity>
             </View>
             <View style={styles.dateTimeField}>
-              <Text style={styles.label}>Start Time</Text>
+              <Text style={styles.label}>Time</Text>
               <TouchableOpacity
                 style={[
                   styles.input,
@@ -188,8 +238,8 @@ const CreateEventScreen = () => {
                 ]}
                 onPress={() => setShowTimePicker(true)}
               >
-                <Text style={{ color: startTime ? "#333" : "#999" }}>
-                  {formatDateTime(startTime, "Time")}
+                <Text style={{ color: time ? "#333" : "#999" }}>
+                  {formatDateTime(time, "Time")}
                 </Text>
                 <Icon name="access-time" size={20} color="#555" />
               </TouchableOpacity>
@@ -197,13 +247,13 @@ const CreateEventScreen = () => {
           </View>
           {showDatePicker && Platform.OS === "android" && (
             <DateTimePicker
-              value={startDate}
+              value={date}
               mode="date"
               display="default"
               onChange={(event, selectedDate) => {
                 setShowDatePicker(false);
                 if (selectedDate) {
-                  setStartDate(selectedDate);
+                  setDate(selectedDate);
                 }
               }}
             />
@@ -222,11 +272,11 @@ const CreateEventScreen = () => {
                 <View style={styles.modalOverlay}>
                   <View style={styles.pickerContainer}>
                     <DateTimePicker
-                      value={startDate}
+                      value={date}
                       mode="date"
                       display="spinner"
                       onChange={(event, selectedDate) => {
-                        if (selectedDate) setStartDate(selectedDate);
+                        if (selectedDate) setDate(selectedDate);
                       }}
                     />
                     <TouchableOpacity
@@ -243,13 +293,13 @@ const CreateEventScreen = () => {
 
           {showTimePicker && Platform.OS === "android" && (
             <DateTimePicker
-              value={startTime}
+              value={time}
               mode="time"
               display="default"
               onChange={(event, selectedTime) => {
                 setShowTimePicker(false);
                 if (selectedTime) {
-                  setStartTime(selectedTime);
+                  setTime(selectedTime);
                 }
               }}
             />
@@ -268,11 +318,11 @@ const CreateEventScreen = () => {
                 <View style={styles.modalOverlay}>
                   <View style={styles.pickerContainer}>
                     <DateTimePicker
-                      value={startTime}
+                      value={time}
                       mode="time"
                       display="spinner"
                       onChange={(event, selectedTime) => {
-                        if (selectedTime) setStartTime(selectedTime);
+                        if (selectedTime) setTime(selectedTime);
                       }}
                     />
                     <TouchableOpacity
@@ -286,13 +336,6 @@ const CreateEventScreen = () => {
               </TouchableWithoutFeedback>
             </Modal>
           )}
-
-          <Text style={styles.label}>Tags</Text>
-          <CustomTextInput
-            placeholder="Comma-separated tags, e.g. Finance, Credit Card"
-            value={tagsText}
-            onChangeText={handleTagsChange}
-          />
 
           <Text style={styles.label}>Task Type</Text>
           <View style={styles.toggleContainer}>
@@ -310,7 +353,7 @@ const CreateEventScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {repeat && (
+          {!isOneTime && (
             <>
               <Text style={styles.label}>Repeat Type</Text>
               <View style={styles.repeatTypeContainer}>
@@ -327,18 +370,9 @@ const CreateEventScreen = () => {
                   </TouchableOpacity>
                 ))}
               </View>
-
-              {repeatType === "Custom" && (
-                <CustomTextInput
-                  placeholder="Enter custom interval in days"
-                  value={customInterval}
-                  onChangeText={(text) => {
-                    const numericValue = text.replace(/[^0-9]/g, "");
-                    setCustomInterval(numericValue);
-                  }}
-                  keyboardType="numeric"
-                />
-              )}
+              {repeatType == "Daily" && renderDaily()}
+              {repeatType == "Weekly" && renderWeekly()}
+              {repeatType == "Monthly" && renderMonthly()}
             </>
           )}
 
@@ -447,6 +481,25 @@ const styles = StyleSheet.create({
     color: "#333",
     fontSize: 14,
   },
+  weekContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8,
+  },
+  dayBox: {
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  dayBoxSelected: {
+    backgroundColor: CrimsonLuxe.primary100,
+    borderColor: CrimsonLuxe.primary300,
+  },
+  dayText: { color: "#000" },
+  helper: { fontSize: 12, color: "#777" },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",

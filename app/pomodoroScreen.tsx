@@ -12,21 +12,28 @@ import {
   Keyboard,
 } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
-import { FontAwesome5 } from "@expo/vector-icons";
 import PageLayout from "@/components/pageLayout";
 import LottieView from "lottie-react-native";
 import { CrimsonLuxe } from "@/constants/Colors";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 import Icon from "react-native-vector-icons/MaterialIcons";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import Feather from "react-native-vector-icons/Feather";
 import { createPomodoro } from "@/db/service/PomodoroService";
+import { getIcon } from "@/constants/IconsMapping";
 
 const deviceWidth = Dimensions.get("window").width;
 
+type params = {
+  title: string,
+  time: string,
+  category: string
+}
 const PomodoroUI = () => {
-  const { title, time: routeTime, category } = useLocalSearchParams();
+  const { title, time: routeTime, category } = useLocalSearchParams<params>();
   const parsedTime = parseInt(routeTime as string) || 300;
 
   const [time, setTime] = useState(parsedTime);
@@ -34,13 +41,13 @@ const PomodoroUI = () => {
   const [isTimerStarted, setIsTimerStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [taskTitle, setTaskTitle] = useState(
-    (title as string) || "My Focus Task"
+    title || "My Focus Task"
   );
   const [isEditing, setIsEditing] = useState(false);
   const [showLogPrompt, setShowLogPrompt] = useState(false);
   const [showResetPrompt, setShowResetPrompt] = useState(false);
-  const [startDateTime, setStartDateTime] = useState(0);
-  const [endDateTime, setEndDateTime] = useState(0);
+  const [startDateTime, setStartDateTime] = useState<Date | null>(null);
+  const [endDateTime, setEndDateTime] = useState<Date | null>(null);
   const [showDoneModal, setShowDoneModal] = useState(false);
 
   useEffect(() => {
@@ -68,8 +75,8 @@ const PomodoroUI = () => {
     if (!isTimerStarted) {
       setIsTimerStarted(true);
       setIsPaused(false);
-      if (startDateTime === 0) {
-        setStartDateTime(Date.now());
+      if (!startDateTime) {
+        setStartDateTime(new Date());
       }
     }
   };
@@ -78,30 +85,33 @@ const PomodoroUI = () => {
   const handleResume = () => setIsPaused(false);
 
   const handleEndNow = () => {
-    setEndDateTime(Date.now());
+    setEndDateTime(new Date());
     setShowLogPrompt(true);
     setIsPaused(true);
   };
 
   const handleLogYes = async () => {
-    try {
-      await createPomodoro({
-        title: taskTitle,
-        taskType: "Pomodoro",
-        time: time,
-        category: category as string,
-        createdAt: startDateTime,
-        endAt: endDateTime
-      });
-    } catch (error) {
-      console.error("Failed to create Pomodoro:", error);
-      alert("Something went wrong while creating the Pomodoro.");
+    if (startDateTime && endDateTime) {
+      try {
+        await createPomodoro({
+          title: taskTitle,
+          taskType: "Pomodoro",
+          time: time,
+          category: category,
+          createdAt: startDateTime,
+          endAt: endDateTime,
+        });
+        router.push('/pomodoroSessions');
+      } catch (error) {
+        console.error("Failed to create Pomodoro:", error);
+        alert("Something went wrong while creating the Pomodoro.");
+      }
+      setShowLogPrompt(false);
+      setIsEditing(false);
+      setIsTimerStarted(false);
+      setRemaining(time);
+      setStartDateTime(null);
     }
-    setShowLogPrompt(false);
-    setIsEditing(false);
-    setIsTimerStarted(false);
-    setRemaining(time);
-    setStartDateTime(0);
   };
 
   const handleLogNo = () => {
@@ -109,8 +119,8 @@ const PomodoroUI = () => {
     setIsEditing(false);
     setIsTimerStarted(false);
     setRemaining(time);
-    setStartDateTime(0);
-    setEndDateTime(0);
+    setStartDateTime(null);
+    setEndDateTime(null);
   };
 
   const handleResetPress = () => {
@@ -122,27 +132,35 @@ const PomodoroUI = () => {
     setRemaining(time);
     setIsPaused(false);
     setIsTimerStarted(false);
-    setStartDateTime(0);
-    setEndDateTime(0);
+    setStartDateTime(null);
+    setEndDateTime(null);
     setShowResetPrompt(false);
   };
 
   const cancelReset = () => {
     setShowResetPrompt(false);
-    setIsPaused(true); // Keep paused as per request
+    setIsPaused(true);
   };
 
   const fill = isTimerStarted ? ((time - remaining) / time) * 100 : 0;
 
-  const renderIcon = (icon: string, lib: string, color: string) => {
-    switch (lib) {
+  const renderIcon = (category: string, color: string) => {
+    const iconObj = getIcon[category] || getIcon["Other"];
+    const { icon, library } = iconObj;
+
+    switch (library) {
       case "FontAwesome":
-        return <FontAwesome name={icon} size={24} color="#fff" />;
+        return <FontAwesome name={icon} size={24} color={color} />;
       case "MaterialCommunityIcons":
-        return <MaterialCommunityIcons name={icon} size={24} color="#fff" />;
+        return <MaterialCommunityIcons name={icon} size={24} color={color} />;
       case "MaterialIcons":
+        return <Icon name={icon} size={24} color={color} />;
+      case "FontAwesome5":
+        return <FontAwesome5 name={icon} size={24} color={color} />;
+      case "Feather":
+        return <Feather name={icon} size={24} color={color} />;
       default:
-        return <Icon name={icon} size={24} color="#fff" />;
+        return <Icon name="help" size={24} color={color} />;
     }
   };
 
@@ -150,7 +168,7 @@ const PomodoroUI = () => {
     <PageLayout style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
-          <BackButtonHeader title="Pomodoro Session" />
+          <BackButtonHeader title="Pomodoro Session"/>
           <View style={styles.taskContainer}>
             <View
               style={[
@@ -158,11 +176,11 @@ const PomodoroUI = () => {
                 { backgroundColor: CrimsonLuxe.primary400 },
               ]}
             >
-              {renderIcon("book", "FontAwesome", "#fff")}
+              {renderIcon(category, "#FFFFFF")}
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.title}>{taskTitle}</Text>
-              <Text style={styles.duration}>{time} minutes</Text>
+              <Text style={styles.duration}>{Math.floor(time / 60)} minutes</Text>
             </View>
           </View>
 

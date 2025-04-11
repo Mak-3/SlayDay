@@ -13,8 +13,8 @@ export const createPomodoro = async ({
   taskType: string;
   time: number;
   category: string;
-  createdAt: number;
-  endAt: number
+  createdAt: Date;
+  endAt: Date
 }) => {
   const realm = await getRealm();
   try {
@@ -30,14 +30,25 @@ export const createPomodoro = async ({
       });
     });
   } finally {
-    realm.close();
+    
   }
 };
 
 export const getAllPomodoros = async () => {
   const realm = await getRealm();
   const pomodoros = realm.objects("Pomodoro").sorted("createdAt", true);
-  return pomodoros;
+
+  const normalized = pomodoros.map((item: any) => ({
+    id: item._id,
+    title: item.title,
+    taskType: item.taskType,
+    time: item.time,
+    category: item.category,
+    createdAt: item.createdAt,
+    endAt: item.endAt,
+  }));
+
+  return normalized;
 };
 
 export const updatePomodoro = async (
@@ -58,7 +69,7 @@ export const updatePomodoro = async (
       });
     }
   } finally {
-    realm.close();
+    
   }
 };
 
@@ -72,6 +83,6 @@ export const deletePomodoro = async (id: ObjectId) => {
       });
     }
   } finally {
-    realm.close();
+    
   }
 };

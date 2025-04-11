@@ -1,11 +1,12 @@
 import { CrimsonLuxe } from "@/constants/Colors";
 import React, { useState } from "react";
-import { TextInput, StyleSheet } from "react-native";
+import { TextInput, StyleSheet, Text, View } from "react-native";
 
 interface CustomTextInputProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder: string;
+  required?: boolean;
   [key: string]: any;
 }
 
@@ -13,20 +14,43 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   value,
   onChangeText,
   placeholder,
+  required,
   ...rest
 }) => {
   const [isFocussed, setIsFocussed] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleBlur = () => {
+    setIsFocussed(false);
+    if (required && !value.trim()) {
+      setError("This field is important");
+    } else {
+      setError("");
+    }
+  };
 
   return (
-    <TextInput
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      style={[styles.input, isFocussed && styles.focusedInput]}
-      onFocus={() => setIsFocussed(true)}
-      onBlur={() => setIsFocussed(false)}
-      {...rest}
-    />
+    <View>
+      <TextInput
+        value={value}
+        onChangeText={(text) => {
+          onChangeText(text);
+          if (required && text.trim()) {
+            setError("");
+          }
+        }}
+        placeholder={placeholder}
+        style={[
+          styles.input,
+          isFocussed && styles.focusedInput,
+          error && styles.errorInput,
+        ]}
+        onFocus={() => setIsFocussed(true)}
+        onBlur={handleBlur}
+        {...rest}
+      />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    </View>
   );
 };
 
@@ -46,6 +70,14 @@ const styles = StyleSheet.create({
   focusedInput: {
     backgroundColor: CrimsonLuxe.primary100,
     borderColor: CrimsonLuxe.primary300,
+  },
+  errorInput: {
+    borderColor: "red",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginLeft: 4,
   },
 });
 

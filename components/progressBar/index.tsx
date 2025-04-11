@@ -9,7 +9,7 @@ interface ProgressBarProps {
 }
 
 const TOTAL_BARS = 5;
-const BAR_HEIGHT = 10;
+const BAR_HEIGHT = 5;
 const BAR_WIDTH = 50;
 const BAR_GAP = 10;
 

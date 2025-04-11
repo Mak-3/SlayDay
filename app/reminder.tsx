@@ -62,7 +62,7 @@ const EventsLanding = () => {
 
         <TouchableOpacity
           style={styles.startButton}
-          onPress={() => handleNavigation("/createReminder")}
+          onPress={() => handleNavigation("/createEvent")}
         >
           <Text style={styles.startButtonText}>Create Reminder</Text>
         </TouchableOpacity>
@@ -117,7 +117,7 @@ const EventsLanding = () => {
 
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => handleNavigation("/createReminder")}
+            onPress={() => handleNavigation("/createEvent")}
           >
             <Text style={styles.addButtonText}>Create Reminder</Text>
           </TouchableOpacity>
