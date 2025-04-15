@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider, Theme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter, Slot } from 'expo-router'; // ✅ Ensure Slot is imported
+import { Stack, useRouter, Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -76,9 +76,13 @@ export default function RootLayout() {
     <ThemeProvider value={theme}>
       <SafeAreaView style={{flex: 1}}>
       <Stack>
-        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="intro" options={{ headerShown: false }} />
+
+        <Stack.Screen name="signIn" options={{ headerShown: false }} />
+        <Stack.Screen name="signUp" options={{ headerShown: false }} />
 
         <Stack.Screen name="home" options={{ headerShown: false }} />
+        <Stack.Screen name="calender" options={{ headerShown: false }} />
 
         <Stack.Screen name="pomodoro" options={{ headerShown: false }} />
         <Stack.Screen name="createPomodoro" options={{ headerShown: false }} />
@@ -94,15 +98,14 @@ export default function RootLayout() {
         <Stack.Screen name="checkList" options={{ headerShown: false }} />
         <Stack.Screen name="checklistOverview" options={{ headerShown: false }} />
 
-        <Stack.Screen name="editProfile" options={{ headerShown: false }} />
-        <Stack.Screen name="tasks" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-        <Stack.Screen name="createNotes" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
-        <Stack.Screen name="routine" options={{ headerShown: false }} />
+        <Stack.Screen name="editProfile" options={{ headerShown: false }} />
+
+        <Stack.Screen name="createNotes" options={{ headerShown: false }} />
       </Stack>
       </SafeAreaView>
-      {/* <Slot /> ✅ Ensure Slot is included for proper navigation */}
+
       <StatusBar style={themeName === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>
   );

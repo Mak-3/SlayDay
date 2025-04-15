@@ -12,7 +12,7 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import ProgressBar from "../progressBar";
 import { updateChecklist } from "@/db/service/ChecklistService";
@@ -104,6 +104,14 @@ const DraggableList: React.FC<DraggableListProps> = ({
     });
   };
 
+  const setChecklistDeadline = (id: string) => {
+
+  }
+
+  const setChecklistItemDeadline = () => {
+    
+  }
+
   const renderItem: React.FC<TodoProps> = ({ item, drag, isActive }) => {
     const isEditing = editingTaskId === item.id;
     return (
@@ -143,7 +151,6 @@ const DraggableList: React.FC<DraggableListProps> = ({
               {item.title}
             </Text>
           )}
-
           <TouchableOpacity
             onPress={() => toggleEdit(item.id)}
             style={styles.icons}
@@ -155,6 +162,16 @@ const DraggableList: React.FC<DraggableListProps> = ({
             style={styles.icons}
           >
             <MaterialIcons name="delete" size={20} color="red" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setChecklistItemDeadline()}
+            style={styles.icons}
+          >
+            <MaterialCommunityIcons
+              name="calendar-month-outline"
+              size={20}
+              color="gray"
+            />
           </TouchableOpacity>
         </TouchableOpacity>
       </ScaleDecorator>
@@ -170,12 +187,14 @@ const DraggableList: React.FC<DraggableListProps> = ({
               <TouchableOpacity onPress={addTask}>
                 <Icon name="add" size={26} color="#333" />
               </TouchableOpacity>
-              <TouchableOpacity>
-                <Icon
-                  name="settings"
+              <TouchableOpacity
+                onPress={() => setChecklistDeadline(checklistID)}
+                style={styles.settingsIcon}
+              >
+                <MaterialCommunityIcons
+                  name="calendar-month-outline"
                   size={26}
-                  color="#333"
-                  style={styles.settingsIcon}
+                  color="gray"
                 />
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
@@ -215,9 +234,8 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-
+    justifyContent: "flex-end",
+    alignItems: "center",
   },
   settingsIcon: {
     marginLeft: 16,

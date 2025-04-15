@@ -43,7 +43,6 @@ const PomodoroUI = () => {
   const [taskTitle, setTaskTitle] = useState(
     title || "My Focus Task"
   );
-  const [isEditing, setIsEditing] = useState(false);
   const [showLogPrompt, setShowLogPrompt] = useState(false);
   const [showResetPrompt, setShowResetPrompt] = useState(false);
   const [startDateTime, setStartDateTime] = useState<Date | null>(null);
@@ -107,7 +106,6 @@ const PomodoroUI = () => {
         alert("Something went wrong while creating the Pomodoro.");
       }
       setShowLogPrompt(false);
-      setIsEditing(false);
       setIsTimerStarted(false);
       setRemaining(time);
       setStartDateTime(null);
@@ -116,7 +114,6 @@ const PomodoroUI = () => {
 
   const handleLogNo = () => {
     setShowLogPrompt(false);
-    setIsEditing(false);
     setIsTimerStarted(false);
     setRemaining(time);
     setStartDateTime(null);
@@ -244,7 +241,7 @@ const PomodoroUI = () => {
                     style={styles.playButton}
                     onPress={handlePlay}
                   >
-                    <FontAwesome5 name="play" size={20} color="white" />
+                    <FontAwesome5 name="play" size={30} color="white" />
                   </TouchableOpacity>
                 )}
                 {isTimerStarted && !isPaused && (
@@ -252,7 +249,7 @@ const PomodoroUI = () => {
                     style={styles.playButton}
                     onPress={handlePause}
                   >
-                    <FontAwesome5 name="pause" size={20} color="white" />
+                    <FontAwesome5 name="pause" size={30} color="white" />
                   </TouchableOpacity>
                 )}
                 {isTimerStarted && isPaused && (
@@ -260,7 +257,7 @@ const PomodoroUI = () => {
                     style={styles.playButton}
                     onPress={handleResume}
                   >
-                    <FontAwesome5 name="play" size={20} color="white" />
+                    <FontAwesome5 name="play" size={30} color="white" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -338,7 +335,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   pomodoroContainer: { padding: 20, justifyContent: "center" },
   timerContainer: { alignItems: "center", marginVertical: 20 },
-  timerText: { fontSize: 40, fontWeight: "bold", color: "#1F2937" },
+  timerText: { fontSize: 48, fontWeight: "bold", color: "#1F2937" },
   actionButtons: {
     flexDirection: "row",
     justifyContent: "center",
@@ -359,8 +356,8 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   playButton: {
-    width: 100,
-    height: 100,
+    width: 90,
+    height: 90,
     backgroundColor: CrimsonLuxe.primary400,
     padding: 15,
     borderRadius: 100,

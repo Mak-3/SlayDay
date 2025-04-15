@@ -1,22 +1,32 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { Route, router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface HeaderProps {
+  route?: Route;
   title?: string;
 }
 
-const BackButtonHeader: React.FC<HeaderProps> = ({ title }) => {
+const BackButtonHeader: React.FC<HeaderProps> = ({ title, route }) => {
+  const handleNavigation = () => {
+    if(route){
+      router.push(route);
+    }
+    else{
+      router.back();
+    }
+  }
+
   return title ? (
     <View style={styles.headerWrapper}>
-      <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
+      <TouchableOpacity onPress={() => handleNavigation()} activeOpacity={0.7}>
         <Ionicons name="arrow-back" size={20} color="black" />
       </TouchableOpacity>
       <Text style={styles.header}>{title}</Text>
     </View>
   ) : (
-    <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
+    <TouchableOpacity onPress={() => handleNavigation()} activeOpacity={0.7}>
       <Ionicons name="arrow-back" size={20} color="black" />
     </TouchableOpacity>
   );

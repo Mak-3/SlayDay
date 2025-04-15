@@ -193,6 +193,7 @@ const CreateEventScreen = () => {
             transparent
             animationType="slide"
           >
+            <TouchableWithoutFeedback onPress={() => setCategoryModalVisible(false)}>
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <FlatList
@@ -212,6 +213,7 @@ const CreateEventScreen = () => {
                 />
               </View>
             </View>
+            </TouchableWithoutFeedback>
           </Modal>
           <View style={styles.dateTimeWrapper}>
             <View style={styles.dateTimeField}>

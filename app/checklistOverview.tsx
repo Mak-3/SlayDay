@@ -16,7 +16,7 @@ import { cardColors, Colors, CrimsonLuxe } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { getAllChecklists } from "../db/service/ChecklistService";
 import { router } from "expo-router";
-import NoData from "@/components/noData";
+import NoDataChecklist from "@/components/noDataChecklist";
 
 type Item = {
   title: string;
@@ -123,7 +123,7 @@ const checkList = () => {
   };
 
   if (checklists.length == 0) {
-    return <NoData />;
+    return <NoDataChecklist />;
   }
 
   return (

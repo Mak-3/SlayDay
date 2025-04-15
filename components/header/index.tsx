@@ -22,7 +22,7 @@ const Header = () => {
       </Text>
       <TouchableOpacity onPress={() => {goToProfile()}}>
         <Image
-          source={require("../../assets/images/react-logo.png")}
+          source={require("../../assets/images/testUser.png")}
           style={styles.profileImage}
         />
       </TouchableOpacity>

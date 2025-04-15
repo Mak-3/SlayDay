@@ -1,24 +1,36 @@
 import { CrimsonLuxe } from "@/constants/Colors";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TextInput, StyleSheet, Text, View } from "react-native";
 
 interface CustomTextInputProps {
+  name: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder: string;
   required?: boolean;
+  showError?: boolean;
   [key: string]: any;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
+  name,
   value,
   onChangeText,
   placeholder,
   required,
+  showError = false,
   ...rest
 }) => {
   const [isFocussed, setIsFocussed] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (showError && required && !value.trim()) {
+      setError(`${name} is important`);
+    } else {
+      setError("");
+    }
+  }, [showError, required, value]);
 
   const handleBlur = () => {
     setIsFocussed(false);

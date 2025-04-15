@@ -1,279 +1,175 @@
-import BackButtonHeader from "@/components/backButtonHeader";
-import { MaterialIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
+  Animated,
+  Dimensions,
   StyleSheet,
-  Modal,
-  TextInput,
-  Alert,
+  Text,
+  View,
+  TouchableOpacity,
 } from "react-native";
+import ChecklistSVG from "@/assets/svgs/Checklist.svg";
+import EventsSVG from "@/assets/svgs/Events.svg";
+import PomodoroSVG from "@/assets/svgs/Pomodoro.svg";
+import { CrimsonLuxe } from "@/constants/Colors";
+import { router } from "expo-router";
 
-const ToDoApp = () => {
-  
-  const [tasks, setTasks] = useState([
-    { id: "1", title: "Finish user onboarding", completed: false },
-    {
-      id: "2",
-      title: "Solve the Dabble prioritisation issue",
-      completed: false,
-    },
-    { id: "3", title: "Hold to reorder on mobile", completed: false },
-    { id: "4", title: "Update onboarding workflow templates", completed: true },
-    { id: "5", title: "Connect time tracking with tasks", completed: true },
-  ]);
-  
+const { width } = Dimensions.get("window");
+const PADDING_HORIZONTAL = 20;
+const CARD_WIDTH = width - PADDING_HORIZONTAL * 2;
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [currentTask, setCurrentTask] = useState("");
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+const slides = [
+  {
+    image: ChecklistSVG,
+    text: "Stay on top of your day with smart, simple checklists.",
+  },
+  {
+    image: EventsSVG,
+    text: "Create tasks with deadlines, mark important events, and set periodic reminders to stay organized and on track.",
+  },
+  {
+    image: PomodoroSVG,
+    text: "Improve your productivity through engaging timer challenges and the Pomodoro technique.",
+  },
+];
+EventsSVG;
+const Intro = () => {
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef<any>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const toggleComplete = (id: string) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-
-  const openAddTaskModal = () => {
-    setCurrentTask("");
-    setEditingTaskId(null);
-    setModalVisible(true);
-  };
-
-  const openEditTaskModal = (task: any) => {
-    setCurrentTask(task.title);
-    setEditingTaskId(task.id);
-    setModalVisible(true);
-  };
-
-  const handleSaveTask = () => {
-    if (!currentTask.trim()) {
-      Alert.alert("Task cannot be empty!");
-      return;
+  const handleNext = () => {
+    if (currentIndex < slides.length - 1) {
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      scrollViewRef.current?.scrollTo({
+        x: nextIndex * CARD_WIDTH,
+        animated: true,
+      });
     }
-
-    if (editingTaskId) {
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task.id === editingTaskId ? { ...task, title: currentTask } : task
-        )
-      );
-    } else {
-      const newTask = {
-        id: Date.now().toString(),
-        title: currentTask,
-        completed: false,
-      };
-      setTasks((prevTasks) => [...prevTasks, newTask]);
+    else{
+      router.replace('/signUp');
     }
-
-    setModalVisible(false);
-    setCurrentTask("");
-    setEditingTaskId(null);
   };
-
-  const handleDeleteTask = (id: string) => {
-    Alert.alert("Delete Task", "Are you sure you want to delete this task?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-        },
-      },
-    ]);
-  };
-
-  const renderTask = ({ item }: any) => (
-    <View style={[styles.taskCard, item.completed && styles.completedTaskCard]}>
-      <MaterialIcons name="drag-indicator" size={24} color="grey" />
-      <TouchableOpacity
-        onPress={() => toggleComplete(item.id)}
-        style={[styles.checkbox, item.completed && styles.checked]}
-      >
-        {item.completed && (
-          <MaterialIcons name="check" size={16} color="white" />
-        )}
-      </TouchableOpacity>
-
-      <View style={styles.taskContent}>
-        <Text
-          style={[styles.taskTitle, item.completed && styles.completedText]}
-        >
-          {item.title}
-        </Text>
-      </View>
-
-      <TouchableOpacity
-        onPress={() => openEditTaskModal(item)}
-        style={styles.iconButton}
-      >
-        <MaterialIcons name="edit" size={20} color="#4B5563" />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => handleDeleteTask(item.id)}
-        style={styles.iconButton}
-      >
-        <MaterialIcons name="delete" size={20} color="#DC2626" />
-      </TouchableOpacity>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
-      <BackButtonHeader />
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={openAddTaskModal}
-          style={styles.newTaskButton}
+      <View style={styles.carousel}>
+        <Animated.ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          scrollEnabled={false}
+          showsHorizontalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: false }
+          )}
+          scrollEventThrottle={16}
         >
-          <Text style={styles.newTaskText}>+ New Task</Text>
-        </TouchableOpacity>
+          {slides.map((item, index) => (
+            <View key={index} style={styles.card}>
+              <View style={styles.imageContainer}>
+                <item.image width={CARD_WIDTH * 0.8} height={300} />
+              </View>
+
+              <Text style={styles.text}>{item.text}</Text>
+            </View>
+          ))}
+        </Animated.ScrollView>
+
+        <View style={styles.dotContainer}>
+          {slides.map((_, index) => {
+            const dotWidth = scrollX.interpolate({
+              inputRange: [
+                (index - 1) * CARD_WIDTH,
+                index * CARD_WIDTH,
+                (index + 1) * CARD_WIDTH,
+              ],
+              outputRange: [14, 30, 14],
+              extrapolate: "clamp",
+            });
+
+            const dotColor = scrollX.interpolate({
+              inputRange: [
+                (index - 1) * CARD_WIDTH,
+                index * CARD_WIDTH,
+                (index + 1) * CARD_WIDTH,
+              ],
+              outputRange: ["#ccc", CrimsonLuxe.primary400, "#ccc"],
+              extrapolate: "clamp",
+            });
+
+            return (
+              <Animated.View
+                key={index}
+                style={[
+                  styles.dot,
+                  { width: dotWidth, backgroundColor: dotColor },
+                ]}
+              />
+            );
+          })}
+        </View>
       </View>
 
-      <FlatList
-        data={tasks}
-        keyExtractor={(item) => item.id}
-        renderItem={renderTask}
-        contentContainerStyle={styles.list}
-      />
-
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              {editingTaskId ? "Edit Task" : "Add New Task"}
-            </Text>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Enter task title"
-              value={currentTask}
-              onChangeText={setCurrentTask}
-            />
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                onPress={() => {
-                  setModalVisible(false);
-                  setCurrentTask("");
-                  setEditingTaskId(null);
-                }}
-                style={[styles.modalButton, styles.cancelButton]}
-              >
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleSaveTask}
-                style={[styles.modalButton, styles.saveButton]}
-              >
-                <Text style={styles.buttonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <Text style={styles.buttonText}>
+          {currentIndex === slides.length - 1 ? "Done" : "Next"}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
+export default Intro;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 16,
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: PADDING_HORIZONTAL
   },
-  newTaskButton: {
-    backgroundColor: "#4F46E5",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  carousel: {
+    flex: 1,
   },
-  newTaskText: { color: "#fff", fontWeight: "bold" },
-  list: { paddingBottom: 50 },
-  taskCard: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "#F9FAFB",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+  card: {
+    width: CARD_WIDTH,
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    paddingVertical: 40,
   },
-  completedTaskCard: { backgroundColor: "#F3F4F6" },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: "#D1D5DB",
-    borderRadius: 4,
-    marginRight: 16,
-    justifyContent: "center",
+  imageContainer: {
+    width: "100%",
     alignItems: "center",
   },
-  checked: { backgroundColor: "#4F46E5" },
-  taskContent: { flex: 1 },
-  taskTitle: {
+  text: {
+    fontSize: 24,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 36,
+    marginTop: 20,
+  },
+  dotContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: 20,
+  },
+  dot: {
+    height: 12,
+    borderRadius: 6,
+    marginHorizontal: 6,
+  },
+  button: {
+    backgroundColor: CrimsonLuxe.primary400,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginBottom: 30,
+  },
+  buttonText: {
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
-    color: "#111827",
-    marginBottom: 8,
   },
-  completedText: { textDecorationLine: "line-through", color: "#9CA3AF" },
-  iconButton: {
-    marginLeft: 8,
-    padding: 4,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    padding: 16,
-  },
-  modalContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-  },
-  modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
-  cancelButton: { backgroundColor: "#E5E7EB" },
-  saveButton: { backgroundColor: "#4F46E5" },
-  buttonText: { color: "#fff", fontWeight: "bold" },
 });
-
-export default ToDoApp;

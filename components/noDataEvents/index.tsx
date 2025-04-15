@@ -1,42 +1,34 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-import NoDataPomodoro from "@/assets/svgs/NoFocusSessions.svg";
-import PageLayout from "../pageLayout";
-import BackButtonHeader from "../backButtonHeader";
+import NoDataEventsSVG from "@/assets/svgs/NoEvents.svg";
 import { router } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
 
 export default function NotFoundScreen() {
   return (
-    <PageLayout style={styles.container}>
-      <BackButtonHeader />
+    <View style={styles.container}>
       <View style={styles.card}>
-        <NoDataPomodoro width={"100%"} height={350} maxWidth={450}/>
-        <Text style={styles.title}>No Focus Sessions Yet</Text>
+        <NoDataEventsSVG width={"90%"} height={300} maxWidth={450} />
+        <Text style={styles.title}>No Tasks</Text>
         <Text style={styles.subtitle}>
-        Ready to boost your productivity? Start a new focus session or try a timer challenge to stay on track and crush your goals!
+          Nothing scheduled. It's the perfect time to plan something awesome!
         </Text>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push("/createPomodoro")}
+          onPress={() => router.push("/createEvent")}
         >
-          <Text style={styles.buttonText}>Create New Session</Text>
+          <Text style={styles.buttonText}>Add New Task</Text>
         </TouchableOpacity>
       </View>
-    </PageLayout>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFFFF",
+    marginVertical: 20,
   },
   card: {
     flex: 1,
@@ -61,11 +53,10 @@ const styles = StyleSheet.create({
     backgroundColor: CrimsonLuxe.primary400,
     paddingVertical: 16,
     borderRadius: 12,
-    width: '100%',
+    width: "100%",
     maxWidth: 350,
-    justifyContent: 'center',
-    alignItems: 'center',
-
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
     color: "#fff",

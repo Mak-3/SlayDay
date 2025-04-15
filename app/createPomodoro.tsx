@@ -24,6 +24,7 @@ const CreatePomodoroScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState("Work");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [isCustomTime, setIsCustomTime] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
 
   const predefinedTimes = [5, 10, 15, 25, 30, 45, 60, 120, "Custom"];
   const categories = [
@@ -50,7 +51,7 @@ const CreatePomodoroScreen = () => {
     const timeToSave = isCustomTime ? Number(customTime) : selectedTime;
 
     if (!title || !timeToSave || !selectedCategory) {
-      alert("Please fill out all required fields.");
+      setShowErrors(true)
       return;
     }
     if (taskType == "Pomodoro") {
@@ -82,11 +83,13 @@ const CreatePomodoroScreen = () => {
 
           <Text style={styles.label}>Title</Text>
           <CustomTextInput
+            name="Title"
             placeholder="Task Name"
             value={title}
             onChangeText={setTitle}
             maxLength={30}
             required={true}
+            showError={showErrors}
           />
 
           <Text style={styles.label}>Task Type</Text>
@@ -148,10 +151,13 @@ const CreatePomodoroScreen = () => {
 
               {isCustomTime && (
                 <CustomTextInput
+                  name="Time"
                   placeholder="Enter custom time (min)"
                   keyboardType="numeric"
                   value={customTime}
                   onChangeText={setCustomTime}
+                  required={isCustomTime}
+                  showError={showErrors}
                 />
               )}
             </>
@@ -175,6 +181,7 @@ const CreatePomodoroScreen = () => {
             transparent
             animationType="slide"
           >
+            <TouchableWithoutFeedback onPress={() => setCategoryModalVisible(false)}>
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <FlatList
@@ -194,6 +201,7 @@ const CreatePomodoroScreen = () => {
                 />
               </View>
             </View>
+            </TouchableWithoutFeedback>
           </Modal>
 
           <View style={styles.buttonContainer}>

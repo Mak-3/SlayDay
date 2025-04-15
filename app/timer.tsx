@@ -25,8 +25,8 @@ const TimerPage = () => {
   const [isRunning, setIsRunning] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const [showLogPrompt, setShowLogPrompt] = useState(false);
-  const [startDateTime, setStartDateTime] = useState(0);
-  const [endDateTime, setEndDateTime] = useState(0);
+  const [startDateTime, setStartDateTime] = useState<any>();
+  const [endDateTime, setEndDateTime] = useState<any>(null);
 
   useEffect(() => {
     if (isRunning) {

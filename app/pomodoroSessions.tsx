@@ -1,5 +1,5 @@
 import BackButtonHeader from "@/components/backButtonHeader";
-import {CrimsonLuxe } from "@/constants/Colors";
+import { CrimsonLuxe } from "@/constants/Colors";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -20,7 +20,7 @@ import Feather from "react-native-vector-icons/Feather";
 
 import { getAllPomodoros } from "@/db/service/PomodoroService";
 import { getIcon } from "@/constants/IconsMapping";
-import NoDataPomodoro from "@/components/noData";
+import NoDataPomodoro from "@/components/noDataPomodoro";
 interface pomodoroSessions {
   id: any;
   title: string;
@@ -35,13 +35,24 @@ export default function App() {
   const [data, setData] = useState<pomodoroSessions[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const getDateString = (date: Date) => new Date(date).toDateString();
+
   useEffect(() => {
     const fetchPomodoroSessions = async () => {
-      setLoading(true);
-      const result = await getAllPomodoros();
-      setData(result);
-      setLoading(false);
+      try {
+        setLoading(true);
+        console.log("Fetching pomodoros...");
+        const result = await getAllPomodoros();
+        console.log("Fetched result:", result);
+        setData(result);
+      } catch (error) {
+        console.error("Error fetching pomodoros:", error);
+      } finally {
+        setLoading(false);
+        console.log("Loading set to false");
+      }
     };
+
     fetchPomodoroSessions();
   }, []);
 
@@ -87,40 +98,48 @@ export default function App() {
   };
 
   const renderItem = ({ item, index }: any) => {
+    const currentDate = getDateString(item.createdAt);
+    const prevDate =
+      index > 0 ? getDateString(data[index - 1].createdAt) : null;
+
+    const showDateHeader = index === 0 || currentDate !== prevDate;
     const formattedStart = new Date(item.createdAt).toLocaleTimeString();
     const duration = formatDuration(
       new Date(item.createdAt),
       new Date(item.endAt)
     );
     return (
-      <Swipeable renderRightActions={() => renderRightActions(item.id)}>
-        <View style={styles.taskContainer}>
-          <View
-            style={[
-              styles.iconBox,
-              { backgroundColor: getIcon[item.category].backgroundColor },
-            ]}
-          >
-            {renderIcon(item.category, "#fff")}
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>{item.title}</Text>
-            <View style={styles.timeInfoWrapper}>
-              <Text style={styles.duration}>{formattedStart}</Text>
-              <Text style={styles.duration}>{duration}</Text>
+      <>
+        {showDateHeader && <Text style={styles.dateHeader}>{currentDate}</Text>}
+        <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+          <View style={styles.taskContainer}>
+            <View
+              style={[
+                styles.iconBox,
+                { backgroundColor: getIcon[item.category].backgroundColor },
+              ]}
+            >
+              {renderIcon(item.category, "#fff")}
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>{item.title}</Text>
+              <View style={styles.timeInfoWrapper}>
+                <Text style={styles.duration}>{formattedStart}</Text>
+                <Text style={styles.duration}>{duration}</Text>
+              </View>
             </View>
           </View>
-        </View>
-      </Swipeable>
+        </Swipeable>
+      </>
     );
   };
-  console.log(data.length, "dt")
+  console.log(data.length, loading, "dt");
 
-  if (!loading && data.length === 0){
-    return <NoDataPomodoro />
+  if (!loading && data.length == 0) {
+    return <NoDataPomodoro />;
   }
   return (
-    <GestureHandlerRootView style={{ flex: 1, padding: 20 }}>
+    <GestureHandlerRootView style={{ flex: 1, padding: 20, backgroundColor: '#fff' }}>
       <BackButtonHeader title="Pomodoro History" />
       <View style={styles.contentWrapper}>
         <FlatList
@@ -172,6 +191,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#111827",
+  },
+  dateHeader: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#374151",
+    marginVertical: 8,
   },
   duration: {
     fontSize: 14,

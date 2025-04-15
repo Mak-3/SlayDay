@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
@@ -10,47 +10,68 @@ import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
 
-const FloatingMenu = ({onMenuToggle}: any) => {
-  const [isOpen, setIsOpen] = useState(false);
+const FloatingMenu = ({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: (val: boolean) => void;
+}) => {
   const translateY = useSharedValue(100);
+  const [visible, setVisible] = useState(false);
   const router = useRouter();
-  const toggleMenu = () => {
-    const newState = !isOpen;
-    translateY.value = newState ? withSpring(0) : withSpring(100);
-    onMenuToggle(newState); 
-    setTimeout(() => {
-      setIsOpen(newState);
-    }, 150);
-  };
+
+  useEffect(() => {
+    if (isOpen) {
+      setVisible(true);
+      translateY.value = withSpring(0);
+    } else {
+      translateY.value = withSpring(100);
+      setTimeout(() => setVisible(false), 200);
+    }
+  }, [isOpen]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
   }));
+
   const handleNavigation = (route: any) => {
-    toggleMenu()
+    setIsOpen(false);
     router.push(route);
-  }
+  };
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.floatingContainer}>
-        {isOpen && (
+        {visible && (
           <Animated.View style={[styles.menu, animatedStyle]}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createChecklist")}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => handleNavigation("/createChecklist")}
+            >
               <FontAwesome5 name="tasks" size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createPomodoro")}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => handleNavigation("/createPomodoro")}
+            >
               <FontAwesome5 name="hourglass-half" size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createEvent")}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => handleNavigation("/createEvent")}
+            >
               <FontAwesome5 name="calendar-check" size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation("/createNotes")}>
+            {/* <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => handleNavigation("/createNotes")}
+            >
               <MaterialIcons name="notes" size={24} color="white" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </Animated.View>
         )}
-        <TouchableOpacity style={styles.fab} onPress={toggleMenu}>
+        <TouchableOpacity style={styles.fab} onPress={() => setIsOpen(!isOpen)}>
           <MaterialIcons
             name={isOpen ? "close" : "add"}
             size={24}
@@ -64,9 +85,12 @@ const FloatingMenu = ({onMenuToggle}: any) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
+    position: "absolute",
+    bottom: 0,
+    right: 20,
+    left: 0,
+    alignItems: "flex-end",
+    zIndex: 2,
   },
   floatingContainer: {
     position: "absolute",
@@ -88,6 +112,7 @@ const styles = StyleSheet.create({
     bottom: 70,
     borderRadius: 10,
     padding: 10,
+    zIndex: 2,
   },
   menuItem: {
     width: 48,
@@ -97,7 +122,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 5,
     borderRadius: 24,
-    backgroundColor: "rgba(0, 122, 255, 0.9)",
+    backgroundColor: CrimsonLuxe.primary300,
   },
   menuText: {
     color: "white",
