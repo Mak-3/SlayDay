@@ -100,6 +100,7 @@ const CreateEventScreen = () => {
     <View>
       <Text style={styles.label}>Frequency</Text>
       <CustomTextInput
+        name="interval"
         keyboardType="numeric"
         value={interval}
         onChangeText={setInterval}
@@ -116,6 +117,7 @@ const CreateEventScreen = () => {
     <View>
       <Text style={styles.label}>Every</Text>
       <CustomTextInput
+        name="interval"
         keyboardType="numeric"
         value={interval}
         placeholder="Enter interval in weeks"
@@ -140,6 +142,7 @@ const CreateEventScreen = () => {
     <View>
       <Text style={styles.label}>Every</Text>
       <CustomTextInput
+        name="interval"
         keyboardType="numeric"
         value={interval}
         onChangeText={setInterval}
@@ -160,6 +163,7 @@ const CreateEventScreen = () => {
 
           <Text style={styles.label}>Title</Text>
           <CustomTextInput
+            name="title"
             placeholder="Name of task"
             value={title}
             onChangeText={setTitle}

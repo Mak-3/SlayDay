@@ -17,8 +17,8 @@ export const createChecklist = async ({
   category: string;
   isCompleted: boolean;
   createdAt: number;
-  deadline: Date;
-  tasks: { title: string; isCompleted: boolean }[];
+  deadline?: Date;
+  tasks: { title: string; isCompleted: boolean, deadline?: Date }[];
 }) => {
   const realm = await getRealm();
   let newChecklistId = null;
@@ -32,7 +32,7 @@ export const createChecklist = async ({
         category,
         isCompleted,
         createdAt,
-        deadline,
+        ...(deadline && { deadline }),
         tasks,
       });
       newChecklistId = checklist._id;

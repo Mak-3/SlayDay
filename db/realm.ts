@@ -9,7 +9,7 @@ export const getRealm = async (): Promise<Realm> => {
 
   realmInstance = await Realm.open({
     schema: [PomodoroSchema, ChecklistSchema, TaskSchema],
-    schemaVersion: 4,
+    schemaVersion: 6,
   });
 
   return realmInstance;

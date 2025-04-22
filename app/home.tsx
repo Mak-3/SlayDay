@@ -31,7 +31,7 @@ const Home = () => {
         <View style={styles.section}>
           <View style={styles.todayTaskWrapper}>
             <Text style={styles.sectionTitle}>Today's tasks</Text>
-            <TouchableOpacity onPress={() => router.push("/pomodoroSessions")}>
+            <TouchableOpacity onPress={() => router.push("/checklistOverview")}>
               <MaterialCommunityIcons
                 name="calendar-month-outline"
                 size={28}

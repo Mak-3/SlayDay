@@ -63,7 +63,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (isLayoutMounted && isLoggedIn === false) {
-      console.log('Navigating to /login...');
       router.replace('/home');
     }
   }, [isLayoutMounted, isLoggedIn, router]);

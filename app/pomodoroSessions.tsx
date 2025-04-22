@@ -155,7 +155,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   contentWrapper: {
-    marginVertical: 10,
+    marginVertical: 20,
   },
   taskContainer: {
     flexDirection: "row",

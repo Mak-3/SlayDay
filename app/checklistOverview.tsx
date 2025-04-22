@@ -12,7 +12,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import BackButtonHeader from "@/components/backButtonHeader";
 import PageLayout from "@/components/pageLayout";
-import { cardColors, Colors, CrimsonLuxe } from "@/constants/Colors";
+import { cardColors, CrimsonLuxe } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { getAllChecklists } from "../db/service/ChecklistService";
 import { router } from "expo-router";
@@ -48,9 +48,17 @@ const checkList = () => {
       const data = await getAllChecklists();
 
       const updated = data.map((cat: any) => {
-        const completedItems =
-          cat.items?.filter((item: any) => item.isCompleted)?.length || 0;
-        return { ...cat, completed: completedItems };
+        const sortedItems = cat.items.sort(
+          (a: any, b: any) => Number(a.isCompleted) - Number(b.isCompleted)
+        );
+      
+        const completedItems = sortedItems.filter((item: any) => item.isCompleted).length;
+      
+        return {
+          ...cat,
+          items: sortedItems,
+          completed: completedItems,
+        };
       });
 
       setChecklists(updated);
@@ -80,38 +88,6 @@ const checkList = () => {
     setFilteredChecklists(filtered);
   };
 
-  const addItem = (categoryId: any) => {
-    const newItem = `New Item ${Date.now().toString().slice(-3)}`;
-    setChecklists((prev) =>
-      prev.map((cat) =>
-        cat.id === categoryId
-          ? {
-              ...cat,
-              items: [...cat.items, { title: newItem, isCompleted: false }],
-            }
-          : cat
-      )
-    );
-  };
-
-  const toggleComplete = (categoryId: string, index: number) => {
-    setChecklists((prev) =>
-      prev.map((cat) =>
-        cat.id === categoryId
-          ? {
-              ...cat,
-              items: cat.items.map((item, i) =>
-                i === index ? { ...item, isCompleted: !item.isCompleted } : item
-              ),
-              completed: cat.items.filter((item, i) =>
-                i === index ? !item.isCompleted : item.isCompleted
-              ).length,
-            }
-          : cat
-      )
-    );
-  };
-
   const handleNavigation = (id: string) => {
     router.push({
       pathname: "/checklistScreen",
@@ -119,7 +95,6 @@ const checkList = () => {
         id: id,
       },
     });
-    console.log(id,"sjka")
   };
 
   if (checklists.length == 0) {
@@ -128,9 +103,7 @@ const checkList = () => {
 
   return (
     <PageLayout style={styles.container}>
-      <TouchableWithoutFeedback
-        onPress={() => Keyboard.dismiss()}
-      >
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View>
           <BackButtonHeader title="Checklists" />
           <View
@@ -196,36 +169,18 @@ const checkList = () => {
                     <View style={styles.itemList}>
                       {item.items.map((task: any, index: any) => (
                         <View key={index} style={styles.itemRow}>
-                          <TouchableOpacity
-                            onPress={() => toggleComplete(item.id, index)}
-                            style={styles.checkbox}
+                          <Text
+                            style={[
+                              styles.itemText,
+                              task.isCompleted && {
+                                textDecorationLine: "line-through",
+                              },
+                            ]}
                           >
-                            <Ionicons
-                              name={
-                                task.isCompleted ? "checkbox" : "square-outline"
-                              }
-                              size={24}
-                              color={task.isCompleted ? "green" : "black"}
-                            />
-                          </TouchableOpacity>
-                          <Text style={styles.itemText}>{task.title}</Text>
+                            {task.title}
+                          </Text>
                         </View>
                       ))}
-                      <TouchableOpacity
-                        style={styles.addItem}
-                        onPress={() => addItem(item.id)}
-                      >
-                        <Text
-                          style={[
-                            styles.addItemText,
-                            {
-                              color: cardColors[index % checklists.length].dark,
-                            },
-                          ]}
-                        >
-                          + Add Item
-                        </Text>
-                      </TouchableOpacity>
                     </View>
                   )}
                 </View>
@@ -250,11 +205,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
   },
   categoryText: { fontSize: 16, fontWeight: "bold", flex: 1 },
   categoryStatus: { fontSize: 14, color: "#7B61FF", fontWeight: "bold" },
-  taskSection: { marginVertical: 20 },
+  taskSection: { marginVertical: 10 },
   itemList: { marginTop: 10 },
   itemRow: {
     flexDirection: "row",
@@ -263,9 +217,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   itemText: { fontSize: 14, flex: 1, marginLeft: 10 },
-  addItem: { paddingVertical: 5 },
-  addItemText: { color: "#7B61FF", fontSize: 14, fontWeight: "bold" },
-  checkbox: { paddingRight: 10 },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -273,7 +224,8 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 10,
     paddingHorizontal: 10,
-    marginVertical: 10,
+    marginTop: 20,
+    marginBottom: 10,
     backgroundColor: "#fff",
   },
   searchInput: {
