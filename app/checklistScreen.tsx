@@ -30,30 +30,37 @@ import ProgressBar from "@/components/progressBar";
 import BackButtonHeader from "@/components/backButtonHeader";
 import { CrimsonLuxe } from "@/constants/Colors";
 import {
+  deleteChecklist,
   getChecklistById,
   updateChecklist,
 } from "@/db/service/ChecklistService";
 import LottieView from "lottie-react-native";
 import dayjs from "dayjs";
+import { renderIcon } from "@/components/renderIcon";
 
 interface Task {
   id: string;
   title: string;
-  completed: boolean;
+  isCompleted: boolean;
+  deadline?: Date;
 }
 
 interface ChecklistData {
   _id: string;
   title: string;
   tasks: Task[];
+  deadline?: Date;
+  category: string;
+  description: string;
 }
 
 const ChecklistScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
 
+  const [originalChecklist, setOriginalChecklist] =
+    useState<ChecklistData | null>(null);
   const [checklist, setChecklist] = useState<ChecklistData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const [bottomSheetTask, setBottomSheetTask] = useState<Task | null>(null);
@@ -61,9 +68,12 @@ const ChecklistScreen: React.FC = () => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [showDoneModal, setShowDoneModal] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(
-    dayjs().format("YYYY-MM-DD")
-  );
+  const [isChanged, setIsChanged] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+  const [isTitleSheetVisible, setIsTitleSheetVisible] = useState(false);
+  const [titleTranslateY] = useState(new Animated.Value(300));
+  const [editedTitle, setEditedTitle] = useState("");
 
   const lottieRef = useRef<LottieView>(null);
 
@@ -80,13 +90,8 @@ const ChecklistScreen: React.FC = () => {
     const fetchChecklist = async () => {
       try {
         const data = await getChecklistById(id);
-        const formattedTasks: Task[] = data.tasks.map((task: any) => ({
-          id: task.id || new ObjectId().toString(),
-          title: task.title,
-          completed: task.isCompleted,
-        }));
         setChecklist(data);
-        setTasks(formattedTasks);
+        setOriginalChecklist(data);
       } catch (error) {
         console.error("Error fetching checklist:", error);
       } finally {
@@ -114,35 +119,40 @@ const ChecklistScreen: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!originalChecklist || !checklist) return;
+
+    const isEqual =
+      JSON.stringify(originalChecklist) === JSON.stringify(checklist);
+    setIsChanged(!isEqual);
+  }, [checklist, originalChecklist]);
+
   const onDateChange = (event: any, date?: Date) => {
     setShowPicker(false);
     setIsBottomSheetVisible(true);
     if (date) {
-      const formatted = dayjs(date).format("YYYY-MM-DD");
-      setSelectedDate(formatted);
+      setSelectedDate(date);
     }
-    console.log(showPicker, isBottomSheetVisible, "dk")
   };
 
   const toggleComplete = (taskId: string) => {
-    setTasks((prev) => {
-      const updatedTasks = prev.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
+    if (!checklist) return;
+
+    const updatedTasks = checklist.tasks
+      .map((task) => {
+        return task.id === taskId
+          ? { ...task, isCompleted: !task.isCompleted }
+          : task;
+      })
+      .sort((a, b) =>
+        a.isCompleted === b.isCompleted ? 0 : a.isCompleted ? 1 : -1
       );
 
-      const sortedTasks = [...updatedTasks].sort((a, b) => {
-        if (a.completed === b.completed) return 0;
-        return a.completed ? 1 : -1;
-      });
-
-      const allCompleted = sortedTasks.every((task) => task.completed);
-      if (allCompleted) {
-        setShowDoneModal(true);
-      }
-
-      return sortedTasks;
-    });
-
+    const allCompleted = updatedTasks.every((task) => task.isCompleted);
+    if (allCompleted) {
+      setShowDoneModal(true);
+    }
+    setChecklist((prev) => (prev ? { ...prev, tasks: updatedTasks } : prev));
     setEditingTaskId(null);
   };
 
@@ -150,45 +160,87 @@ const ChecklistScreen: React.FC = () => {
     const newTask: Task = {
       id: new ObjectId().toString(),
       title: "",
-      completed: false,
+      isCompleted: false,
     };
-    setTasks((prev) => [...prev, newTask]);
-    setEditingTaskId(newTask.id);
+
+    if (checklist) {
+      setChecklist((prev) =>
+        prev ? { ...prev, tasks: [...prev.tasks, newTask] } : prev
+      );
+      setEditingTaskId(newTask.id);
+    }
   };
 
   const deleteTask = (taskId: string) => {
-    setTasks((prev) => prev.filter((task) => task.id !== taskId));
+    setChecklist((prev) =>
+      prev
+        ? {
+            ...prev,
+            tasks: prev.tasks.filter((task) => task.id !== taskId),
+          }
+        : prev
+    );
   };
 
   const updateTaskText = (taskId: string, title: string) => {
-    setTasks((prev) =>
-      prev.map((task) => (task.id === taskId ? { ...task, title } : task))
+    setChecklist((prev) =>
+      prev
+        ? {
+            ...prev,
+            tasks: prev.tasks.map((task) =>
+              task.id === taskId ? { ...task, title } : task
+            ),
+          }
+        : prev
     );
   };
 
   const handleOutsideClick = () => {
     Keyboard.dismiss();
     setEditingTaskId(null);
-    setTasks((prev) => prev.filter((task) => task.title.trim() !== ""));
+    setChecklist((prev) =>
+      prev
+        ? {
+            ...prev,
+            tasks: prev.tasks.filter((task) => task.title.trim() !== ""),
+          }
+        : prev
+    );
   };
 
-  const handleSaveChecklist = async () => {
+  const handleSaveChecklistTasks = async () => {
+    if (!checklist) return;
     try {
-      await updateChecklist(new ObjectId(checklist!._id), {
-        tasks: tasks.map((task) => ({
-          title: task.title,
-          isCompleted: task.completed,
+      await updateChecklist(new ObjectId(checklist._id), {
+        title: checklist.title,
+        tasks: checklist.tasks.map(({ id, title, isCompleted, deadline }) => ({
+          id,
+          title,
+          isCompleted: isCompleted,
+          deadline: deadline,
         })),
+        deadline: checklist.deadline,
+        lastSaved: new Date(),
       });
       Toast.show({ type: "success", text1: "Checklist updated successfully" });
-      router.back();
+      setIsChanged(false);
+      router.replace("/checklistOverview");
+    } catch (err) {
+      console.error("Failed to update checklist", err);
+    }
+  };
+
+  const handleDeleteChecklist = async () => {
+    try {
+      await deleteChecklist(new ObjectId(new ObjectId(id)));
+      Toast.show({ type: "success", text1: "Checklist updated successfully" });
+      router.replace("/checklistOverview");
     } catch (err) {
       console.error("Failed to update checklist", err);
     }
   };
 
   const openBottomSheet = (task: Task) => {
-    // setShowPicker(true);
     setBottomSheetTask(task);
     setIsBottomSheetVisible(true);
     Animated.timing(translateY, {
@@ -206,9 +258,27 @@ const ChecklistScreen: React.FC = () => {
     }).start(() => setIsBottomSheetVisible(false));
   };
 
+  const openTitleSheet = () => {
+    setEditedTitle(checklist?.title || "");
+    setIsTitleSheetVisible(true);
+    Animated.timing(titleTranslateY, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeTitleSheet = () => {
+    Animated.timing(titleTranslateY, {
+      toValue: 300,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setIsTitleSheetVisible(false));
+  };
+
   const handleChecklistCompleted = () => {
     setShowDoneModal(false);
-    handleSaveChecklist();
+    handleSaveChecklistTasks();
     router.push("/checklistOverview");
   };
 
@@ -216,7 +286,22 @@ const ChecklistScreen: React.FC = () => {
     if (!bottomSheetTask) return null;
 
     const handleUpdate = () => {
-      updateTaskText(bottomSheetTask.id, bottomSheetTask.title);
+      setChecklist((prev) =>
+        prev
+          ? {
+              ...prev,
+              tasks: prev.tasks.map((task) =>
+                task.id === bottomSheetTask.id
+                  ? {
+                      ...task,
+                      title: bottomSheetTask.title,
+                      deadline: dayjs(selectedDate).toDate(),
+                    }
+                  : task
+              ),
+            }
+          : prev
+      );
       closeBottomSheet();
     };
 
@@ -250,15 +335,16 @@ const ChecklistScreen: React.FC = () => {
                       setBottomSheetTask({ ...bottomSheetTask, title: text })
                     }
                   />
+
                   <TouchableOpacity
                     style={styles.deadlineButton}
                     onPress={() => {
-                      setIsBottomSheetVisible(false)
-                      setShowPicker(true)}
-                  }
+                      setIsBottomSheetVisible(false);
+                      setShowPicker(true);
+                    }}
                   >
-                    <Text style={{ color: "#333" }}>
-                      📅 Set Deadline (not implemented)
+                    <Text style={styles.deadlineText}>
+                      📅 Deadline: {dayjs(selectedDate).format("MMM DD, YYYY")}
                     </Text>
                   </TouchableOpacity>
 
@@ -285,6 +371,86 @@ const ChecklistScreen: React.FC = () => {
     );
   };
 
+  const renderTitleBottomSheet = () => {
+    const handleMarkAllDone = () => {
+      setChecklist((prev) =>
+        prev
+          ? {
+              ...prev,
+              tasks: prev.tasks.map((task) => ({ ...task, isCompleted: true })),
+            }
+          : prev
+      );
+    };
+
+    const handleSaveChecklist = () => {
+      setChecklist((prev) => (prev ? { ...prev, title: editedTitle } : prev));
+      closeTitleSheet();
+    };
+
+    return (
+      <Modal
+        transparent
+        visible={isTitleSheetVisible}
+        onRequestClose={closeTitleSheet}
+      >
+        <TouchableWithoutFeedback onPress={closeTitleSheet}>
+          <View style={styles.overlay}>
+            <TouchableWithoutFeedback>
+              <Animated.View
+                style={[
+                  styles.bottomSheetContainer,
+                  {
+                    transform: [{ translateY: titleTranslateY }],
+                    marginBottom: keyboardHeight,
+                  },
+                ]}
+              >
+                <View style={styles.sheetContent}>
+                  <Text style={styles.sheetTitle}>Edit Checklist</Text>
+
+                  <CustomTextInput
+                    name="checklistTitle"
+                    placeholder="Checklist Title"
+                    value={editedTitle}
+                    onChangeText={setEditedTitle}
+                  />
+
+                  <TouchableOpacity
+                    style={styles.markDoneButton}
+                    onPress={handleMarkAllDone}
+                  >
+                    <Text style={styles.markDoneText}>Mark All as Done</Text>
+                  </TouchableOpacity>
+
+                  <View style={styles.sheetActions}>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={handleDeleteChecklist}
+                    >
+                      <Text style={styles.deleteText}>Delete Checklist</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.saveButton}
+                      onPress={handleSaveChecklist}
+                    >
+                      <Text style={styles.saveText}>Save</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Animated.View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    );
+  };
+
+  const formatDeadline = (deadline: any) => {
+    return dayjs(deadline).format("MMM D, HH:mm");
+  };
+
   const renderItem = ({ item, drag, isActive }: any) => {
     const isEditing = editingTaskId === item.id;
     return (
@@ -299,11 +465,11 @@ const ChecklistScreen: React.FC = () => {
             onPress={() => toggleComplete(item.id)}
             style={[
               styles.checkbox,
-              item.completed && styles.checked,
+              item.isCompleted && styles.checked,
               { borderColor: CrimsonLuxe.primary400 },
             ]}
           >
-            {item.completed && (
+            {item.isCompleted && (
               <MaterialIcons name="check" size={14} color="white" />
             )}
           </TouchableOpacity>
@@ -318,14 +484,22 @@ const ChecklistScreen: React.FC = () => {
             />
           ) : (
             <Text
-              style={[styles.taskText, item.completed && styles.completedText]}
+              style={[
+                styles.taskText,
+                item.isCompleted && styles.completedText,
+              ]}
             >
               {item.title}
             </Text>
           )}
-
+          {item.deadline && (
+            <Text style={styles.deadline}>{formatDeadline(item.deadline)}</Text>
+          )}
           <TouchableOpacity
-            onPress={() => openBottomSheet(item)}
+            onPress={() => {
+              setSelectedDate(item.deadline);
+              openBottomSheet(item);
+            }}
             style={styles.icons}
           >
             <MaterialIcons name="edit" size={20} color="gray" />
@@ -352,9 +526,11 @@ const ChecklistScreen: React.FC = () => {
   }
 
   const getProgress = () => {
-    if (tasks.length === 0) return 0;
-    const completedTasks = tasks.filter((task) => task.completed).length;
-    return (completedTasks / tasks.length) * 100;
+    const completedCount =
+      checklist?.tasks.filter((task) => task.isCompleted).length || 0;
+    const totalTasks = checklist?.tasks.length || 0;
+    const progress = totalTasks ? (completedCount / totalTasks) * 100 : 0;
+    return progress;
   };
 
   return (
@@ -368,7 +544,23 @@ const ChecklistScreen: React.FC = () => {
           <View style={styles.container}>
             <BackButtonHeader />
             <View style={styles.progressWrapper}>
-              <Text style={styles.sectionTitle}>{checklist.title}</Text>
+              <View style={styles.checklistHeader}>
+                <View style={styles.checklistTitleWrapper}>
+                  {renderIcon(checklist.category, CrimsonLuxe.primary500)}
+                  <Text style={styles.sectionTitle}>{checklist.title}</Text>
+                </View>
+                <TouchableOpacity onPress={openTitleSheet} style={styles.icons}>
+                  <MaterialIcons name="edit" size={20} color="gray" />
+                </TouchableOpacity>
+              </View>
+
+              <Text
+                style={styles.sectionDescription}
+                ellipsizeMode="tail"
+                numberOfLines={3}
+              >
+                {checklist.description}
+              </Text>
               <ProgressBar
                 activeColor={CrimsonLuxe.primary400}
                 showStatus={false}
@@ -378,10 +570,18 @@ const ChecklistScreen: React.FC = () => {
 
             <DraggableFlatList
               showsVerticalScrollIndicator={false}
-              data={tasks}
+              data={checklist.tasks || []}
               renderItem={renderItem}
-              keyExtractor={(item) => item.id}
-              onDragEnd={({ data }) => setTasks(data)}
+              keyExtractor={(item, index) => index.toString()}
+              onDragEnd={({ data }) => {
+                setChecklist(
+                  (prevChecklist) =>
+                    ({
+                      ...prevChecklist,
+                      tasks: data,
+                    } as any)
+                );
+              }}
               containerStyle={{ flex: 1 }}
               activationDistance={10}
               dragItemOverflow={true}
@@ -392,8 +592,12 @@ const ChecklistScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.saveChecklistButton}
-              onPress={handleSaveChecklist}
+              style={[
+                styles.saveChecklistButton,
+                !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
+              ]}
+              onPress={handleSaveChecklistTasks}
+              disabled={!isChanged}
             >
               <Text style={styles.saveChecklistText}>Save Checklist</Text>
             </TouchableOpacity>
@@ -435,7 +639,7 @@ const ChecklistScreen: React.FC = () => {
                 <View style={styles.modalContainer}>
                   <View style={styles.datePickerWrapper}>
                     <DateTimePicker
-                      value={new Date(selectedDate)}
+                      value={selectedDate}
                       mode="date"
                       display={Platform.OS === "ios" ? "inline" : "default"}
                       onChange={onDateChange}
@@ -446,6 +650,7 @@ const ChecklistScreen: React.FC = () => {
             </Modal>
 
             {renderBottomSheet()}
+            {renderTitleBottomSheet()}
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -465,8 +670,21 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 20,
     textAlign: "left",
+  },
+  sectionDescription: {
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  checklistHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  checklistTitleWrapper: {
+    flexDirection: "row",
+    gap: 6,
   },
   progressWrapper: {
     marginVertical: 20,
@@ -505,6 +723,10 @@ const styles = StyleSheet.create({
   completedText: {
     textDecorationLine: "line-through",
     color: "gray",
+  },
+  deadline:{
+    fontSize: 13,
+    color: "#888",
   },
   icons: {
     paddingHorizontal: 8,
@@ -552,11 +774,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   deadlineButton: {
-    padding: 12,
-    borderColor: "#ccc",
+    padding: 10,
     borderWidth: 1,
+    borderColor: "#ccc",
     borderRadius: 8,
-    marginTop: 16,
+    marginTop: 12,
+    backgroundColor: "#f2f2f2",
+    alignItems: "center",
+  },
+  deadlineText: {
+    fontSize: 14,
+    color: "#333",
   },
   sheetActions: {
     flexDirection: "row",
@@ -617,5 +845,26 @@ const styles = StyleSheet.create({
   },
   selectedDate: {
     backgroundColor: CrimsonLuxe.primary300,
+  },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginVertical: 10,
+  },
+  checklistTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  markDoneButton: {
+    padding: 15,
+    backgroundColor: CrimsonLuxe.primary400,
+    borderRadius: 10,
+    marginVertical: 5,
+  },
+  markDoneText: {
+    color: "white",
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

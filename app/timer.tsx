@@ -97,7 +97,6 @@ const TimerPage = () => {
       });
     } catch (error) {
       console.error("Failed to create Pomodoro:", error);
-      alert("Something went wrong while creating the Pomodoro.");
     }
   };
 

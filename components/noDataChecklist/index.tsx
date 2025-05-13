@@ -12,7 +12,7 @@ export default function NotFoundScreen() {
     <PageLayout style={styles.container}>
       <BackButtonHeader title="Checklists" />
       <View style={styles.card}>
-        <NoDataChecklistSVG width={"100%"} height={350} maxWidth={450} />
+        <NoDataChecklistSVG width={"100%"} height={350} />
         <Text style={styles.title}>No checklists yet</Text>
         <Text style={styles.subtitle}>
           All clear! Ready to build a plan and make things happen?
@@ -20,7 +20,7 @@ export default function NotFoundScreen() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push("/createChecklist")}
+          onPress={() => router.replace("/createChecklist")}
         >
           <Text style={styles.buttonText}>Create New Checklist</Text>
         </TouchableOpacity>

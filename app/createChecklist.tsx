@@ -7,6 +7,8 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
+  Modal,
+  FlatList,
 } from "react-native";
 import PageLayout from "@/components/pageLayout";
 import { CrimsonLuxe } from "@/constants/Colors";
@@ -14,11 +16,33 @@ import CustomTextInput from "@/components/textInput";
 import CustomTextArea from "@/components/textArea";
 import { router } from "expo-router";
 import { createChecklist } from "@/db/service/ChecklistService";
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 const CreateChecklist = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isOneTime, setIsOneTime] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("Work");
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const categories = [
+    "Work",
+    "Study",
+    "Coding",
+    "Learning",
+    "Reading",
+    "Writing",
+    "Self-Improvement",
+    "Personal",
+    "Meditation",
+    "Exercise",
+    "Creativity",
+    "Hobbies",
+    "Music",
+    "Food & Cooking",
+    "Social",
+    "Gaming",
+    "Other",
+  ];
 
   const handleCreateEvent = async () => {
     try {
@@ -26,9 +50,9 @@ const CreateChecklist = () => {
         title: title,
         description: description,
         taskType: "OneTime",
-        category: "General",
+        category: selectedCategory,
         createdAt: Date.now(),
-        endAt: 0,
+        lastSaved: new Date(),
         isCompleted: false,
         tasks: [],
       });
@@ -43,14 +67,16 @@ const CreateChecklist = () => {
       }
     } catch (error) {
       console.error("Failed to create Checklist:", error);
-      alert("Something went wrong while creating the Checklist.");
     }
   };
 
   return (
     <PageLayout style={styles.container}>
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} style={{backgroundColor: 'red'}}>
-        <View>
+      <TouchableWithoutFeedback
+        onPress={() => Keyboard.dismiss()}
+        style={{ flex: 1 }}
+      >
+        <View style={{ flex: 1 }}>
           <BackButtonHeader title="Create Checklist" />
           <Text style={styles.label}>Title</Text>
           <CustomTextInput
@@ -58,6 +84,8 @@ const CreateChecklist = () => {
             value={title}
             onChangeText={setTitle}
             maxLength={30}
+            name="Name"
+            required
           />
           <Text style={styles.charCount}>{title.length}/30</Text>
 
@@ -67,6 +95,49 @@ const CreateChecklist = () => {
             value={description}
             onChangeText={setDescription}
           />
+
+          <Text style={styles.label}>Category</Text>
+          <TouchableOpacity
+            style={[styles.input, { flexDirection: "row" }]}
+            onPress={() => setCategoryModalVisible(true)}
+          >
+            <Text
+              style={{ color: selectedCategory ? "#333" : "#999", flex: 1 }}
+            >
+              {selectedCategory || "Select a category"}
+            </Text>
+            <Icon name="arrow-drop-down" size={24} color="#333" />
+          </TouchableOpacity>
+
+          <Modal
+            visible={categoryModalVisible}
+            transparent
+            animationType="slide"
+          >
+            <TouchableWithoutFeedback
+              onPress={() => setCategoryModalVisible(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <FlatList
+                    data={categories}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.categoryItem}
+                        onPress={() => {
+                          setSelectedCategory(item);
+                          setCategoryModalVisible(false);
+                        }}
+                      >
+                        <Text style={styles.categoryText}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
 
           <Text style={styles.label}>Checklist Type</Text>
           <View style={styles.toggleContainer}>
@@ -149,6 +220,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    width: "80%",
+    borderRadius: 10,
+    padding: 20,
+    maxHeight: 300,
+  },
+  categoryItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEE",
+  },
+  categoryText: {
+    fontSize: 16,
+    color: "#333",
   },
   createButton: {
     flex: 1,

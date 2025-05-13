@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Image,
 } from "react-native";
 import BackButtonHeader from "@/components/backButtonHeader";
 import PageLayout from "@/components/pageLayout";
@@ -13,12 +12,12 @@ import { router } from "expo-router";
 
 const EventsLanding = () => {
   const [eventsData, setEventsData] = useState({
-    "2025-03-16": { marked: true, dotColor: "blue", event: "Team Meeting" },
-    "2025-03-18": { marked: true, dotColor: "red", event: "Project Deadline" },
-    "2025-03-20": { marked: true, dotColor: "green", event: "John's Birthday" },
-    "2025-03-10": { marked: true, dotColor: "blue", event: "Old Meeting" },
-    "2025-02-28": { marked: true, dotColor: "red", event: "Past Deadline" },
-    "2025-03-01": { marked: true, dotColor: "green", event: "Past Birthday" },
+    "2025-05-16": { marked: true, dotColor: "blue", event: "Team Meeting" },
+    "2025-05-18": { marked: true, dotColor: "red", event: "Project Deadline" },
+    "2025-05-20": { marked: true, dotColor: "green", event: "John's Birthday" },
+    "2025-05-10": { marked: true, dotColor: "blue", event: "Old Meeting" },
+    "2025-05-28": { marked: true, dotColor: "red", event: "Past Deadline" },
+    "2025-05-01": { marked: true, dotColor: "green", event: "Past Birthday" },
   } as any);
 
   const [showAllExpired, setShowAllExpired] = useState(false);

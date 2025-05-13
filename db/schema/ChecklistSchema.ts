@@ -2,9 +2,10 @@ export const TaskSchema: Realm.ObjectSchema = {
   name: "Task",
   embedded: true,
   properties: {
+    id: 'string',
     title: "string",
     isCompleted: "bool",
-    deadline: "date?"
+    deadline: "date?",
   },
 };
 
@@ -20,6 +21,7 @@ export const ChecklistSchema: Realm.ObjectSchema = {
     category: "string",
     createdAt: "int",
     deadline: "date?",
+    lastSaved: "date?",
     tasks: "Task[]",
   },
 };

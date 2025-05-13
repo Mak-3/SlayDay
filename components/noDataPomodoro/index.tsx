@@ -17,7 +17,7 @@ export default function NotFoundScreen() {
     <PageLayout style={styles.container}>
       <BackButtonHeader title="Past Sessions"/>
       <View style={styles.card}>
-        <NoDataPomodoroSVG width={"100%"} height={350} maxWidth={450}/>
+        <NoDataPomodoroSVG width={"100%"} height={350}/>
         <Text style={styles.title}>No Focus Sessions Yet</Text>
         <Text style={styles.subtitle}>
         Ready to boost your productivity? Start a new focus session or try a timer challenge to stay on track and crush your goals!

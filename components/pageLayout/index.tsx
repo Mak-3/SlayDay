@@ -23,7 +23,7 @@ const PageLayout: React.FC<PageProps> = ({
   children,
   style,
   contentContainerStyle,
-  backgroundColor = "transparent",
+  backgroundColor = "#FFFFFF",
   statusBarColor = "dark-content",
 }) => {
   return (

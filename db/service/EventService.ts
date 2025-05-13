@@ -1,68 +1,136 @@
-import Realm from "realm";
-import { EventSchema } from "../schema/EventSchema";
+import { getRealm } from "../realm";
 import { ObjectId } from "bson";
 
-// Open the Realm with the Event schema
-const getRealmInstance = async () => {
-  return await Realm.open({
-    schema: [EventSchema],
-    schemaVersion: 1,
-  });
-};
-
-// Create a new event
-export const createEvent = async (eventData: Partial<Omit<Event, "_id">>) => {
-  const realm = await getRealmInstance();
-  let createdEvent;
-
-  realm.write(() => {
-    createdEvent = realm.create("Event", {
-      _id: new ObjectId(),
-      ...eventData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+export const createEvent = async ({
+  title,
+  description,
+  date,
+  time,
+  repeatType,
+  customInterval,
+  interval,
+  category,
+  isOneTime,
+  weekDays,
+  createdAt,
+}: {
+  title: string;
+  description?: string;
+  date: Date;
+  time: Date;
+  repeatType?: string;
+  customInterval?: string;
+  interval?: number;
+  category?: string;
+  isOneTime: boolean;
+  weekDays?: string[];
+  createdAt: Date;
+}) => {
+  const realm = await getRealm();
+  let newEventId = null;
+  try {
+    realm.write(() => {
+      const event = realm.create("Event", {
+        _id: new ObjectId(),
+        title,
+        description,
+        date,
+        time,
+        repeatType,
+        customInterval,
+        interval,
+        category,
+        isOneTime,
+        weekDays,
+        createdAt,
+      });
+      newEventId = event._id;
     });
-  });
-
-  return createdEvent;
+  }
+  finally {
+    // Optional cleanup
+  }
+  return newEventId;
 };
 
-// Read all events
 export const getAllEvents = async () => {
-  const realm = await getRealmInstance();
-  return realm.objects("Event").sorted("date");
+  const realm = await getRealm();
+  const events = realm.objects("Event").sorted("createdAt", true);
+
+  return events.map((event: any) => ({
+    id: event._id,
+    title: event.title,
+    description: event.description,
+    date: event.date,
+    time: event.time,
+    repeatType: event.repeatType,
+    customInterval: event.customInterval,
+    interval: event.interval,
+    category: event.category,
+    isOneTime: event.isOneTime,
+    weekDays: event.weekDays,
+    createdAt: event.createdAt,
+  }));
 };
 
-// Get event by ID
+export const updateEvent = async (
+  id: ObjectId,
+  updates: Partial<{
+    title: string;
+    description?: string;
+    date: Date;
+    time: Date;
+    repeatType?: string;
+    customInterval?: string;
+    interval?: number;
+    category?: string;
+    isOneTime: boolean;
+    weekDays?: string[];
+  }>
+) => {
+  const realm = await getRealm();
+  try {
+    const event = realm.objectForPrimaryKey("Event", id);
+    if (event) {
+      realm.write(() => {
+        Object.assign(event, updates);
+      });
+    }
+  } finally {
+    // Optional cleanup
+  }
+};
+
+export const deleteEvent = async (id: ObjectId) => {
+  const realm = await getRealm();
+  try {
+    const event = realm.objectForPrimaryKey("Event", id);
+    if (event) {
+      realm.write(() => {
+        realm.delete(event);
+      });
+    }
+  } finally {
+    // Optional cleanup
+  }
+};
+
 export const getEventById = async (id: string) => {
-  const realm = await getRealmInstance();
-  return realm.objectForPrimaryKey("Event", new ObjectId(id));
+  const realm = await getRealm();
+  const event = realm.objectForPrimaryKey("Event", new ObjectId(id));
+  return event ? JSON.parse(JSON.stringify(event)) : null;
 };
 
-// Update an event
-export const updateEvent = async (id: string, updates: Partial<Event>) => {
-  const realm = await getRealmInstance();
-  let updatedEvent;
+export const getEventCount = async () => {
+  const realm = await getRealm();
+  const allEvents = realm.objects("Event");
+  const total = allEvents.length;
+  const oneTime = allEvents.filtered("isOneTime == true").length;
+  const recurring = total - oneTime;
 
-  realm.write(() => {
-    const event = realm.objectForPrimaryKey("Event", new ObjectId(id));
-    if (event) {
-      Object.assign(event, updates, { updatedAt: new Date() });
-      updatedEvent = event;
-    }
-  });
-
-  return updatedEvent;
-};
-
-// Delete an event
-export const deleteEvent = async (id: string) => {
-  const realm = await getRealmInstance();
-
-  realm.write(() => {
-    const event = realm.objectForPrimaryKey("Event", new ObjectId(id));
-    if (event) {
-      realm.delete(event);
-    }
-  });
+  return {
+    total,
+    oneTime,
+    recurring,
+  };
 };

@@ -41,15 +41,12 @@ export default function App() {
     const fetchPomodoroSessions = async () => {
       try {
         setLoading(true);
-        console.log("Fetching pomodoros...");
         const result = await getAllPomodoros();
-        console.log("Fetched result:", result);
         setData(result);
       } catch (error) {
         console.error("Error fetching pomodoros:", error);
       } finally {
         setLoading(false);
-        console.log("Loading set to false");
       }
     };
 
@@ -133,7 +130,6 @@ export default function App() {
       </>
     );
   };
-  console.log(data.length, loading, "dt");
 
   if (!loading && data.length == 0) {
     return <NoDataPomodoro />;

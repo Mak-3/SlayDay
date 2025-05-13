@@ -86,16 +86,18 @@ const FloatingMenu = ({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 0,
-    right: 20,
+    top: 0,
     left: 0,
-    alignItems: "flex-end",
-    zIndex: 2,
-  },
-  floatingContainer: {
-    position: "absolute",
-    bottom: 30,
     right: 0,
+    bottom: 0,
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    zIndex: 999,
+    paddingRight: 20,
+    paddingBottom: 30,
+    pointerEvents: "box-none",
+  },  
+  floatingContainer: {
     alignItems: "center",
   },
   fab: {
@@ -108,11 +110,10 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   menu: {
-    position: "absolute",
-    bottom: 70,
+    marginBottom: 10,
     borderRadius: 10,
     padding: 10,
-    zIndex: 2,
+    backgroundColor: "transparent", // ensure it's not hidden
   },
   menuItem: {
     width: 48,

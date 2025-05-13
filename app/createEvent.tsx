@@ -18,11 +18,37 @@ import CustomTextInput from "@/components/textInput";
 import CustomTextArea from "@/components/textArea";
 import { CrimsonLuxe } from "@/constants/Colors";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { createEvent } from "@/db/service/EventService";
+import { router, useLocalSearchParams } from "expo-router";
+
+type Params = {
+  selectedDate?: string;
+};
+
+type Event = {
+  title: string;
+  description: string;
+  date: Date;
+  category: string;
+  createdAt: Date;
+  interval?: number;
+  isOneTime: boolean;
+  time: Date;
+  repeatType?: "Daily" | "Weekly" | "Monthly" | "Yearly";
+  weekDays?: string[];
+};
 
 const CreateEventScreen = () => {
+  const { selectedDate } = useLocalSearchParams<Params>();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(() => {
+    if (selectedDate) {
+      const parsedDate = new Date(selectedDate);
+      return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    }
+    return new Date();
+  });
   const [time, setTime] = useState(new Date());
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -53,23 +79,52 @@ const CreateEventScreen = () => {
     Sun: false,
   });
 
-  const handleCreateEvent = () => {
-    const combinedDateTime = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-      time.getHours(),
-      time.getMinutes()
-    );
+  const handleCreateEvent = async () => {
+    const eventData: Event = {
+      title: title.trim(),
+      description: description.trim(),
+      date: date,
+      time: time,
+      category: selectedCategory || "General",
+      createdAt: new Date(),
+      isOneTime: isOneTime,
+    };
+    if (isOneTime) {
+      eventData.isOneTime = isOneTime;
+    } else {
+      eventData.isOneTime = false;
+      if (repeatType === "Daily") {
+        eventData.repeatType = "Daily";
+        eventData.interval = parseInt(interval) || 1;
+      } else if (repeatType === "Weekly") {
+        eventData.repeatType = "Weekly";
+        eventData.interval = parseInt(interval) || 1;
+        eventData.weekDays = Object.entries(weekDays)
+          .filter(([_, selected]) => selected)
+          .map(([day]) => day);
+      } else if (repeatType === "Monthly") {
+        eventData.repeatType = "Monthly";
+        eventData.interval = parseInt(interval) || 1;
+      }
+    }
 
-    console.log({
-      title,
-      description,
-      date: date.toDateString(),
-      time: time.toTimeString(),
-      combinedDateTime: combinedDateTime.toISOString(),
-      repeatType,
-    });
+    if (!title.trim()) {
+      alert("Title is required");
+      return;
+    }
+
+    try {
+      const eventId = await createEvent(eventData);
+      if (eventId) {
+        router.push({
+          pathname: "/calender",
+          params: { id: eventId },
+        });
+      }
+    } catch (error) {
+      console.error("Failed to create Event:", error);
+      alert("Failed to create event. Please try again.");
+    }
   };
 
   const handleCancel = () => {
@@ -197,26 +252,28 @@ const CreateEventScreen = () => {
             transparent
             animationType="slide"
           >
-            <TouchableWithoutFeedback onPress={() => setCategoryModalVisible(false)}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <FlatList
-                  data={categories}
-                  keyExtractor={(item) => item}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.categoryItem}
-                      onPress={() => {
-                        setSelectedCategory(item);
-                        setCategoryModalVisible(false);
-                      }}
-                    >
-                      <Text style={styles.categoryText}>{item}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
+            <TouchableWithoutFeedback
+              onPress={() => setCategoryModalVisible(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <FlatList
+                    data={categories}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.categoryItem}
+                        onPress={() => {
+                          setSelectedCategory(item);
+                          setCategoryModalVisible(false);
+                        }}
+                      >
+                        <Text style={styles.categoryText}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
               </View>
-            </View>
             </TouchableWithoutFeedback>
           </Modal>
           <View style={styles.dateTimeWrapper}>

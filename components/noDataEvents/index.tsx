@@ -5,11 +5,11 @@ import NoDataEventsSVG from "@/assets/svgs/NoEvents.svg";
 import { router } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
 
-export default function NotFoundScreen() {
+export default function NotFoundScreen({selectedDate}: { selectedDate: string }) {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <NoDataEventsSVG width={"90%"} height={300} maxWidth={450} />
+        <NoDataEventsSVG width={"90%"} height={300} />
         <Text style={styles.title}>No Tasks</Text>
         <Text style={styles.subtitle}>
           Nothing scheduled. It's the perfect time to plan something awesome!
@@ -17,7 +17,15 @@ export default function NotFoundScreen() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push("/createEvent")}
+          onPress={() => {
+            router.push({
+                    pathname: "/createEvent",
+                    params: {
+                      selectedDate
+                    },
+                  });
+          }}
+          
         >
           <Text style={styles.buttonText}>Add New Task</Text>
         </TouchableOpacity>

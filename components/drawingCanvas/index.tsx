@@ -10,8 +10,7 @@ interface DrawingCanvasProps {
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ onSave, onCancel }) => {
   const handleOK = (signature: string) => {
-    console.log('Signature saved:', signature);
-    onSave(signature); // Returns base64 encoded png
+    onSave(signature);
   };
 
   const handleEmpty = () => {

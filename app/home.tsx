@@ -14,6 +14,7 @@ import { router } from "expo-router";
 import PageLayout from "@/components/pageLayout";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { CrimsonLuxe } from "@/constants/Colors";
+import TaskCard from "@/components/taskStatusCard";
 
 const handleNavigation = (route: any) => {
   router.push(route);
@@ -22,25 +23,33 @@ const handleNavigation = (route: any) => {
 const Home = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
-    <PageLayout style={styles.container}>
-      <Animated.View
-        style={[styles.content, { opacity: isMenuOpen ? 0.4 : 1 }]}
-      >
-        <Header />
-        <Progress />
-        <View style={styles.section}>
-          <View style={styles.todayTaskWrapper}>
-            <Text style={styles.sectionTitle}>Today's tasks</Text>
-            <TouchableOpacity onPress={() => router.push("/checklistOverview")}>
-              <MaterialCommunityIcons
-                name="calendar-month-outline"
-                size={28}
-                color={CrimsonLuxe.primary400}
-              />
-            </TouchableOpacity>
+    <View style={{ flex: 1 }}>
+      <PageLayout style={styles.container}>
+        <Animated.View
+          style={[styles.content, { opacity: isMenuOpen ? 0.4 : 1 }]}
+        >
+          <Header />
+          <Progress />
+          <View style={styles.section}>
+            <View style={styles.todayTaskWrapper}>
+              <Text style={styles.sectionTitle}>Today's tasks</Text>
+              <TouchableOpacity
+                onPress={() => router.push("/quoteOfTheDay")}
+              >
+                <MaterialCommunityIcons
+                  name="calendar-month-outline"
+                  size={28}
+                  color={CrimsonLuxe.primary400}
+                />
+              </TouchableOpacity>
+            </View>
+            <TaskCard />
+            <TaskCard />
+            <TaskCard />
           </View>
-        </View>
-      </Animated.View>
+        </Animated.View>
+      </PageLayout>
+
       {isMenuOpen && (
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
           <TouchableWithoutFeedback onPress={() => setIsMenuOpen(false)}>
@@ -49,15 +58,16 @@ const Home = () => {
           <FloatingMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
         </View>
       )}
+
       {!isMenuOpen && (
         <FloatingMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
       )}
-    </PageLayout>
+    </View>
   );
 };
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFFFF",
   },
   content: {
     flex: 1,
@@ -76,6 +86,32 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "left",
   },
+  quoteCard: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: "#FFF5F5",
+    borderRadius: 16,
+    borderLeftWidth: 5,
+    borderLeftColor: CrimsonLuxe.primary300,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  quoteLabel: {
+    fontSize: 14,
+    color: CrimsonLuxe.primary500,
+    fontWeight: "600",
+    marginBottom: 6,
+  },
+  quoteText: {
+    fontSize: 16,
+    color: "#333",
+    fontStyle: "italic",
+    lineHeight: 22,
+  },
+
   todayTaskWrapper: {
     flexDirection: "row",
     justifyContent: "space-between",

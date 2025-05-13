@@ -18,6 +18,7 @@ export const createChecklist = async ({
   isCompleted: boolean;
   createdAt: number;
   deadline?: Date;
+  lastSaved?: Date;
   tasks: { title: string; isCompleted: boolean, deadline?: Date }[];
 }) => {
   const realm = await getRealm();
@@ -33,12 +34,15 @@ export const createChecklist = async ({
         isCompleted,
         createdAt,
         ...(deadline && { deadline }),
-        tasks,
+        tasks: tasks.map(task => ({
+          title: task.title,
+          isCompleted: task.isCompleted,
+          ...(task.deadline && { deadline: task.deadline })
+        }))
       });
       newChecklistId = checklist._id;
     });
   } finally {
-    
   }
   return newChecklistId;
 };
@@ -51,6 +55,7 @@ export const getAllChecklists = async () => {
     const plainTasks =
       checklist.tasks && typeof checklist.tasks.map === "function"
         ? checklist.tasks.map((task: any) => ({
+            id: task._id,
             title: task.title,
             isCompleted: task.isCompleted,
           }))
@@ -61,7 +66,7 @@ export const getAllChecklists = async () => {
       name: checklist.title,
       completed: checklist.isCompleted,
       description: checklist.description,
-      icon: checklist.icon ?? "folder",
+      category: checklist.category,
       items: plainTasks,
     };
   });
@@ -78,6 +83,7 @@ export const updateChecklist = async (
     category: string;
     isCompleted: boolean;
     deadline: Date;
+    lastSaved: Date;
     tasks: { title: string; isCompleted: boolean }[];
   }>
 ) => {
@@ -90,7 +96,6 @@ export const updateChecklist = async (
       });
     }
   } finally {
-    
   }
 };
 
@@ -104,7 +109,6 @@ export const deleteChecklist = async (id: ObjectId) => {
       });
     }
   } finally {
-    
   }
 };
 
@@ -114,21 +118,16 @@ export const getChecklistById = async (id: string) => {
   return checklist ? JSON.parse(JSON.stringify(checklist)) : null;
 };
 
-
-
-
-
-// to be removed in future
-
-export const clearRealmDatabase = async () => {
+export const getChecklistCount = async () => {
   const realm = await getRealm();
+  const allChecklists = realm.objects("Checklist");
+  const total = allChecklists.length;
+  const completed = allChecklists.filtered("isCompleted == true").length;
+  const incomplete = total - completed;
 
-  try {
-    realm.write(() => {
-      realm.deleteAll(); // ⚠️ Deletes all objects from all schemas
-    });
-    console.log("Realm database cleared.");
-  } catch (error) {
-    console.error("Error clearing Realm DB:", error);
-  }
+  return {
+    total,
+    completed,
+    incomplete,
+  };
 };

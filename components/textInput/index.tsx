@@ -35,7 +35,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   const handleBlur = () => {
     setIsFocussed(false);
     if (required && !value.trim()) {
-      setError("This field is important");
+      setError(`${name} is important`);
     } else {
       setError("");
     }

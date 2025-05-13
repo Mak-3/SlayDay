@@ -35,7 +35,6 @@ const CreateNotes = () => {
   };
 
   const startRecording = () => {
-    console.log('Recording started...');
   };
 
   const [showDrawingModal, setShowDrawingModal] = useState(false);
@@ -57,7 +56,6 @@ const CreateNotes = () => {
   const handleSaveText = (newNote: { id: string; content: string }) => {
     setNotes((prevNotes) => [newNote, ...prevNotes]);
     setShowTextModal(false);
-    console.log(notes)
   }
 
   return (

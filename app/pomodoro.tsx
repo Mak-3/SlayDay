@@ -25,15 +25,20 @@ const Pomodoro = () => {
       </View>
 
       <View style={styles.progressWrapper}>
-      <Text style={styles.sectionTitle}>Your Progress</Text>
-      <LineChart />
+        <Text style={styles.sectionTitle}>Your Progress</Text>
+        <LineChart />
       </View>
       <View style={styles.sessionsContainer}>
         <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>
-                  Past Sessions
-                </Text>
-          <Text style={styles.sectionLink} onPress={() => {router.push('/pomodoroStatistics')}}>View All</Text>
+          <Text style={styles.sectionTitle}>Past Sessions</Text>
+          <Text
+            style={styles.sectionLink}
+            onPress={() => {
+              router.push("/pomodoroStatistics");
+            }}
+          >
+            View All
+          </Text>
         </View>
 
         <View style={styles.sessionGroup}>
@@ -94,7 +99,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   progressWrapper: {
-    marginVertical: 20
+    marginVertical: 20,
   },
   sessionsContainer: {
     flex: 1,

@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { getAllChecklists } from "../db/service/ChecklistService";
 import { router } from "expo-router";
 import NoDataChecklist from "@/components/noDataChecklist";
+import { renderIcon } from "@/components/renderIcon";
 
 type Item = {
   title: string;
@@ -28,7 +29,7 @@ type Category = {
   name: string;
   completed: number;
   total?: number;
-  icon: string;
+  category: string;
   items: Item[];
 };
 
@@ -46,7 +47,6 @@ const checkList = () => {
   useEffect(() => {
     const fetchChecklists = async () => {
       const data = await getAllChecklists();
-
       const updated = data.map((cat: any) => {
         const sortedItems = cat.items.sort(
           (a: any, b: any) => Number(a.isCompleted) - Number(b.isCompleted)
@@ -60,7 +60,6 @@ const checkList = () => {
           completed: completedItems,
         };
       });
-
       setChecklists(updated);
       setFilteredChecklists(updated);
     };
@@ -89,7 +88,7 @@ const checkList = () => {
   };
 
   const handleNavigation = (id: string) => {
-    router.push({
+    router.replace({
       pathname: "/checklistScreen",
       params: {
         id: id,
@@ -142,7 +141,8 @@ const checkList = () => {
                   ]}
                 >
                   <View style={styles.categoryHeader}>
-                    <TouchableOpacity onPress={() => handleNavigation(item.id)}>
+                    <TouchableOpacity onPress={() => handleNavigation(item.id)} style={styles.titleWrapper}>
+                      {renderIcon(item.category, cardColors[index % checklists.length].dark)}
                       <Text style={styles.categoryText}>{item.name}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -208,6 +208,13 @@ const styles = StyleSheet.create({
   },
   categoryText: { fontSize: 16, fontWeight: "bold", flex: 1 },
   categoryStatus: { fontSize: 14, color: "#7B61FF", fontWeight: "bold" },
+  titleWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 1,
+    gap: 6
+  },
   taskSection: { marginVertical: 10 },
   itemList: { marginTop: 10 },
   itemRow: {

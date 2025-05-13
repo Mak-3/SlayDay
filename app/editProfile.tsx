@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
@@ -27,7 +26,6 @@ const EditProfileScreen = () => {
         : "https://i.pravatar.cc/300";
 
     setAvatar(newAvatar);
-    Alert.alert("Profile Picture Updated!");
   };
 
   return (

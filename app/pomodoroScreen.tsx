@@ -17,21 +17,18 @@ import LottieView from "lottie-react-native";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { router, useLocalSearchParams } from "expo-router";
 
-import Icon from "react-native-vector-icons/MaterialIcons";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
-import Feather from "react-native-vector-icons/Feather";
 import { createPomodoro } from "@/db/service/PomodoroService";
-import { getIcon } from "@/constants/IconsMapping";
+import { renderIcon } from "@/components/renderIcon";
 
 const deviceWidth = Dimensions.get("window").width;
 
 type params = {
-  title: string,
-  time: string,
-  category: string
-}
+  title: string;
+  time: string;
+  category: string;
+};
 const PomodoroUI = () => {
   const { title, time: routeTime, category } = useLocalSearchParams<params>();
   const parsedTime = parseInt(routeTime as string) || 300;
@@ -40,9 +37,7 @@ const PomodoroUI = () => {
   const [remaining, setRemaining] = useState(parsedTime);
   const [isTimerStarted, setIsTimerStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [taskTitle, setTaskTitle] = useState(
-    title || "My Focus Task"
-  );
+  const [taskTitle, setTaskTitle] = useState(title || "My Focus Task");
   const [showLogPrompt, setShowLogPrompt] = useState(false);
   const [showResetPrompt, setShowResetPrompt] = useState(false);
   const [startDateTime, setStartDateTime] = useState<Date | null>(null);
@@ -100,10 +95,9 @@ const PomodoroUI = () => {
           createdAt: startDateTime,
           endAt: endDateTime,
         });
-        router.push('/pomodoroSessions');
+        router.push("/pomodoroSessions");
       } catch (error) {
         console.error("Failed to create Pomodoro:", error);
-        alert("Something went wrong while creating the Pomodoro.");
       }
       setShowLogPrompt(false);
       setIsTimerStarted(false);
@@ -141,31 +135,11 @@ const PomodoroUI = () => {
 
   const fill = isTimerStarted ? ((time - remaining) / time) * 100 : 0;
 
-  const renderIcon = (category: string, color: string) => {
-    const iconObj = getIcon[category] || getIcon["Other"];
-    const { icon, library } = iconObj;
-
-    switch (library) {
-      case "FontAwesome":
-        return <FontAwesome name={icon} size={24} color={color} />;
-      case "MaterialCommunityIcons":
-        return <MaterialCommunityIcons name={icon} size={24} color={color} />;
-      case "MaterialIcons":
-        return <Icon name={icon} size={24} color={color} />;
-      case "FontAwesome5":
-        return <FontAwesome5 name={icon} size={24} color={color} />;
-      case "Feather":
-        return <Feather name={icon} size={24} color={color} />;
-      default:
-        return <Icon name="help" size={24} color={color} />;
-    }
-  };
-
   return (
     <PageLayout style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
-          <BackButtonHeader title="Pomodoro Session"/>
+          <BackButtonHeader title="Pomodoro Session" />
           <View style={styles.taskContainer}>
             <View
               style={[
@@ -177,7 +151,9 @@ const PomodoroUI = () => {
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.title}>{taskTitle}</Text>
-              <Text style={styles.duration}>{Math.floor(time / 60)} minutes</Text>
+              <Text style={styles.duration}>
+                {Math.floor(time / 60)} minutes
+              </Text>
             </View>
           </View>
 

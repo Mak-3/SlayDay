@@ -13,7 +13,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BackButtonHeader from "@/components/backButtonHeader";
 import PageLayout from "@/components/pageLayout";
 import NoDataEvents from "@/components/noDataEvents";
-import { CrimsonLuxe } from "@/constants/Colors";
+import { cardColors, CrimsonLuxe } from "@/constants/Colors";
+import { getRealm } from "@/db/realm";
+import { renderIcon } from "@/components/renderIcon";
 
 const generateDates = (centerDate: string) => {
   const dates = [];
@@ -26,12 +28,81 @@ const generateDates = (centerDate: string) => {
   return dates;
 };
 
+const fetchEventsForDate = async (selectedDate: string) => {
+  const realm = await getRealm();
+
+  const allEvents = realm.objects("Event").sorted("createdAt", true);
+
+  const result: any[] = [];
+
+  const selected = dayjs(selectedDate);
+
+  for (const event of allEvents) {
+    const eventDate = dayjs(event.date);
+    const interval = event.interval || 1;
+
+    if (event.isOneTime) {
+      if (eventDate.isSame(selected, "day")) {
+        result.push(event);
+      }
+    } else {
+      if (event.repeatType === "Daily") {
+        const diff = selected.diff(eventDate, "day");
+        if (diff >= 0 && diff % interval === 0) {
+          result.push(event);
+        }
+      } else if (event.repeatType === "Weekly") {
+        const dayName = selected.format("dddd");
+        const diffWeeks = selected.diff(eventDate, "week");
+        const isValidDay = event.weekDays?.includes(dayName);
+        if (diffWeeks >= 0 && diffWeeks % interval === 0 && isValidDay) {
+          result.push(event);
+        }
+      } else if (event.repeatType === "Monthly") {
+        const diffMonths = selected.diff(eventDate, "month");
+        if (
+          diffMonths >= 0 &&
+          diffMonths % interval === 0 &&
+          eventDate.date() === selected.date()
+        ) {
+          result.push(event);
+        }
+      }
+    }
+  }
+
+  const mapped = result.map((event: any) => ({
+    id: event._id,
+    title: event.title,
+    description: event.description,
+    date: event.date,
+    time: event.time,
+    repeatType: event.repeatType,
+    customInterval: event.customInterval,
+    interval: event.interval,
+    category: event.category,
+    isOneTime: event.isOneTime,
+    weekDays: event.weekDays,
+    createdAt: event.createdAt,
+    updatedAt: event.updatedAt,
+  }));
+
+  const sorted = mapped.sort((a, b) => {
+    const aTime = dayjs(`${dayjs(a.date).format("YYYY-MM-DD")}T${a.time}`);
+    const bTime = dayjs(`${dayjs(b.date).format("YYYY-MM-DD")}T${b.time}`);
+    return aTime.valueOf() - bTime.valueOf();
+  });
+
+  return sorted;
+};
+
 const CalenderScreen = () => {
   const [selectedDate, setSelectedDate] = useState(
     dayjs().format("YYYY-MM-DD")
   );
   const [showPicker, setShowPicker] = useState(false);
   const dateListRef = useRef<FlatList<any>>(null);
+  const [events, setEvents] = useState<any[]>([]);
 
   const onDateChange = (event: any, date?: Date) => {
     setShowPicker(false);
@@ -48,6 +119,14 @@ const CalenderScreen = () => {
       dateListRef.current.scrollToIndex({ index: 5, animated: true });
     }
   }, []);
+
+  useEffect(() => {
+    const loadEvents = async () => {
+      const eventsForDate = await fetchEventsForDate(selectedDate);
+      setEvents(eventsForDate);
+    };
+    loadEvents();
+  }, [selectedDate]);
 
   return (
     <PageLayout style={styles.container}>
@@ -120,7 +199,48 @@ const CalenderScreen = () => {
           )}
         />
 
-        <NoDataEvents />
+        {events.length > 0 ? (
+          events.map((event, index) => (
+            <View
+              style={[styles.cardWrapper, index % 2 != 0 && { marginLeft: 50 }]}
+            >
+              <View style={styles.timeWrapper}>
+                <Text style={styles.time}>05:00</Text>
+              </View>
+              <View
+                key={event.id}
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor:
+                      cardColors[index % cardColors.length].light,
+                  },
+                ]}
+              >
+                <View
+                  style={{
+                    padding: 8,
+                    borderRadius: 10,
+                    backgroundColor: cardColors[index % cardColors.length].dark,
+                  }}
+                >
+                  {renderIcon(
+                    event.category,
+                    cardColors[index % cardColors.length].light
+                  )}
+                </View>
+                <View style={styles.titleWrapper}>
+                  <Text style={styles.cardTitle}>{event.title}</Text>
+                  <Text style={styles.cardDescription}>
+                    {event.description}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ))
+        ) : (
+          <NoDataEvents selectedDate={selectedDate} />
+        )}
       </View>
     </PageLayout>
   );
@@ -128,7 +248,7 @@ const CalenderScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FFFFFF",
   },
   currentDate: {
     fontSize: 18,
@@ -181,6 +301,37 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     marginTop: 20,
+  },
+  cardWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  card: {
+    width: "75%",
+    marginVertical: 12,
+    padding: 16,
+    borderRadius: 16,
+    flexDirection: "row",
+  },
+  time:{
+    fontSize: 12
+  },
+  cardTitle: {
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  timeWrapper: {
+    marginRight: 10
+  },
+  titleWrapper: {
+    marginLeft: 12,
+    gap: 4,
+  },
+  cardDescription: {},
+  cardRepeatText: {
+    color: "#6B7280",
+    fontSize: 12,
   },
 });
 
