@@ -66,7 +66,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (isLayoutMounted && isLoggedIn === false) {
-      router.replace("/home");
+      router.replace("/drawer/home");
     }
   }, [isLayoutMounted, isLoggedIn, router]);
 
@@ -83,7 +83,7 @@ export default function RootLayout() {
         <Stack.Screen name="signUp" options={{ headerShown: false }} />
 
         <Stack.Screen name="quoteOfTheDay" options={{ headerShown: false }} />
-        <Stack.Screen name="home" options={{ headerShown: false }} />
+        <Stack.Screen name="drawer" options={{ headerShown: false }} />
         <Stack.Screen name="calender" options={{ headerShown: false }} />
 
         <Stack.Screen name="pomodoro" options={{ headerShown: false }} />

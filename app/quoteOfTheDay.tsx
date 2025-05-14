@@ -21,10 +21,17 @@ export default function QuoteCardOverlay() {
     return productivityQuotes[index];
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   const quote = getQuoteOfTheDay();
 
   const handleClose = () => {
-    router.navigate("/home");
+    router.navigate("/drawer/home");
   };
 
   return (
@@ -33,10 +40,6 @@ export default function QuoteCardOverlay() {
         <Ionicons name="close" size={28} color="#fff" />
       </Pressable>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Welcome back</Text>
-        </View>
-
         <View style={styles.cardWrapper}>
           <View style={[styles.shadowCard, { height: cardHeight }]} />
 
@@ -47,8 +50,19 @@ export default function QuoteCardOverlay() {
               setCardHeight(height);
             }}
           >
+            <Text style={styles.greeting}>
+              {getGreeting()}, <Text style={styles.username}>ABD</Text> 👋
+            </Text>
             <Text style={styles.quoteMark}>“</Text>
             <Text style={styles.quoteText}>{quote}</Text>
+            <Text
+              style={[
+                styles.quoteMark,
+                { position: "absolute", right: 40, bottom: 0 },
+              ]}
+            >
+              ”
+            </Text>
           </View>
         </View>
       </View>
@@ -73,13 +87,15 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 10,
   },
-  header: {
+  greeting: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#374151",
     marginBottom: 40,
   },
-  headerText: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "600",
+  username: {
+    color: CrimsonLuxe.primary400,
+    fontWeight: "700",
   },
   cardWrapper: {
     width: width * 0.8,
@@ -105,16 +121,16 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
     zIndex: 1,
-    paddingVertical: 60,
+    paddingVertical: 80,
   },
   quoteMark: {
     fontSize: 48,
     color: CrimsonLuxe.primary400,
   },
   quoteText: {
-    fontSize: 32,
+    fontSize: 42,
     fontWeight: "700",
     color: "#222",
-    lineHeight: 44,
+    lineHeight: 56,
   },
 });

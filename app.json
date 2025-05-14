@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "habitus",
-    "slug": "habitus",
+    "name": "slayday",
+    "slug": "slayday",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,14 +10,14 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.habitus"
+      "bundleIdentifier": "com.anonymous.slayday"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.habitus"
+      "package": "com.anonymous.slayday"
     },
     "web": {
       "bundler": "metro",

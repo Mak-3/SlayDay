@@ -16,10 +16,6 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { CrimsonLuxe } from "@/constants/Colors";
 import TaskCard from "@/components/taskStatusCard";
 
-const handleNavigation = (route: any) => {
-  router.push(route);
-};
-
 const Home = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
@@ -33,9 +29,7 @@ const Home = () => {
           <View style={styles.section}>
             <View style={styles.todayTaskWrapper}>
               <Text style={styles.sectionTitle}>Today's tasks</Text>
-              <TouchableOpacity
-                onPress={() => router.push("/quoteOfTheDay")}
-              >
+              <TouchableOpacity onPress={() => router.push("/drawer/calender")}>
                 <MaterialCommunityIcons
                   name="calendar-month-outline"
                   size={28}
@@ -43,8 +37,6 @@ const Home = () => {
                 />
               </TouchableOpacity>
             </View>
-            <TaskCard />
-            <TaskCard />
             <TaskCard />
           </View>
         </Animated.View>

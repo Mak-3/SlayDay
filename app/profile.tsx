@@ -1,41 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   Image,
   StyleSheet,
-  Switch,
   TouchableOpacity,
 } from "react-native";
-import { Feather, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  Feather,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import BackButtonHeader from "@/components/backButtonHeader";
 import { router } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
 import PageLayout from "@/components/pageLayout";
 
-import { getChecklistCount } from "@/db/service/ChecklistService";
-import { getPomodoroCount } from "@/db/service/PomodoroService";
-import { getEventCount } from "@/db/service/EventService";
-
 const ProfileScreen = () => {
   const [pushNotifications, setPushNotifications] = useState<boolean>(true);
-  const [checklistCount, setChecklistCount] = useState<number>(0);
-  const [pomodoroCount, setPomodoroCount] = useState<number>(0);
-  const [eventCount, setEventCount] = useState<number>(0);
-
-  useEffect(() => {
-    const fetchCounts = async () => {
-      const checklistCount = await getChecklistCount();
-      const pomodoroCount = await getPomodoroCount();
-      const eventCount = await getEventCount();
-
-      setChecklistCount(checklistCount.total);
-      setPomodoroCount(pomodoroCount.total);
-      setEventCount(eventCount.total);
-    };
-
-    fetchCounts();
-  }, []);
 
   return (
     <PageLayout style={styles.container}>
@@ -47,49 +28,25 @@ const ProfileScreen = () => {
         />
         <Text style={styles.name}>Coffeestories</Text>
         <Text style={styles.email}>mark.brock@icloud.com</Text>
-        <TouchableOpacity
-          style={styles.editProfileButton}
-          onPress={() => {
-            router.push("/editProfile");
-          }}
-        >
-          <Text style={styles.editProfileText}>Edit profile</Text>
-        </TouchableOpacity>
+
       </View>
 
-      <Text style={styles.sectionTitle}>History</Text>
+      <Text style={styles.sectionTitle}>Actions</Text>
       <View style={styles.card}>
         <TouchableOpacity
           style={styles.cardRow}
-          onPress={() => router.navigate("/checklistOverview")}
+          onPress={() => router.navigate("/editProfile")}
         >
-          <FontAwesome5 name="tasks" size={20} />
-          <Text style={styles.cardText}>Checklists</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{checklistCount}</Text>
-          </View>
+          <MaterialCommunityIcons name="account-edit" size={20} />
+          <Text style={styles.cardText}>Edit Profile</Text>
           <Feather name="chevron-right" size={24} color="#aaa" />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.cardRow}
-          onPress={() => router.navigate("/pomodoroStatistics")}
+          onPress={() => router.navigate("/changePassword")}
         >
-          <FontAwesome5 name="hourglass-half" size={20} />
-          <Text style={styles.cardText}>Pomodoro</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{pomodoroCount}</Text>
-          </View>
-          <Feather name="chevron-right" size={24} color="#aaa" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.cardRow}
-          onPress={() => router.navigate("/calender")}
-        >
-          <FontAwesome5 name="calendar-check" size={20} />
-          <Text style={styles.cardText}>Events</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{eventCount}</Text>
-          </View>
+          <Feather name="lock" size={20} />
+          <Text style={styles.cardText}>Change Password</Text>
           <Feather name="chevron-right" size={24} color="#aaa" />
         </TouchableOpacity>
       </View>
@@ -203,8 +160,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   logoutButton: {
-    position: 'absolute',
-    width: '100%',
+    position: "absolute",
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -212,7 +169,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 12,
     marginLeft: 16,
-    bottom: 30
+    bottom: 30,
   },
   logoutText: {
     fontSize: 16,

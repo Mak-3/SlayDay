@@ -21,6 +21,7 @@ import Feather from "react-native-vector-icons/Feather";
 import { getAllPomodoros } from "@/db/service/PomodoroService";
 import { getIcon } from "@/constants/IconsMapping";
 import NoDataPomodoro from "@/components/noDataPomodoro";
+import PageLayout from "@/components/pageLayout";
 interface pomodoroSessions {
   id: any;
   title: string;
@@ -135,17 +136,19 @@ export default function App() {
     return <NoDataPomodoro />;
   }
   return (
-    <GestureHandlerRootView style={{ flex: 1, padding: 20, backgroundColor: '#fff' }}>
-      <BackButtonHeader title="Pomodoro History" />
-      <View style={styles.contentWrapper}>
-        <FlatList
-          data={data}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
-      </View>
-    </GestureHandlerRootView>
+    <PageLayout>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BackButtonHeader title="Pomodoro History" />
+        <View style={styles.contentWrapper}>
+          <FlatList
+            data={data}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+        </View>
+      </GestureHandlerRootView>
+    </PageLayout>
   );
 }
 

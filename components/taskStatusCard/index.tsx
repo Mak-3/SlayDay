@@ -1,48 +1,136 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CrimsonLuxe } from "@/constants/Colors";
+import { ObjectId } from "bson";
+import { getAllEvents } from "@/db/service/EventService";
+
+interface EventType {
+  id: ObjectId;
+  title: string;
+  description?: string;
+  date: Date;
+  time: Date;
+  repeatType?: string;
+  customInterval?: string;
+  interval?: number;
+  category?: string;
+  isOneTime: boolean;
+  weekDays?: string[];
+  createdAt: Date;
+}
+
+const isToday = (date: Date) => {
+  const today = new Date();
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  );
+};
 
 const TaskCard = () => {
-  const [expanded, setExpanded] = useState(false);
+  const [expandedId, setExpandedId] = useState<ObjectId | null>(null);
+  const [todayEvents, setTodayEvents] = useState<EventType[]>([]);
 
-  const handleToggleDescription = () => {
-    setExpanded((prev) => !prev);
+  const fetchTodayTasks = async () => {
+    const allEvents = await getAllEvents();
+    const today = new Date();
+
+    const isMatchingRepeat = (event: EventType) => {
+      if (event.isOneTime) {
+        return isToday(new Date(event.date));
+      }
+
+      if (event.repeatType === "Daily") {
+        return true;
+      }
+
+      if (event.repeatType === "Weekly" && event.weekDays) {
+        const currentDay = today.toLocaleString("en-US", { weekday: "long" });
+        return event.weekDays.includes(currentDay);
+      }
+
+      if (event.repeatType === "Monthly") {
+        return new Date(event.date).getDate() === today.getDate();
+      }
+
+      if (event.repeatType === "Custom" && event.interval) {
+        const startDate = new Date(event.date);
+        const diffDays = Math.floor(
+          (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return diffDays % event.interval === 0;
+      }
+
+      return false;
+    };
+
+    const filtered = allEvents.filter((event: EventType) =>
+      isMatchingRepeat(event)
+    );
+    setTodayEvents(filtered);
   };
 
-  const longDescription =
-    "This is a very detailed description of the Product Design Task Management app which might go longer than expected, and hence needs to be collapsible after 3 lines. It includes goals, time, stakeholders, deliverables, and timelines.";
+  useEffect(() => {
+    fetchTodayTasks();
+  }, []);
+
+  const handleToggleDescription = (id: ObjectId) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
 
   return (
-    <View style={styles.card}>
-      <View style={styles.iconWrapper}>
-        <MaterialCommunityIcons name="clock" size={28} color={CrimsonLuxe.primary400} />
-      </View>
+    <FlatList
+      data={todayEvents}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => (
+        <View style={styles.card}>
+          <View style={styles.iconWrapper}>
+            <MaterialCommunityIcons
+              name="clock"
+              size={28}
+              color={CrimsonLuxe.primary400}
+            />
+          </View>
 
-      <View style={styles.infoWrapper}>
-        <Text style={styles.title}>Product Design Task Management app</Text>
+          <View style={styles.infoWrapper}>
+            <Text style={styles.title}>{item.title}</Text>
 
-        <TouchableOpacity onPress={handleToggleDescription}>
-          <Text
-            style={styles.description}
-            numberOfLines={expanded ? undefined : 2}
-            ellipsizeMode="tail"
-          >
-            {longDescription}
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleToggleDescription(item.id)}>
+              <Text
+                style={styles.description}
+                numberOfLines={expandedId === item.id ? undefined : 2}
+                ellipsizeMode="tail"
+              >
+                {item.description || "No description provided."}
+              </Text>
+            </TouchableOpacity>
 
-        <View style={styles.metaRow}>
-          <MaterialCommunityIcons
-            name="clock-outline"
-            size={16}
-            color="#888"
-            style={{ marginRight: 6 }}
-          />
-          <Text style={styles.timeText}>10:00 AM - 12:30 PM</Text>
+            <View style={styles.metaRow}>
+              <MaterialCommunityIcons
+                name="clock-outline"
+                size={16}
+                color="#888"
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.timeText}>
+                {new Date(item.time).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            </View>
+          </View>
         </View>
-      </View>
-    </View>
+      )}
+    />
   );
 };
 

@@ -2,25 +2,35 @@ import { CrimsonLuxe } from "@/constants/Colors";
 import { router } from "expo-router";
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
-
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "Good Morning";
-  if (hour >= 12 && hour < 17) return "Good Afternoon";
-  return "Good Evening";
-};
+import { useNavigation } from "expo-router";
+import { DrawerActions } from "@react-navigation/native";
 
 const goToProfile = () => {
-  router.push("/profile")
-}
+  router.push("/profile");
+};
 
 const Header = () => {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.header}>
-      <Text style={styles.greeting}>
-        {getGreeting()}, <Text style={styles.username}>ABD</Text> 👋
-      </Text>
-      <TouchableOpacity onPress={() => {goToProfile()}}>
+      <View style={styles.menuWrapper}>
+        <TouchableOpacity
+          onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+        >
+          <Image
+            source={require("../../assets/images/menu.png")}
+            style={{ width: 28, height: 28 }}
+          />
+        </TouchableOpacity>
+
+        <Text style={styles.greeting}>SlayDay</Text>
+      </View>
+      <TouchableOpacity
+        onPress={() => {
+          goToProfile();
+        }}
+      >
         <Image
           source={require("../../assets/images/testUser.png")}
           style={styles.profileImage}
@@ -37,10 +47,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  menuWrapper: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: 'center'
+  },
   greeting: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#374151",
+    fontSize: 28,
+    fontWeight: "700",
+    fontFamily: "serif",
+    color: CrimsonLuxe.primary400,
+    letterSpacing: 1,
   },
   username: {
     color: CrimsonLuxe.primary400,

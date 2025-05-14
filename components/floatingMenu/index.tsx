@@ -88,8 +88,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
+    right: 10,
+    bottom: 10,
     justifyContent: "flex-end",
     alignItems: "flex-end",
     zIndex: 999,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 10,
     padding: 10,
-    backgroundColor: "transparent", // ensure it's not hidden
+    backgroundColor: "transparent",
   },
   menuItem: {
     width: 48,

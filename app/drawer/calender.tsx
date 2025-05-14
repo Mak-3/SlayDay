@@ -37,7 +37,7 @@ const fetchEventsForDate = async (selectedDate: string) => {
 
   const selected = dayjs(selectedDate);
 
-  for (const event of allEvents) {
+  for (const event of allEvents as any) {
     const eventDate = dayjs(event.date);
     const interval = event.interval || 1;
 
@@ -314,15 +314,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     flexDirection: "row",
   },
-  time:{
-    fontSize: 12
+  time: {
+    fontSize: 12,
   },
   cardTitle: {
     fontWeight: "bold",
     fontSize: 16,
   },
   timeWrapper: {
-    marginRight: 10
+    marginRight: 10,
   },
   titleWrapper: {
     marginLeft: 12,

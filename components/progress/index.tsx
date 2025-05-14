@@ -1,92 +1,45 @@
-import React, { useRef, useState } from "react";
-import { View, FlatList, Animated, StyleSheet, Text } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  FlatList,
+  Animated,
+  StyleSheet,
+  Text,
+  Pressable,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { getAllChecklists } from "@/db/service/ChecklistService";
+import { router } from "expo-router";
 
-interface Task {
+interface Checklist {
   id: string;
-  title: string;
+  name: string;
+  description: string;
   category: string;
-  deadline?: string;
-  priority: string;
-  moreInfo?: string;
   completed: boolean;
+  items: {
+    id: string;
+    title: string;
+    isCompleted: boolean;
+  }[];
 }
 
 const CARD_WIDTH = 160;
 const CARD_HEIGHT = 230;
 const SPACING = 14;
 
-const DUMMY_TASKS: Task[] = [
-  {
-    id: "1",
-    title: "Meeting with team",
-    category: "Work",
-    deadline: "2025-03-03",
-    priority: "High",
-    completed: false,
-  },
-  {
-    id: "2",
-    title: "Gym Workout",
-    category: "Health",
-    deadline: "2025-03-05",
-    priority: "Medium",
-    completed: false,
-  },
-  {
-    id: "3",
-    title: "Grocery Shopping",
-    category: "Personal",
-    deadline: "2025-03-04",
-    priority: "Low",
-    completed: false,
-  },
-  {
-    id: "4",
-    title: "Doctor Appointment",
-    category: "Health",
-    deadline: "2025-03-06",
-    priority: "High",
-    completed: false,
-  },
-  {
-    id: "5",
-    title: "Project Deadline",
-    category: "Work",
-    deadline: "2025-03-10",
-    priority: "High",
-    completed: false,
-  },
-  {
-    id: "6",
-    title: "Weekend Trip",
-    category: "Personal",
-    deadline: "2025-03-12",
-    priority: "Low",
-    completed: false,
-  },
-];
-
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case "High":
-      return "#ff4d4d";
-    case "Medium":
-      return "#ffa500";
-    case "Low":
-      return "#4caf50";
-    default:
-      return "#3498db";
-  }
-};
+const soothingColors = ["#ff4b5c", "#ff6a3d", "#4caf50", "#38b6b6", "#3d8bfd"];
 
 const ProgressCard = ({
-  task,
+  checklist,
   index,
   scrollX,
+  onPress,
 }: {
-  task: Task;
+  checklist: Checklist;
   index: number;
   scrollX: Animated.Value;
+  onPress: () => void;
 }) => {
   const top = scrollX.interpolate({
     inputRange: [
@@ -97,41 +50,122 @@ const ProgressCard = ({
     extrapolate: "clamp",
   });
 
+  const totalTasks = checklist.items.length;
+  const completedTasks = checklist.items.filter((t) => t.isCompleted).length;
+
   return (
-    <Animated.View
-      style={[
-        styles.progressCard,
-        {
-          backgroundColor: getPriorityColor(task.priority),
-          top,
-          marginLeft: index === 0 ? 0 : SPACING / 2,
-          marginRight: SPACING / 2,
-        },
-      ]}
-    >
-      <Text style={styles.cardTitle}>{task.title}</Text>
-      <Text style={styles.cardCategory}>{task.category}</Text>
-      {task.deadline && (
-        <Text style={styles.cardDeadline}>Due: {task.deadline}</Text>
-      )}
-    </Animated.View>
+    <Pressable onPress={onPress}>
+      <Animated.View
+        style={[
+          styles.progressCard,
+          {
+            backgroundColor: soothingColors[index % soothingColors.length],
+            top,
+            marginLeft: index === 0 ? 0 : SPACING / 2,
+            marginRight: SPACING / 2,
+          },
+        ]}
+      >
+        <Text style={styles.cardTitle}>{checklist.name}</Text>
+        <Text style={styles.cardCategory}>{checklist.category}</Text>
+        <Text style={styles.cardDeadline}>
+          {completedTasks}/{totalTasks} tasks completed
+        </Text>
+      </Animated.View>
+    </Pressable>
   );
 };
 
 const Progress = () => {
-  const flatListRef = useRef<FlatList<Task>>(null);
+  const flatListRef = useRef<FlatList<Checklist>>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
-  const [tasks] = useState<Task[]>(DUMMY_TASKS);
+  const [checklists, setChecklists] = useState<Checklist[]>([]);
+  const navigation = useNavigation<any>();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const all = await getAllChecklists();
+
+      const incompleteOnly = all.filter((c) => !c.completed);
+
+      const inProgress = incompleteOnly.filter(
+        (c) =>
+          c.items.length > 0 &&
+          c.items.some((t: any) => t.isCompleted) &&
+          c.items.some((t: any) => !t.isCompleted)
+      );
+      const notStarted = incompleteOnly.filter((c) =>
+        c.items.every((t: any) => !t.isCompleted)
+      );
+
+      setChecklists([...inProgress, ...notStarted]);
+    };
+
+    fetchData();
+  }, []);
+
+  const AddNewCard = ({
+    index,
+    scrollX,
+  }: {
+    onPress: () => void;
+    index: number;
+    scrollX: Animated.Value;
+  }) => {
+    const top = scrollX.interpolate({
+      inputRange: [
+        (index - 1) * (CARD_WIDTH + SPACING),
+        index * (CARD_WIDTH + SPACING),
+      ],
+      outputRange: index === 0 ? [0, 0] : [20, 0],
+      extrapolate: "clamp",
+    });
+
+    return (
+      <Pressable onPress={() => {router.navigate('/createChecklist')}}>
+        <Animated.View
+          style={[
+            styles.progressCard,
+            {
+              backgroundColor: soothingColors[index % soothingColors.length],
+              marginLeft: index === 0 ? 0 : SPACING / 2,
+              marginRight: SPACING / 2,
+              justifyContent: "center",
+              alignItems: "center",
+              top,
+            },
+          ]}
+        >
+          <Text style={{ fontSize: 40, color: "#ffffff" }}>＋</Text>
+        </Animated.View>
+      </Pressable>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.headerText}>Your Progress</Text>
       <FlatList
         ref={flatListRef}
-        data={tasks}
-        renderItem={({ item, index }) => (
-          <ProgressCard task={item} index={index} scrollX={scrollX} />
-        )}
+        data={[...checklists, { id: "add_new" } as Checklist]}
+        renderItem={({ item, index }) =>
+          item.id === "add_new" ? (
+            <AddNewCard
+              index={index}
+              scrollX={scrollX}
+              onPress={() => navigation.navigate("CreateChecklist")}
+            />
+          ) : (
+            <ProgressCard
+              checklist={item}
+              index={index}
+              scrollX={scrollX}
+              onPress={() =>
+                navigation.navigate("checklistScreen", { id: item.id })
+              }
+            />
+          )
+        }
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}

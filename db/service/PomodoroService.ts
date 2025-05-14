@@ -113,10 +113,22 @@ export const getPomodoroCount = async () => {
 };
 
 export const getPomodoroStats = async (
-  groupBy: "weekly" | "monthly" = "weekly"
+  groupBy: "weekly" | "monthly" | "allTime" = "weekly"
 ) => {
   const realm = await getRealm();
   const allPomodoros = realm.objects("Pomodoro");
+
+  if (groupBy === "allTime") {
+    let total = 0;
+    let totalTime = 0;
+
+    allPomodoros.forEach((item: any) => {
+      total += 1;
+      totalTime += item.time;
+    });
+
+    return { total, totalTime };
+  }
 
   const statsMap: Record<string, { total: number; totalTime: number }> = {};
 
@@ -128,11 +140,8 @@ export const getPomodoroStats = async (
       const year = date.getFullYear();
       const week = getISOWeek(date);
       key = `${year}-W${String(week).padStart(2, "0")}`;
-    } else {
-      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}`;
+    } else if (groupBy === "monthly") {
+      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     }
 
     if (!statsMap[key]) {

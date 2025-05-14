@@ -14,7 +14,7 @@ import BackButtonHeader from "@/components/backButtonHeader";
 import PageLayout from "@/components/pageLayout";
 import { cardColors, CrimsonLuxe } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
-import { getAllChecklists } from "../db/service/ChecklistService";
+import { getAllChecklists } from "../../db/service/ChecklistService";
 import { router } from "expo-router";
 import NoDataChecklist from "@/components/noDataChecklist";
 import { renderIcon } from "@/components/renderIcon";
