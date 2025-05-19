@@ -7,8 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   TouchableWithoutFeedback,
-  Modal,
-  Animated,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -25,7 +23,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import Toast from "react-native-toast-message";
 
 import PageLayout from "@/components/pageLayout";
-import CustomTextInput from "@/components/textInput";
 import ProgressBar from "@/components/progressBar";
 import BackButtonHeader from "@/components/backButtonHeader";
 import { CrimsonLuxe } from "@/constants/Colors";
@@ -40,6 +37,11 @@ import { renderIcon } from "@/components/renderIcon";
 
 import * as DocumentPicker from "expo-document-picker";
 import { getUser } from "@/db/service/UserService";
+
+import BottomSheet, {
+  BottomSheetTextInput,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
 interface Task {
   id: string;
   title: string;
@@ -66,18 +68,16 @@ const ChecklistScreen = () => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const [bottomSheetTask, setBottomSheetTask] = useState<Task | null>(null);
-  const [translateY] = useState(new Animated.Value(300));
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [showDoneModal, setShowDoneModal] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const [isTitleSheetVisible, setIsTitleSheetVisible] = useState(false);
-  const [titleTranslateY] = useState(new Animated.Value(300));
   const [editedTitle, setEditedTitle] = useState("");
   const [jsonUploadEnabled, setJsonUploadEnabled] = useState(false);
-
+  const taskBottomSheetRef = useRef<BottomSheet>(null);
+  const checklistBottomSheetRef = useRef<BottomSheet>(null);
   const lottieRef = useRef<LottieView>(null);
 
   useEffect(() => {
@@ -108,21 +108,6 @@ const ChecklistScreen = () => {
   }, [id]);
 
   useEffect(() => {
-    const showSubscription = Keyboard.addListener("keyboardDidShow", (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
-    });
-
-    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
-      setKeyboardHeight(0);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
-
-  useEffect(() => {
     if (!originalChecklist || !checklist) return;
 
     const isEqual =
@@ -148,7 +133,7 @@ const ChecklistScreen = () => {
     setShowPicker(false);
     setIsBottomSheetVisible(true);
     if (date) {
-      setSelectedDate(date);
+      setSelectedDate(new Date(date));
     }
   };
 
@@ -299,37 +284,23 @@ const ChecklistScreen = () => {
   const openBottomSheet = (task: Task) => {
     setBottomSheetTask(task);
     setIsBottomSheetVisible(true);
-    Animated.timing(translateY, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    taskBottomSheetRef.current?.expand();
   };
 
   const closeBottomSheet = () => {
-    Animated.timing(translateY, {
-      toValue: 300,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => setIsBottomSheetVisible(false));
+    taskBottomSheetRef.current?.close();
+    setIsBottomSheetVisible(false);
   };
 
   const openTitleSheet = () => {
     setEditedTitle(checklist?.title || "");
     setIsTitleSheetVisible(true);
-    Animated.timing(titleTranslateY, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    checklistBottomSheetRef.current?.expand();
   };
 
   const closeTitleSheet = () => {
-    Animated.timing(titleTranslateY, {
-      toValue: 300,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => setIsTitleSheetVisible(false));
+    checklistBottomSheetRef.current?.close();
+    setIsTitleSheetVisible(false);
   };
 
   const handleChecklistCompleted = () => {
@@ -367,67 +338,66 @@ const ChecklistScreen = () => {
     };
 
     return (
-      <Modal
-        transparent
-        visible={isBottomSheetVisible}
-        onRequestClose={closeBottomSheet}
-      >
-        <TouchableWithoutFeedback onPress={closeBottomSheet}>
-          <View style={styles.overlay}>
-            <TouchableWithoutFeedback>
-              <Animated.View
+      <>
+        {isBottomSheetVisible && (
+          <TouchableWithoutFeedback onPress={closeBottomSheet}>
+            <View style={styles.overlay} />
+          </TouchableWithoutFeedback>
+        )}
+
+        <BottomSheet ref={taskBottomSheetRef}>
+          <BottomSheetView style={{ flex: 1 }}>
+            <View style={styles.sheetContent}>
+              <Text style={styles.sheetTitle}>Edit Task</Text>
+              <BottomSheetTextInput
+                placeholder="Title"
+                value={bottomSheetTask.title}
+                onChangeText={(text: string) =>
+                  setBottomSheetTask({ ...bottomSheetTask, title: text })
+                }
                 style={[
-                  styles.bottomSheetContainer,
-                  { transform: [{ translateY }], marginBottom: keyboardHeight },
+                  styles.bottomSheetInput,
+                  styles.bottomSheetFocusedInput,
                 ]}
+              />
+
+              <TouchableOpacity
+                style={styles.deadlineButton}
+                onPress={() => {
+                  setIsBottomSheetVisible(false);
+                  setShowPicker(true);
+                }}
               >
-                <View style={styles.sheetContent}>
-                  <Text style={styles.sheetTitle}>Edit Task</Text>
-                  <CustomTextInput
-                    name="title"
-                    placeholder="Title"
-                    value={bottomSheetTask.title}
-                    onChangeText={(text: string) =>
-                      setBottomSheetTask({ ...bottomSheetTask, title: text })
-                    }
-                  />
+                <Text style={styles.deadlineText}>
+                  📅 Deadline:{" "}
+                  {selectedDate && dayjs(selectedDate).format("MMM DD, YYYY")}
+                </Text>
+              </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.deadlineButton}
-                    onPress={() => {
-                      setIsBottomSheetVisible(false);
-                      setShowPicker(true);
-                    }}
-                  >
-                    <Text style={styles.deadlineText}>
-                      📅 Deadline: {dayjs(selectedDate).format("MMM DD, YYYY")}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <View style={styles.sheetActions}>
-                    <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={handleDelete}
-                    >
-                      <Text style={styles.deleteText}>Delete</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.saveButton}
-                      onPress={handleUpdate}
-                    >
-                      <Text style={styles.saveText}>Save</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Animated.View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+              <View style={styles.sheetActions}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDelete}
+                >
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleUpdate}
+                >
+                  <Text style={styles.saveText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </BottomSheetView>
+        </BottomSheet>
+      </>
     );
   };
 
   const renderTitleBottomSheet = () => {
+    if (!editedTitle) return null;
+
     const handleMarkAllDone = () => {
       setChecklist((prev) =>
         prev
@@ -445,64 +415,83 @@ const ChecklistScreen = () => {
     };
 
     return (
-      <Modal
-        transparent
-        visible={isTitleSheetVisible}
-        onRequestClose={closeTitleSheet}
-      >
-        <TouchableWithoutFeedback onPress={closeTitleSheet}>
-          <View style={styles.overlay}>
-            <TouchableWithoutFeedback>
-              <Animated.View
+      <>
+        {isTitleSheetVisible && (
+          <TouchableWithoutFeedback onPress={closeTitleSheet}>
+            <View style={styles.overlay} />
+          </TouchableWithoutFeedback>
+        )}
+
+        <BottomSheet ref={checklistBottomSheetRef}>
+          <BottomSheetView style={{ flex: 1 }}>
+            <View style={styles.sheetContent}>
+              <Text style={styles.sheetTitle}>Edit Checklist</Text>
+
+              <BottomSheetTextInput
+                placeholder="Checklist Title"
+                value={editedTitle}
+                onChangeText={setEditedTitle}
                 style={[
-                  styles.bottomSheetContainer,
-                  {
-                    transform: [{ translateY: titleTranslateY }],
-                    marginBottom: keyboardHeight,
-                  },
+                  styles.bottomSheetInput,
+                  styles.bottomSheetFocusedInput,
                 ]}
+              />
+
+              <TouchableOpacity
+                style={styles.markDoneButton}
+                onPress={handleMarkAllDone}
               >
-                <View style={styles.sheetContent}>
-                  <Text style={styles.sheetTitle}>Edit Checklist</Text>
+                <Text style={styles.markDoneText}>Mark All as Done</Text>
+              </TouchableOpacity>
 
-                  <CustomTextInput
-                    name="checklistTitle"
-                    placeholder="Checklist Title"
-                    value={editedTitle}
-                    onChangeText={setEditedTitle}
-                  />
+              <View style={styles.sheetActions}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDeleteChecklist}
+                >
+                  <Text style={styles.deleteText}>Delete Checklist</Text>
+                </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.markDoneButton}
-                    onPress={handleMarkAllDone}
-                  >
-                    <Text style={styles.markDoneText}>Mark All as Done</Text>
-                  </TouchableOpacity>
-
-                  <View style={styles.sheetActions}>
-                    <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={handleDeleteChecklist}
-                    >
-                      <Text style={styles.deleteText}>Delete Checklist</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.saveButton}
-                      onPress={handleSaveChecklist}
-                    >
-                      <Text style={styles.saveText}>Save</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Animated.View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleSaveChecklist}
+                >
+                  <Text style={styles.saveText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </BottomSheetView>
+        </BottomSheet>
+      </>
     );
   };
 
+  const renderDoneModal = (title: string) => {
+    return (
+      showDoneModal && (
+        <View style={StyleSheet.absoluteFillObject}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContainer}>
+              <LottieView
+                ref={lottieRef}
+                source={require("../assets/files/checklistComplete.json")}
+                autoPlay
+                loop={false}
+                style={{ width: 200, height: 200 }}
+              />
+              <Text style={styles.modalText}>{title} Completed!</Text>
+              <Pressable
+                style={styles.modalCloseButton}
+                onPress={handleChecklistCompleted}
+              >
+                <Text style={styles.modalBtnText}>Close</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )
+    );
+  };
   const formatDeadline = (deadline: any) => {
     return dayjs(deadline).format("MMM D, HH:mm");
   };
@@ -553,7 +542,7 @@ const ChecklistScreen = () => {
           )}
           <TouchableOpacity
             onPress={() => {
-              setSelectedDate(item.deadline);
+              setSelectedDate(new Date(item.deadline));
               openBottomSheet(item);
             }}
             style={styles.icons}
@@ -590,139 +579,112 @@ const ChecklistScreen = () => {
   };
 
   return (
-    <PageLayout>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-      >
-        <TouchableWithoutFeedback onPress={handleOutsideClick}>
-          <View style={styles.container}>
-            <BackButtonHeader />
-            <View style={styles.progressWrapper}>
-              <View style={styles.checklistHeader}>
-                <View style={styles.checklistTitleWrapper}>
-                  {renderIcon(checklist.category, CrimsonLuxe.primary500)}
-                  <Text style={styles.sectionTitle}>{checklist.title}</Text>
-                </View>
-                <TouchableOpacity onPress={openTitleSheet} style={styles.icons}>
-                  <MaterialIcons name="edit" size={20} color="gray" />
-                </TouchableOpacity>
-              </View>
-
-              <Text
-                style={styles.sectionDescription}
-                ellipsizeMode="tail"
-                numberOfLines={3}
-              >
-                {checklist.description}
-              </Text>
-              <ProgressBar
-                activeColor={CrimsonLuxe.primary400}
-                showStatus={false}
-                progress={getProgress()}
-              />
-            </View>
-            {/* <GestureHandlerRootView style={{ flex: 1 }}> */}
-              <DraggableFlatList
-                showsVerticalScrollIndicator={false}
-                data={checklist.tasks || []}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => index.toString()}
-                scrollEnabled={false}
-                onDragEnd={({ data }) => {
-                  setChecklist(
-                    (prevChecklist) =>
-                      ({
-                        ...prevChecklist,
-                        tasks: data,
-                      } as any)
-                  );
-                }}
-                containerStyle={{ flex: 1 }}
-                activationDistance={10}
-                dragItemOverflow={true}
-              />
-            {/* </GestureHandlerRootView> */}
-
-            <View style={styles.tasksButtonWrapper}>
-              {jsonUploadEnabled && (
-                <TouchableOpacity
-                  style={styles.importButton}
-                  onPress={handleUploadJson}
-                >
-                  <Text style={styles.importButtonText}>📤 Import Tasks</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity style={styles.addTaskButton} onPress={addTask}>
-                <Text style={styles.addTaskText}>+ Add Task</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.saveChecklistButton,
-                !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
-              ]}
-              onPress={handleSaveChecklistTasks}
-              disabled={!isChanged}
-            >
-              <Text style={styles.saveChecklistText}>Save Checklist</Text>
-            </TouchableOpacity>
-            <Modal
-              visible={showDoneModal}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setShowDoneModal(false)}
-            >
-              <View style={styles.modalBackground}>
-                <View style={styles.modalContainer}>
-                  <LottieView
-                    ref={lottieRef}
-                    source={require("../assets/files/checklistComplete.json")}
-                    autoPlay
-                    loop={false}
-                    style={{ width: 300, height: 300 }}
-                  />
-                  <Text style={styles.modalText}>
-                    {checklist.title} Completed!
-                  </Text>
-                  <Pressable
-                    style={styles.modalCloseButton}
-                    onPress={() => handleChecklistCompleted()}
-                  >
-                    <Text style={styles.modalBtnText}>Close</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </Modal>
-
-            <Modal
-              visible={showPicker}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setShowPicker(false)}
-            >
-              <View style={styles.modalBackground}>
-                <View style={styles.modalContainer}>
-                  <View style={styles.datePickerWrapper}>
-                    <DateTimePicker
-                      value={selectedDate}
-                      mode="date"
-                      display={Platform.OS === "ios" ? "inline" : "default"}
-                      onChange={onDateChange}
-                    />
+    <>
+      <PageLayout>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+          >
+            <TouchableWithoutFeedback onPress={handleOutsideClick}>
+              <View style={styles.container}>
+                <BackButtonHeader />
+                <View style={styles.progressWrapper}>
+                  <View style={styles.checklistHeader}>
+                    <View style={styles.checklistTitleWrapper}>
+                      {renderIcon(checklist.category, CrimsonLuxe.primary500)}
+                      <Text style={styles.sectionTitle}>{checklist.title}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={openTitleSheet}
+                      style={styles.icons}
+                    >
+                      <MaterialIcons name="edit" size={20} color="gray" />
+                    </TouchableOpacity>
                   </View>
-                </View>
-              </View>
-            </Modal>
 
-            {renderBottomSheet()}
-            {renderTitleBottomSheet()}
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </PageLayout>
+                  <Text
+                    style={styles.sectionDescription}
+                    ellipsizeMode="tail"
+                    numberOfLines={3}
+                  >
+                    {checklist.description}
+                  </Text>
+                  <ProgressBar
+                    activeColor={CrimsonLuxe.primary400}
+                    showStatus={false}
+                    progress={getProgress()}
+                  />
+                </View>
+                <DraggableFlatList
+                  showsVerticalScrollIndicator={false}
+                  data={checklist.tasks || []}
+                  renderItem={renderItem}
+                  keyExtractor={(item, index) => index.toString()}
+                  scrollEnabled={false}
+                  onDragEnd={({ data }) => {
+                    setChecklist(
+                      (prevChecklist) =>
+                        ({
+                          ...prevChecklist,
+                          tasks: data,
+                        } as any)
+                    );
+                  }}
+                  containerStyle={{ flex: 1 }}
+                  activationDistance={10}
+                  dragItemOverflow={true}
+                />
+
+                <View style={styles.tasksButtonWrapper}>
+                  {jsonUploadEnabled && (
+                    <TouchableOpacity
+                      style={styles.importButton}
+                      onPress={handleUploadJson}
+                    >
+                      <Text style={styles.importButtonText}>
+                        📤 Import Tasks
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    style={styles.addTaskButton}
+                    onPress={addTask}
+                  >
+                    <Text style={styles.addTaskText}>+ Add Task</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.saveChecklistButton,
+                    !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
+                  ]}
+                  onPress={handleSaveChecklistTasks}
+                  disabled={!isChanged}
+                >
+                  <Text style={styles.saveChecklistText}>Save Checklist</Text>
+                </TouchableOpacity>
+
+                {showPicker && (
+                  <DateTimePicker
+                    value={selectedDate ?? new Date()}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "inline" : "default"}
+                    onChange={onDateChange}
+                    minimumDate={new Date()}
+                  />
+                )}
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+        </GestureHandlerRootView>
+      </PageLayout>
+      {renderBottomSheet()}
+      {renderTitleBottomSheet()}
+      {renderDoneModal(checklist.title)}
+    </>
   );
 };
 
@@ -827,9 +789,24 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   overlay: {
-    flex: 1,
-    justifyContent: "flex-end",
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  bottomSheetInput: {
+    borderWidth: 1,
+    borderColor: "#DDD",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: "#333",
+    height: 48,
+    justifyContent: "center",
+    paddingVertical: 14,
+    marginVertical: 5,
+  },
+  bottomSheetFocusedInput: {
+    backgroundColor: CrimsonLuxe.primary100,
+    borderColor: CrimsonLuxe.primary300,
   },
   bottomSheetContainer: {
     backgroundColor: "#fff",
