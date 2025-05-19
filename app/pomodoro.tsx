@@ -1,15 +1,10 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import BackButtonHeader from "@/components/backButtonHeader";
 import LineChart from "@/components/lineChart";
 import PageLayout from "@/components/pageLayout";
 import { router } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
-import dayjs from "dayjs";
-
-const handleNavigation = (route: any) => {
-  router.push(route);
-};
 
 const Pomodoro = () => {
   return (

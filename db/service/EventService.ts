@@ -46,8 +46,7 @@ export const createEvent = async ({
       });
       newEventId = event._id;
     });
-  }
-  finally {
+  } finally {
     // Optional cleanup
   }
   return newEventId;
@@ -109,9 +108,12 @@ export const deleteEvent = async (id: ObjectId) => {
       realm.write(() => {
         realm.delete(event);
       });
+      return true;
     }
-  } finally {
-    // Optional cleanup
+    return false;
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    return false;
   }
 };
 

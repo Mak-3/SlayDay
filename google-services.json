@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "809634720109",
+    "project_id": "slayday-3ab3e",
+    "storage_bucket": "slayday-3ab3e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:809634720109:android:df4dc12976c3297bcf9264",
+        "android_client_info": {
+          "package_name": "com.mak3.slayday"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "809634720109-ecv3b8jrv8k9qls86ga3h2mouofiu8ka.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQkRr9VdS6yKZgxZsH4smMpMHbxtN12ws"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "809634720109-ecv3b8jrv8k9qls86ga3h2mouofiu8ka.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

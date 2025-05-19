@@ -44,27 +44,39 @@ const TaskCard = () => {
     const today = new Date();
 
     const isMatchingRepeat = (event: EventType) => {
+      const today = new Date();
+      const eventDate = new Date(event.date);
+
       if (event.isOneTime) {
-        return isToday(new Date(event.date));
+        return isToday(eventDate);
       }
 
       if (event.repeatType === "Daily") {
-        return true;
+        return eventDate <= today;
       }
 
       if (event.repeatType === "Weekly" && event.weekDays) {
         const currentDay = today.toLocaleString("en-US", { weekday: "long" });
-        return event.weekDays.includes(currentDay);
+        return eventDate <= today && event.weekDays.includes(currentDay);
       }
 
       if (event.repeatType === "Monthly") {
-        return new Date(event.date).getDate() === today.getDate();
+        return eventDate <= today && eventDate.getDate() === today.getDate();
+      }
+
+      if (event.repeatType === "Yearly") {
+        return (
+          eventDate <= today &&
+          eventDate.getDate() === today.getDate() &&
+          eventDate.getMonth() === today.getMonth()
+        );
       }
 
       if (event.repeatType === "Custom" && event.interval) {
-        const startDate = new Date(event.date);
+        if (eventDate > today) return false;
+
         const diffDays = Math.floor(
-          (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+          (today.getTime() - eventDate.getTime()) / (1000 * 60 * 60 * 24)
         );
         return diffDays % event.interval === 0;
       }
@@ -90,6 +102,7 @@ const TaskCard = () => {
     <FlatList
       data={todayEvents}
       keyExtractor={(item) => item.id.toString()}
+      scrollEnabled={false}
       renderItem={({ item }) => (
         <View style={styles.card}>
           <View style={styles.iconWrapper}>
@@ -147,6 +160,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 6,
     marginVertical: 10,
+    marginHorizontal: 6
   },
   iconWrapper: {
     width: 40,

@@ -34,12 +34,10 @@ const ProgressCard = ({
   checklist,
   index,
   scrollX,
-  onPress,
 }: {
   checklist: Checklist;
   index: number;
   scrollX: Animated.Value;
-  onPress: () => void;
 }) => {
   const top = scrollX.interpolate({
     inputRange: [
@@ -54,7 +52,14 @@ const ProgressCard = ({
   const completedTasks = checklist.items.filter((t) => t.isCompleted).length;
 
   return (
-    <Pressable onPress={onPress}>
+    <Pressable
+      onPress={() => {
+        router.push({
+          pathname: "/checklistScreen",
+          params: { id: checklist.id },
+        });
+      }}
+    >
       <Animated.View
         style={[
           styles.progressCard,
@@ -122,7 +127,11 @@ const Progress = () => {
     });
 
     return (
-      <Pressable onPress={() => {router.navigate('/createChecklist')}}>
+      <Pressable
+        onPress={() => {
+          router.navigate("/createChecklist");
+        }}
+      >
         <Animated.View
           style={[
             styles.progressCard,
@@ -153,17 +162,10 @@ const Progress = () => {
             <AddNewCard
               index={index}
               scrollX={scrollX}
-              onPress={() => navigation.navigate("CreateChecklist")}
+              onPress={() => router.push("/createChecklist")}
             />
           ) : (
-            <ProgressCard
-              checklist={item}
-              index={index}
-              scrollX={scrollX}
-              onPress={() =>
-                navigation.navigate("checklistScreen", { id: item.id })
-              }
-            />
+            <ProgressCard checklist={item} index={index} scrollX={scrollX} />
           )
         }
         keyExtractor={(item) => item.id}

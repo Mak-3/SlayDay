@@ -1,16 +1,17 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";   
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_AUTH_DOMAIN',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_STORAGE_BUCKET',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: "AIzaSyBsPh7M6wEtjAr92vRl0qiRbEY3ck3CoO4",
+  authDomain: "slayday-3ab3e.firebaseapp.com",
+  projectId: "slayday-3ab3e",
+  storageBucket: "slayday-3ab3e.firebasestorage.app",
+  messagingSenderId: "809634720109",
+  appId: "1:809634720109:web:fe53d40e4808aedccf9264",
+  measurementId: "G-6SJCW9SPN1"
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-export { auth };
+export const auth = getAuth(app);
+export const db = getFirestore(app);

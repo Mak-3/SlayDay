@@ -1,6 +1,7 @@
 import BackButtonHeader from "@/components/backButtonHeader";
 import PageLayout from "@/components/pageLayout";
-import React, { useState } from "react";
+import { getUser } from "@/db/service/UserService";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,21 +13,22 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 const EditProfileScreen = () => {
-  const [username, setUsername] = useState("EdLarry");
-  const [email] = useState("edwardlarry@email.com");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [avatar, setAvatar] = useState("https://i.pravatar.cc/300");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [avatar, setAvatar] = useState("");
 
-  const changeAvatar = () => {
-    // Just simulating image changes by toggling between 2 sample URLs
-    const newAvatar =
-      avatar === "https://i.pravatar.cc/300"
-        ? "https://randomuser.me/api/portraits/men/1.jpg"
-        : "https://i.pravatar.cc/300";
-
-    setAvatar(newAvatar);
+  const getProfile = async () => {
+    try {
+      const userInfo: any = await getUser();
+      setUsername(userInfo.userName);
+      setAvatar(userInfo.profilePicture);
+      setEmail(userInfo.email);
+    } catch (error) {}
   };
+
+  useEffect(() => {
+    getProfile();
+  }, []);
 
   return (
     <PageLayout style={styles.container}>
@@ -34,13 +36,12 @@ const EditProfileScreen = () => {
       <View style={styles.wrapper}>
         <View style={styles.avatarContainer}>
           <Image source={{ uri: avatar }} style={styles.avatar} />
-          <TouchableOpacity style={styles.editIcon} onPress={changeAvatar}>
+          <TouchableOpacity style={styles.editIcon} onPress={() => {}}>
             <Icon name="edit" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.name}>Edward Larry</Text>
-        <Text style={styles.role}>Senior Designer</Text>
+        <Text style={styles.name}>{username}</Text>
 
         <View style={styles.formContainer}>
           <Text style={styles.label}>Email Address</Text>
@@ -61,40 +62,11 @@ const EditProfileScreen = () => {
             <Icon name="check-circle" size={20} color="green" />
           </View>
 
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputWithIcon}>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              placeholder="Password"
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Icon
-                name={showPassword ? "visibility" : "visibility-off"}
-                size={20}
-                color="#aaa"
-              />
-            </TouchableOpacity>
-          </View>
-          {password.length > 0 && password.length < 8 && (
-            <Text style={styles.errorText}>
-              Password should contain at least 8 characters!
-            </Text>
-          )}
-
-          <Text style={styles.label}>Birth Date (Optional)</Text>
-          <View style={styles.dateRow}>
-            <Text style={styles.dateValue}>14</Text>
-            <Text style={styles.dateValue}>September</Text>
-            <Text style={styles.dateValue}>1994</Text>
-          </View>
         </View>
       </View>
-          <View style={styles.joinedWrapper}>
-            <Text style={styles.joinedText}>Joined 21 Jan 2020</Text>
-          </View>
+      <View style={styles.joinedWrapper}>
+        <Text style={styles.joinedText}>Joined 21 Jan 2020</Text>
+      </View>
     </PageLayout>
   );
 };
@@ -150,6 +122,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%",
+    marginTop: 25,
   },
   label: {
     fontSize: 14,
@@ -197,7 +170,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     left: 0,
-    marginHorizontal: 30
+    marginHorizontal: 30,
   },
   joinedText: {
     marginTop: 30,

@@ -38,6 +38,8 @@ import LottieView from "lottie-react-native";
 import dayjs from "dayjs";
 import { renderIcon } from "@/components/renderIcon";
 
+import * as DocumentPicker from "expo-document-picker";
+import { getUser } from "@/db/service/UserService";
 interface Task {
   id: string;
   title: string;
@@ -54,7 +56,7 @@ interface ChecklistData {
   description: string;
 }
 
-const ChecklistScreen: React.FC = () => {
+const ChecklistScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [originalChecklist, setOriginalChecklist] =
@@ -74,6 +76,7 @@ const ChecklistScreen: React.FC = () => {
   const [isTitleSheetVisible, setIsTitleSheetVisible] = useState(false);
   const [titleTranslateY] = useState(new Animated.Value(300));
   const [editedTitle, setEditedTitle] = useState("");
+  const [jsonUploadEnabled, setJsonUploadEnabled] = useState(false);
 
   const lottieRef = useRef<LottieView>(null);
 
@@ -126,6 +129,20 @@ const ChecklistScreen: React.FC = () => {
       JSON.stringify(originalChecklist) === JSON.stringify(checklist);
     setIsChanged(!isEqual);
   }, [checklist, originalChecklist]);
+
+  useEffect(() => {
+    getProfile();
+  }, []);
+
+  const getProfile = async () => {
+    try {
+      const userInfo: any = await getUser();
+      const jsonPrefValue = userInfo?.preferences?.jsonUploadEnabled ?? false;
+      setJsonUploadEnabled(jsonPrefValue);
+    } catch (error) {
+      console.error("Failed to load user:", error);
+    }
+  };
 
   const onDateChange = (event: any, date?: Date) => {
     setShowPicker(false);
@@ -240,6 +257,45 @@ const ChecklistScreen: React.FC = () => {
     }
   };
 
+  const handleUploadJson = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/json",
+      });
+
+      if (result.canceled || !result.assets || !result.assets.length) return;
+
+      const fileUri = result.assets[0].uri;
+      const fileContent = await fetch(fileUri).then((res) => res.text());
+      const parsed = JSON.parse(fileContent);
+
+      if (!parsed.tasks || !Array.isArray(parsed.tasks)) {
+        Toast.show({ type: "error", text1: "Invalid file format" });
+        return;
+      }
+
+      const newTasks: Task[] = parsed.tasks.map((task: any) => ({
+        id: new ObjectId().toString(),
+        title: task.title || "",
+        isCompleted: !!task.isCompleted,
+        deadline: task.deadline ? new Date(task.deadline) : undefined,
+      }));
+
+      setChecklist((prev) =>
+        prev
+          ? {
+              ...prev,
+              tasks: [...prev.tasks, ...newTasks],
+            }
+          : prev
+      );
+
+      Toast.show({ type: "success", text1: "Tasks imported successfully" });
+    } catch (error) {
+      console.error("Failed to import tasks", error);
+      Toast.show({ type: "error", text1: "Failed to import tasks" });
+    }
+  };
   const openBottomSheet = (task: Task) => {
     setBottomSheetTask(task);
     setIsBottomSheetVisible(true);
@@ -535,48 +591,45 @@ const ChecklistScreen: React.FC = () => {
 
   return (
     <PageLayout>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-        >
-          <TouchableWithoutFeedback onPress={handleOutsideClick}>
-            <View style={styles.container}>
-              <BackButtonHeader />
-              <View style={styles.progressWrapper}>
-                <View style={styles.checklistHeader}>
-                  <View style={styles.checklistTitleWrapper}>
-                    {renderIcon(checklist.category, CrimsonLuxe.primary500)}
-                    <Text style={styles.sectionTitle}>{checklist.title}</Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={openTitleSheet}
-                    style={styles.icons}
-                  >
-                    <MaterialIcons name="edit" size={20} color="gray" />
-                  </TouchableOpacity>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      >
+        <TouchableWithoutFeedback onPress={handleOutsideClick}>
+          <View style={styles.container}>
+            <BackButtonHeader />
+            <View style={styles.progressWrapper}>
+              <View style={styles.checklistHeader}>
+                <View style={styles.checklistTitleWrapper}>
+                  {renderIcon(checklist.category, CrimsonLuxe.primary500)}
+                  <Text style={styles.sectionTitle}>{checklist.title}</Text>
                 </View>
-
-                <Text
-                  style={styles.sectionDescription}
-                  ellipsizeMode="tail"
-                  numberOfLines={3}
-                >
-                  {checklist.description}
-                </Text>
-                <ProgressBar
-                  activeColor={CrimsonLuxe.primary400}
-                  showStatus={false}
-                  progress={getProgress()}
-                />
+                <TouchableOpacity onPress={openTitleSheet} style={styles.icons}>
+                  <MaterialIcons name="edit" size={20} color="gray" />
+                </TouchableOpacity>
               </View>
 
+              <Text
+                style={styles.sectionDescription}
+                ellipsizeMode="tail"
+                numberOfLines={3}
+              >
+                {checklist.description}
+              </Text>
+              <ProgressBar
+                activeColor={CrimsonLuxe.primary400}
+                showStatus={false}
+                progress={getProgress()}
+              />
+            </View>
+            {/* <GestureHandlerRootView style={{ flex: 1 }}> */}
               <DraggableFlatList
                 showsVerticalScrollIndicator={false}
                 data={checklist.tasks || []}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => index.toString()}
+                scrollEnabled={false}
                 onDragEnd={({ data }) => {
                   setChecklist(
                     (prevChecklist) =>
@@ -590,80 +643,88 @@ const ChecklistScreen: React.FC = () => {
                 activationDistance={10}
                 dragItemOverflow={true}
               />
+            {/* </GestureHandlerRootView> */}
 
+            <View style={styles.tasksButtonWrapper}>
+              {jsonUploadEnabled && (
+                <TouchableOpacity
+                  style={styles.importButton}
+                  onPress={handleUploadJson}
+                >
+                  <Text style={styles.importButtonText}>📤 Import Tasks</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={styles.addTaskButton} onPress={addTask}>
                 <Text style={styles.addTaskText}>+ Add Task</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.saveChecklistButton,
-                  !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
-                ]}
-                onPress={handleSaveChecklistTasks}
-                disabled={!isChanged}
-              >
-                <Text style={styles.saveChecklistText}>Save Checklist</Text>
-              </TouchableOpacity>
-              <Modal
-                visible={showDoneModal}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setShowDoneModal(false)}
-              >
-                <View style={styles.modalBackground}>
-                  <View style={styles.modalContainer}>
-                    <LottieView
-                      ref={lottieRef}
-                      source={require("../assets/files/checklistComplete.json")}
-                      autoPlay
-                      loop={false}
-                      style={{ width: 300, height: 300 }}
-                    />
-                    <Text style={styles.modalText}>
-                      {checklist.title} Completed!
-                    </Text>
-                    <Pressable
-                      style={styles.modalCloseButton}
-                      onPress={() => handleChecklistCompleted()}
-                    >
-                      <Text style={styles.modalBtnText}>Close</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </Modal>
-
-              <Modal
-                visible={showPicker}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setShowPicker(false)}
-              >
-                <View style={styles.modalBackground}>
-                  <View style={styles.modalContainer}>
-                    <View style={styles.datePickerWrapper}>
-                      <DateTimePicker
-                        value={selectedDate}
-                        mode="date"
-                        display={Platform.OS === "ios" ? "inline" : "default"}
-                        onChange={onDateChange}
-                      />
-                    </View>
-                  </View>
-                </View>
-              </Modal>
-
-              {renderBottomSheet()}
-              {renderTitleBottomSheet()}
             </View>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-      </GestureHandlerRootView>
+
+            <TouchableOpacity
+              style={[
+                styles.saveChecklistButton,
+                !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
+              ]}
+              onPress={handleSaveChecklistTasks}
+              disabled={!isChanged}
+            >
+              <Text style={styles.saveChecklistText}>Save Checklist</Text>
+            </TouchableOpacity>
+            <Modal
+              visible={showDoneModal}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setShowDoneModal(false)}
+            >
+              <View style={styles.modalBackground}>
+                <View style={styles.modalContainer}>
+                  <LottieView
+                    ref={lottieRef}
+                    source={require("../assets/files/checklistComplete.json")}
+                    autoPlay
+                    loop={false}
+                    style={{ width: 300, height: 300 }}
+                  />
+                  <Text style={styles.modalText}>
+                    {checklist.title} Completed!
+                  </Text>
+                  <Pressable
+                    style={styles.modalCloseButton}
+                    onPress={() => handleChecklistCompleted()}
+                  >
+                    <Text style={styles.modalBtnText}>Close</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Modal>
+
+            <Modal
+              visible={showPicker}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setShowPicker(false)}
+            >
+              <View style={styles.modalBackground}>
+                <View style={styles.modalContainer}>
+                  <View style={styles.datePickerWrapper}>
+                    <DateTimePicker
+                      value={selectedDate}
+                      mode="date"
+                      display={Platform.OS === "ios" ? "inline" : "default"}
+                      onChange={onDateChange}
+                    />
+                  </View>
+                </View>
+              </View>
+            </Modal>
+
+            {renderBottomSheet()}
+            {renderTitleBottomSheet()}
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </PageLayout>
   );
 };
-
-export default ChecklistScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -688,7 +749,8 @@ const styles = StyleSheet.create({
   },
   checklistTitleWrapper: {
     flexDirection: "row",
-    gap: 6,
+    gap: 10,
+    alignItems: "center",
   },
   progressWrapper: {
     marginVertical: 20,
@@ -735,6 +797,12 @@ const styles = StyleSheet.create({
   icons: {
     paddingHorizontal: 8,
   },
+  tasksButtonWrapper: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+    marginVertical: 10,
+  },
   addTaskButton: {
     marginTop: 16,
     padding: 12,
@@ -742,6 +810,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 8,
     alignItems: "center",
+    flex: 1,
   },
   addTaskText: {
     color: "#333",
@@ -871,4 +940,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
+  importButton: {
+    backgroundColor: CrimsonLuxe.primary400,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    flex: 1,
+    alignItems: "center",
+  },
+  importButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
 });
+
+export default ChecklistScreen;

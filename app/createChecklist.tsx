@@ -58,7 +58,7 @@ const CreateChecklist = () => {
       });
 
       if (checklistId) {
-        router.push({
+        router.replace({
           pathname: "/checklistScreen",
           params: {
             id: checklistId,

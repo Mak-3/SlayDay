@@ -4,25 +4,28 @@
     "slug": "slayday",
     "version": "1.0.0",
     "orientation": "portrait",
+    "owner": "mak3",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "com.mak3.slayday",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.slayday"
+      "bundleIdentifier": "com.mak3.slayday",
+      "icon": "./assets/images/icon.png"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.slayday"
+      "package": "com.mak3.slayday",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/icon.png"
     },
     "plugins": [
       "expo-router",
@@ -38,6 +41,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "65e4d3ca-5380-4932-ba16-c255fca57de7"
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Animated,
@@ -15,9 +15,33 @@ import PageLayout from "@/components/pageLayout";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { CrimsonLuxe } from "@/constants/Colors";
 import TaskCard from "@/components/taskStatusCard";
+import { getChecklistCount } from "@/db/service/ChecklistService";
+import { getEventCount } from "@/db/service/EventService";
+import NoDataSVG from "@/assets/svgs/NoEvents.svg";
 
 const Home = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [checklistCount, setChecklistCount] = useState<number>(0);
+  const [eventCount, setEventCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const checklistRes = await getChecklistCount();
+        const eventRes = await getEventCount();
+
+        setChecklistCount(checklistRes.total || 0);
+        setEventCount(eventRes.total || 0);
+      } catch (error) {
+        console.error("Failed to fetch counts:", error);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
+  const hasData = eventCount > 0 || checklistCount > 0;
+
   return (
     <View style={{ flex: 1 }}>
       <PageLayout style={styles.container}>
@@ -25,38 +49,48 @@ const Home = () => {
           style={[styles.content, { opacity: isMenuOpen ? 0.4 : 1 }]}
         >
           <Header />
-          <Progress />
-          <View style={styles.section}>
-            <View style={styles.todayTaskWrapper}>
-              <Text style={styles.sectionTitle}>Today's tasks</Text>
-              <TouchableOpacity onPress={() => router.push("/drawer/calender")}>
-                <MaterialCommunityIcons
-                  name="calendar-month-outline"
-                  size={28}
-                  color={CrimsonLuxe.primary400}
-                />
-              </TouchableOpacity>
+          {hasData ? (
+            <>
+              <Progress />
+              {eventCount > 0 && (
+                <View style={styles.section}>
+                  <View style={styles.todayTaskWrapper}>
+                    <Text style={styles.sectionTitle}>Today's tasks</Text>
+                    <TouchableOpacity
+                      onPress={() => router.push("/drawer/calender")}
+                    >
+                      <MaterialCommunityIcons
+                        name="calendar-month-outline"
+                        size={28}
+                        color={CrimsonLuxe.primary400}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <TaskCard />
+                </View>
+              )}
+            </>
+          ) : (
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataText}>No Data Available</Text>
+              <NoDataSVG width={"90%"} height={300} />
             </View>
-            <TaskCard />
-          </View>
+          )}
         </Animated.View>
       </PageLayout>
 
-      {isMenuOpen && (
-        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+        {isMenuOpen && (
           <TouchableWithoutFeedback onPress={() => setIsMenuOpen(false)}>
             <View style={styles.backdrop} />
           </TouchableWithoutFeedback>
-          <FloatingMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
-        </View>
-      )}
-
-      {!isMenuOpen && (
+        )}
         <FloatingMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
-      )}
+      </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
@@ -78,35 +112,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "left",
   },
-  quoteCard: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: "#FFF5F5",
-    borderRadius: 16,
-    borderLeftWidth: 5,
-    borderLeftColor: CrimsonLuxe.primary300,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  quoteLabel: {
-    fontSize: 14,
-    color: CrimsonLuxe.primary500,
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  quoteText: {
-    fontSize: 16,
-    color: "#333",
-    fontStyle: "italic",
-    lineHeight: 22,
-  },
-
   todayTaskWrapper: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  noDataContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+  },
+  noDataText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#222",
+    marginBottom: 40,
   },
 });
 

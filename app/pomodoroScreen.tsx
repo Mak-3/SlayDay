@@ -95,7 +95,7 @@ const PomodoroUI = () => {
           createdAt: startDateTime,
           endAt: endDateTime,
         });
-        router.push("/pomodoroSessions");
+        router.push("/drawer/pomodoroSessions");
       } catch (error) {
         console.error("Failed to create Pomodoro:", error);
       }

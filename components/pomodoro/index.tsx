@@ -37,7 +37,7 @@ const PomodoroTimer = () => {
 
   const handleStartPause = () => {
     if (secondsLeft === 0) {
-      setSecondsLeft(WORK_TIME); // Reset if already finished
+      setSecondsLeft(WORK_TIME);
     }
     setIsRunning((prev) => !prev);
   };

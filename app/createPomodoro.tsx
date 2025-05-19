@@ -55,7 +55,7 @@ const CreatePomodoroScreen = () => {
       return;
     }
     if (taskType == "Pomodoro") {
-      router.push({
+      router.replace({
         pathname: "/pomodoroScreen",
         params: {
           title,
@@ -65,7 +65,7 @@ const CreatePomodoroScreen = () => {
       });
     }
     if (taskType == "Timer Challenge") {
-      router.push({
+      router.replace({
         pathname: "/timer",
         params: {
           title,
@@ -226,7 +226,6 @@ const CreatePomodoroScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
     backgroundColor: "#FFFFFF",
   },
   label: {

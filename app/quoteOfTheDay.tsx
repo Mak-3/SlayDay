@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
 import { CrimsonLuxe } from "@/constants/Colors";
 import productivityQuotes from "@/constants/quotes";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import PageLayout from "@/components/pageLayout";
+import { getUser } from "@/db/service/UserService";
 
 const { width } = Dimensions.get("window");
 
 export default function QuoteCardOverlay() {
   const [cardHeight, setCardHeight] = useState(0);
+  const [userName, setUserName] = useState<any>("");
 
   const getQuoteOfTheDay = () => {
     const startDate = new Date("2025-01-01");
@@ -34,8 +36,25 @@ export default function QuoteCardOverlay() {
     router.navigate("/drawer/home");
   };
 
+  const getProfile = async () => {
+    try {
+      const userInfo: any = await getUser();
+      setUserName(userInfo.userName);
+    } catch (error) {
+      console.error("Failed to load user:", error);
+    }
+  };
+
+  useEffect(() => {
+    getProfile();
+  }, []);
+
   return (
-    <PageLayout style={styles.safeArea} statusBarColor="light-content">
+    <PageLayout
+      style={styles.safeArea}
+      statusBarColor="light-content"
+      backgroundColor={CrimsonLuxe.primary400}
+    >
       <Pressable style={styles.closeButton} onPress={handleClose}>
         <Ionicons name="close" size={28} color="#fff" />
       </Pressable>
@@ -51,7 +70,8 @@ export default function QuoteCardOverlay() {
             }}
           >
             <Text style={styles.greeting}>
-              {getGreeting()}, <Text style={styles.username}>ABD</Text> 👋
+              {getGreeting()}, <Text style={styles.username}>{userName}</Text>{" "}
+              👋
             </Text>
             <Text style={styles.quoteMark}>“</Text>
             <Text style={styles.quoteText}>{quote}</Text>
@@ -96,6 +116,7 @@ const styles = StyleSheet.create({
   username: {
     color: CrimsonLuxe.primary400,
     fontWeight: "700",
+    lineHeight: 30
   },
   cardWrapper: {
     width: width * 0.8,

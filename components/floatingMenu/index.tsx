@@ -5,7 +5,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
@@ -41,7 +40,7 @@ const FloatingMenu = ({
   };
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.floatingContainer}>
         {visible && (
           <Animated.View style={[styles.menu, animatedStyle]}>
@@ -79,7 +78,7 @@ const FloatingMenu = ({
           />
         </TouchableOpacity>
       </View>
-    </GestureHandlerRootView>
+    </View>
   );
 };
 

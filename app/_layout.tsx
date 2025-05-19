@@ -10,6 +10,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import Toast from "react-native-toast-message";
+import { getUser, saveUser } from "@/db/service/UserService";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -65,36 +68,71 @@ export default function RootLayout() {
   }, [loaded]);
 
   useEffect(() => {
-    if (isLayoutMounted && isLoggedIn === false) {
-      router.replace("/drawer/home");
+    if (isLayoutMounted) {
+      if (isLoggedIn === false) {
+        router.replace("/signIn");
+      } else if (isLoggedIn === true) {
+        checkAndRedirectForFirstOpen();
+      }
     }
   }, [isLayoutMounted, isLoggedIn, router]);
 
   if (!loaded || isLoggedIn === null) {
-    return null;
+    return <></>;
   }
 
+  const checkAndRedirectForFirstOpen = async () => {
+    const user: any = await getUser();
+    const today = new Date();
+
+    if (!user || !user.lastOpened) {
+      await saveUser({
+        userName: user?.userName || "Guest",
+        profilePicture: user?.profilePicture,
+        email: user?.email || "",
+        lastOpened: today,
+      });
+      router.replace("/quoteOfTheDay");
+      return;
+    }
+
+    const lastOpenedDate = new Date(user.lastOpened);
+    const isSameDay =
+      lastOpenedDate.getDate() === today.getDate() &&
+      lastOpenedDate.getMonth() === today.getMonth() &&
+      lastOpenedDate.getFullYear() === today.getFullYear();
+    if (!isSameDay) {
+      await saveUser({ ...user, lastOpened: today });
+      router.replace("/quoteOfTheDay");
+    } else {
+      router.replace("/drawer/home");
+    }
+  };
   return (
+    <GestureHandlerRootView style={{flex: 1}}>
     <ThemeProvider value={theme}>
       <Stack>
         <Stack.Screen name="intro" options={{ headerShown: false }} />
 
         <Stack.Screen name="signIn" options={{ headerShown: false }} />
         <Stack.Screen name="signUp" options={{ headerShown: false }} />
+        <Stack.Screen name="forgotPassword" options={{ headerShown: false }} />
 
         <Stack.Screen name="quoteOfTheDay" options={{ headerShown: false }} />
+
         <Stack.Screen name="drawer" options={{ headerShown: false }} />
-        <Stack.Screen name="calender" options={{ headerShown: false }} />
 
         <Stack.Screen name="pomodoro" options={{ headerShown: false }} />
         <Stack.Screen name="createPomodoro" options={{ headerShown: false }} />
         <Stack.Screen name="pomodoroScreen" options={{ headerShown: false }} />
-        <Stack.Screen name="timer" options={{ headerShown: false }} />
         <Stack.Screen
           name="pomodoroSessions"
           options={{ headerShown: false }}
         />
 
+        <Stack.Screen name="timer" options={{ headerShown: false }} />
+
+        <Stack.Screen name="calender" options={{ headerShown: false }} />
         <Stack.Screen name="reminder" options={{ headerShown: false }} />
         <Stack.Screen name="createEvent" options={{ headerShown: false }} />
 
@@ -106,12 +144,14 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         />
 
-        <Stack.Screen name="settings" options={{ title: "Settings" }} />
+        <Stack.Screen name="+not-found" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen name="editProfile" options={{ headerShown: false }} />
 
         <Stack.Screen name="createNotes" options={{ headerShown: false }} />
       </Stack>
+      <Toast />
     </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

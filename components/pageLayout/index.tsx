@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import {
   ScrollView,
   SafeAreaView,
@@ -7,15 +7,14 @@ import {
   Platform,
   StatusBar,
   ViewStyle,
-  ColorValue,
   StatusBarStyle,
 } from "react-native";
-
+import * as NavigationBar from "expo-navigation-bar";
 interface PageProps {
   children: ReactNode;
   style?: ViewStyle;
   contentContainerStyle?: ViewStyle;
-  backgroundColor?: ColorValue;
+  backgroundColor?: any;
   statusBarColor?: StatusBarStyle;
 }
 
@@ -26,6 +25,14 @@ const PageLayout: React.FC<PageProps> = ({
   backgroundColor = "#FFFFFF",
   statusBarColor = "dark-content",
 }) => {
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      NavigationBar.setBackgroundColorAsync(backgroundColor);
+      NavigationBar.setButtonStyleAsync(
+        statusBarColor === "dark-content" ? "dark" : "light"
+      );
+    }
+  }, [backgroundColor, statusBarColor]);
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor }, style]}>
       <StatusBar barStyle={statusBarColor} backgroundColor={backgroundColor} />

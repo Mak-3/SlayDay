@@ -7,15 +7,29 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
 import AntDesign from "react-native-vector-icons/AntDesign";
-import Entypo from "react-native-vector-icons/Entypo";
 import PageLayout from "@/components/pageLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { router } from "expo-router";
+import { auth } from "../firebaseConfig";
+import {
+  GoogleAuthProvider,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import Toast from "react-native-toast-message";
+
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
+import { saveUser } from "@/db/service/UserService";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
   const [email, setEmail] = useState("");
@@ -29,6 +43,90 @@ export default function SignInScreen() {
     Keyboard.dismiss();
     setEmailFocused(false);
     setPasswordFocused(false);
+  };
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId:
+      "809634720109-1rnvdhue6agfn6k6fugbd6hkfc48sgj5.apps.googleusercontent.com",
+    webClientId:
+      "809634720109-ecv3b8jrv8k9qls86ga3h2mouofiu8ka.apps.googleusercontent.com",
+  });
+
+  React.useEffect(() => {
+    const handleGoogleSignIn = async () => {
+      if (response?.type === "success") {
+        try {
+          const { id_token } = response.params;
+          const credential = GoogleAuthProvider.credential(id_token);
+
+          const userCredential = await signInWithCredential(auth, credential);
+          const user = userCredential.user;
+
+          const email = user.email ?? "";
+          const userName = email.split("@")[0];
+          const profilePicture = user.photoURL ?? "";
+
+          await AsyncStorage.setItem("isLoggedIn", "true");
+
+          await saveUser({
+            userName,
+            email,
+            profilePicture,
+            lastOpened: new Date(),
+          });
+
+          Toast.show({
+            type: "success",
+            text1: "Google Sign-in Success",
+            text2: "Redirecting...",
+            position: "bottom",
+          });
+
+          router.replace("/drawer/home");
+        } catch (error: any) {
+          Toast.show({
+            type: "error",
+            text1: "Google Sign-in Failed",
+            text2: error.message,
+            position: "bottom",
+          });
+        }
+      }
+    };
+
+    handleGoogleSignIn();
+  }, [response]);
+
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in both email and password.");
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+
+      await AsyncStorage.setItem("isLoggedIn", "true");
+
+      router.replace("/drawer/home");
+    } catch (error: any) {
+      const toastConfig = {
+        "auth/invalid-credential": {
+          type: "error",
+          text1: "Invalid Email or password",
+          text2: "Please check your email and password",
+        },
+        default: {
+          type: "error",
+          text1: "Signin failed",
+          text2: "Please try again later",
+        },
+      } as any;
+
+      const { type, text1, text2 } =
+        toastConfig[error.code] || toastConfig.default;
+      Toast.show({ type, text1, text2, position: "bottom" });
+    }
   };
 
   return (
@@ -120,7 +218,17 @@ export default function SignInScreen() {
             <Text style={styles.rememberMeText}>Remember me</Text>
           </View>
 
-          <TouchableOpacity style={styles.signUpButton}>
+          <View style={{ alignItems: "flex-end", marginBottom: 10 }}>
+            <TouchableOpacity onPress={() => router.push("/forgotPassword")}>
+              <Text
+                style={{ color: CrimsonLuxe.primary400, fontWeight: "500" }}
+              >
+                Forgot password?
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.signUpButton} onPress={handleSignIn}>
             <Text style={styles.signUpButtonText}>Sign in</Text>
           </TouchableOpacity>
 
@@ -131,20 +239,18 @@ export default function SignInScreen() {
           </View>
 
           <View style={styles.socialContainer}>
-            <TouchableOpacity style={styles.socialButton}>
-              <FontAwesome name="facebook-f" size={20} color="#4267B2" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => promptAsync()}
+            >
               <AntDesign name="google" size={20} color="#DB4437" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Entypo name="apple" size={20} color="#000" />
+              <Text style={styles.socialButtonText}>Google</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.footerTextContainer}>
             <Text style={styles.footerText}>Don’t have an account? </Text>
-            <TouchableOpacity onPress={() => router.replace('/signUp')}>
+            <TouchableOpacity onPress={() => router.replace("/signUp")}>
               <Text style={styles.signInText}>Sign up</Text>
             </TouchableOpacity>
           </View>
@@ -162,7 +268,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     marginVertical: 40,
-    textAlign: 'center'
+    textAlign: "center",
   },
   inputContainer: {
     flexDirection: "row",
@@ -227,6 +333,7 @@ const styles = StyleSheet.create({
   },
   socialButton: {
     flex: 1,
+    flexDirection: "row",
     height: 50,
     borderRadius: 10,
     borderWidth: 1,
@@ -240,6 +347,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
     elevation: 2,
+  },
+  socialButtonText: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "500",
   },
   footerTextContainer: {
     flexDirection: "row",

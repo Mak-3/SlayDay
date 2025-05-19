@@ -1,34 +1,78 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   Image,
   StyleSheet,
   TouchableOpacity,
+  Switch,
 } from "react-native";
-import {
-  Feather,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import BackButtonHeader from "@/components/backButtonHeader";
 import { router } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
 import PageLayout from "@/components/pageLayout";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { signOut } from "firebase/auth";
+import { auth } from "@/firebaseConfig";
+import { getUser, saveUser } from "@/db/service/UserService";
 
 const ProfileScreen = () => {
-  const [pushNotifications, setPushNotifications] = useState<boolean>(true);
+  const [jsonUploadEnabled, setJsonUploadEnabled] = useState<boolean>(false);
+  const [originalPreferences, setOriginalPreferences] =
+    useState<boolean>(false);
+  const [user, setUser] = useState<any>({});
+
+  useEffect(() => {
+    getProfile();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      await AsyncStorage.setItem("isLoggedIn", "false");
+      router.replace("/signIn");
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
+  const getProfile = async () => {
+    try {
+      const userInfo = await getUser();
+      setUser(userInfo);
+      const prefValue = userInfo?.preferences?.jsonUploadEnabled ?? false;
+      setJsonUploadEnabled(prefValue);
+      setOriginalPreferences(prefValue);
+    } catch (error) {
+      console.error("Failed to load user:", error);
+    }
+  };
+
+  const handleSavePreferences = async () => {
+    try {
+      await saveUser({
+        userName: user.userName,
+        profilePicture: user.profilePicture,
+        email: user.email,
+        lastOpened: new Date(),
+        preferences: {
+          jsonUploadEnabled: jsonUploadEnabled,
+        },
+      });
+      setOriginalPreferences(jsonUploadEnabled);
+    } catch (error) {
+      console.error("Failed to save preferences:", error);
+    }
+  };
 
   return (
     <PageLayout style={styles.container}>
       <BackButtonHeader />
       <View style={styles.profileContainer}>
-        <Image
-          source={{ uri: "https://randomuser.me/api/portraits/men/1.jpg" }}
-          style={styles.avatar}
-        />
-        <Text style={styles.name}>Coffeestories</Text>
-        <Text style={styles.email}>mark.brock@icloud.com</Text>
-
+        <Image source={{ uri: user.profilePicture }} style={styles.avatar} />
+        <Text style={styles.name}>{user.userName}</Text>
+        <Text style={styles.email}>{user.email}</Text>
       </View>
 
       <Text style={styles.sectionTitle}>Actions</Text>
@@ -43,40 +87,40 @@ const ProfileScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.cardRow}
-          onPress={() => router.navigate("/changePassword")}
+          onPress={() => router.navigate("/forgotPassword")}
         >
           <Feather name="lock" size={20} />
-          <Text style={styles.cardText}>Change Password</Text>
+          <Text style={styles.cardText}>Forgot Password</Text>
           <Feather name="chevron-right" size={24} color="#aaa" />
         </TouchableOpacity>
       </View>
 
-      {/* <Text style={styles.sectionTitle}>Preferences</Text>
+      <Text style={styles.sectionTitle}>Preferences</Text>
       <View style={styles.card}>
         <View style={styles.cardRow}>
-          <Feather name="bell" size={24} color="#000" />
-          <Text style={styles.cardText}>Push notifications</Text>
+          <Feather name="file" size={24} color="#000" />
+          <Text style={styles.cardText}>JSON uploads for checklist</Text>
           <Switch
-            value={pushNotifications}
-            onValueChange={(value) => setPushNotifications(value)}
+            value={jsonUploadEnabled}
+            onValueChange={(value) => setJsonUploadEnabled(value)}
           />
         </View>
-        <View style={styles.cardRow}>
-          <Feather name="smile" size={24} color="#000" />
-          <Text style={styles.cardText}>Face ID</Text>
-          <Switch
-            value={faceID}
-            onValueChange={(value) => setFaceID(value)}
-          />
-        </View>
-        <TouchableOpacity style={styles.cardRow}>
-          <Feather name="lock" size={24} color="#000" />
-          <Text style={styles.cardText}>PIN Code</Text>
-          <Feather name="chevron-right" size={24} color="#aaa" />
-        </TouchableOpacity>
-      </View> */}
+      </View>
 
-      <TouchableOpacity style={styles.logoutButton}>
+      {/* 🔽 Save button only shown if preferences changed */}
+      {jsonUploadEnabled !== originalPreferences && (
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSavePreferences}
+        >
+          <Text style={styles.saveButtonText}>Save Preferences</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity
+        style={styles.logoutButton}
+        onPress={() => handleLogout()}
+      >
         <Feather name="log-out" size={24} color="#FFFFFF" />
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
@@ -108,17 +152,6 @@ const styles = StyleSheet.create({
     color: "#777",
     marginBottom: 10,
   },
-  editProfileButton: {
-    backgroundColor: "#000",
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  editProfileText: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
@@ -147,18 +180,6 @@ const styles = StyleSheet.create({
     color: "#333",
     marginLeft: 12,
   },
-  badge: {
-    backgroundColor: CrimsonLuxe.primary400,
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginRight: 10,
-  },
-  badgeText: {
-    color: "#FFF",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
   logoutButton: {
     position: "absolute",
     width: "100%",
@@ -176,6 +197,20 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
     marginLeft: 8,
+  },
+  saveButton: {
+    marginBottom: 16,
+    backgroundColor: CrimsonLuxe.primary200,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: CrimsonLuxe.primary400,
+  },
+  saveButtonText: {
+    color: CrimsonLuxe.primary400,
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
 

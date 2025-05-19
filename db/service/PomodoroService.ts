@@ -95,8 +95,12 @@ export const deletePomodoro = async (id: ObjectId) => {
       realm.write(() => {
         realm.delete(pomodoro);
       });
+      return true;
     }
-  } finally {
+    return false;
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    return false;
   }
 };
 
@@ -141,7 +145,10 @@ export const getPomodoroStats = async (
       const week = getISOWeek(date);
       key = `${year}-W${String(week).padStart(2, "0")}`;
     } else if (groupBy === "monthly") {
-      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
     }
 
     if (!statsMap[key]) {

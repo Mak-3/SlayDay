@@ -1,9 +1,10 @@
 import { CrimsonLuxe } from "@/constants/Colors";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
+import { getUser } from "@/db/service/UserService";
 
 const goToProfile = () => {
   router.push("/profile");
@@ -11,6 +12,18 @@ const goToProfile = () => {
 
 const Header = () => {
   const navigation = useNavigation();
+  const [user, setUser] = useState<any>({});
+
+  const getProfile = async () => {
+    try {
+      const userInfo = await getUser();
+      setUser(userInfo);
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    getProfile();
+  }, []);
 
   return (
     <View style={styles.header}>
@@ -32,7 +45,7 @@ const Header = () => {
         }}
       >
         <Image
-          source={require("../../assets/images/testUser.png")}
+          source={{ uri: user.profilePicture }}
           style={styles.profileImage}
         />
       </TouchableOpacity>
@@ -50,7 +63,7 @@ const styles = StyleSheet.create({
   menuWrapper: {
     flexDirection: "row",
     gap: 10,
-    alignItems: 'center'
+    alignItems: "center",
   },
   greeting: {
     fontSize: 28,

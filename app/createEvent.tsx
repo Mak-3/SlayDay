@@ -61,11 +61,24 @@ const CreateEventScreen = () => {
   const [isOneTime, setIsOneTime] = useState(true);
   const categories = [
     "Work",
+    "Study",
+    "Coding",
+    "Learning",
+    "Finance",
+    "Celebration",
+    "Anniversary",
+    "Reading",
+    "Writing",
+    "Self-Improvement",
     "Personal",
-    "Birthday",
+    "Meditation",
     "Exercise",
-    "Meeting",
-    "Health",
+    "Creativity",
+    "Hobbies",
+    "Food & Cooking",
+    "Social",
+    "Gaming",
+    "Other",
   ];
   const repeatOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
   const weekdaysList = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -106,6 +119,9 @@ const CreateEventScreen = () => {
         eventData.repeatType = "Monthly";
         eventData.interval = parseInt(interval) || 1;
       }
+      else if (repeatType === "Yearly") {
+        eventData.repeatType = "Yearly";
+      }
     }
 
     if (!title.trim()) {
@@ -116,8 +132,8 @@ const CreateEventScreen = () => {
     try {
       const eventId = await createEvent(eventData);
       if (eventId) {
-        router.push({
-          pathname: "/calender",
+        router.replace({
+          pathname: "/drawer/calender",
           params: { id: eventId },
         });
       }
@@ -466,7 +482,6 @@ const CreateEventScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
     backgroundColor: "#FFFFFF",
   },
   label: {

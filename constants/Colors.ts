@@ -1,12 +1,3 @@
-const pastelTintLight = "#FFB6C1";
-const pastelTintDark = "#FFD700";
-
-const vibrantTintLight = "#FF4500";
-const vibrantTintDark = "#1E90FF";
-
-const earthyTintLight = "#8B4513";
-const earthyTintDark = "#32CD32";
-
 const tintColorLight = "#0a7ea4";
 const tintColorDark = "#fff";
 

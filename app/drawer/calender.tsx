@@ -32,7 +32,6 @@ const fetchEventsForDate = async (selectedDate: string) => {
   const realm = await getRealm();
 
   const allEvents = realm.objects("Event").sorted("createdAt", true);
-
   const result: any[] = [];
 
   const selected = dayjs(selectedDate);
@@ -64,6 +63,16 @@ const fetchEventsForDate = async (selectedDate: string) => {
           diffMonths >= 0 &&
           diffMonths % interval === 0 &&
           eventDate.date() === selected.date()
+        ) {
+          result.push(event);
+        }
+      } else if (event.repeatType === "Yearly") {
+        const diffYears = selected.diff(eventDate, "year");
+        if (
+          diffYears >= 0 &&
+          diffYears % interval === 0 &&
+          eventDate.date() === selected.date() &&
+          eventDate.month() === selected.month()
         ) {
           result.push(event);
         }
@@ -128,6 +137,24 @@ const CalenderScreen = () => {
     loadEvents();
   }, [selectedDate]);
 
+  const parseTime = (timeStr: any) => {
+    if (!timeStr || typeof timeStr !== "string")
+      return new Date(8640000000000000); // max date fallback
+
+    const [time, modifier] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  };
+
+  const sortedEventData = [...events].sort((a, b) =>
+    parseTime(a.time) > parseTime(b.time) ? 1 : -1
+  );
   return (
     <PageLayout style={styles.container}>
       <BackButtonHeader />
@@ -199,13 +226,15 @@ const CalenderScreen = () => {
           )}
         />
 
-        {events.length > 0 ? (
-          events.map((event, index) => (
+        {sortedEventData.length > 0 ? (
+          sortedEventData.map((event, index) => (
             <View
               style={[styles.cardWrapper, index % 2 != 0 && { marginLeft: 50 }]}
             >
               <View style={styles.timeWrapper}>
-                <Text style={styles.time}>05:00</Text>
+                <Text style={styles.time}>
+                  {dayjs(event.time).format("h:mm A")}
+                </Text>
               </View>
               <View
                 key={event.id}
@@ -219,9 +248,13 @@ const CalenderScreen = () => {
               >
                 <View
                   style={{
+                    width: 40,
+                    height: 40,
                     padding: 8,
                     borderRadius: 10,
                     backgroundColor: cardColors[index % cardColors.length].dark,
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   {renderIcon(
@@ -327,8 +360,11 @@ const styles = StyleSheet.create({
   titleWrapper: {
     marginLeft: 12,
     gap: 4,
+    flexShrink: 1,
   },
-  cardDescription: {},
+  cardDescription: {
+    lineHeight: 22,
+  },
   cardRepeatText: {
     color: "#6B7280",
     fontSize: 12,

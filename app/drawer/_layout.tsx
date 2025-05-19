@@ -72,11 +72,20 @@ export default function DrawerLayout() {
           }}
         />
         <Drawer.Screen
+          name="reminder"
+          options={{
+            title: "Reminder",
+            drawerLabel: () => (
+              <DrawerItemWithCount title="Events & Reminder" count={eventCount} />
+            ),
+          }}
+        />
+        <Drawer.Screen
           name="calender"
           options={{
             title: "Calendar",
             drawerLabel: () => (
-              <DrawerItemWithCount title="Calendar" count={eventCount} />
+              <DrawerItemWithCount title="Calendar" />
             ),
           }}
         />

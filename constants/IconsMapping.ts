@@ -98,6 +98,24 @@ export const getIcon: Record<
     color: "#FFFFFF",
     backgroundColor: "#7E57C2",
   },
+  Finance: {
+    icon: "finance",
+    library: "MaterialCommunityIcons",
+    color: "#FFFFFF",
+    backgroundColor: "#388E3C",
+  },
+  Celebration: {
+    icon: "party-popper",
+    library: "MaterialCommunityIcons",
+    color: "#FFFFFF",
+    backgroundColor: "#FBC02D",
+  },
+  Anniversary: {
+    icon: "cake-variant",
+    library: "MaterialCommunityIcons",
+    color: "#FFFFFF",
+    backgroundColor: "#EC407A",
+  },
   Other: {
     icon: "help-circle",
     library: "MaterialCommunityIcons",

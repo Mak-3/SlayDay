@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 1,
-    gap: 6
+    gap: 10
   },
   taskSection: { marginVertical: 10 },
   itemList: { marginTop: 10 },
