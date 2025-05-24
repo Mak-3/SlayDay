@@ -29,6 +29,10 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { saveUser } from "@/db/service/UserService";
 
+import { getRealm } from "@/db/realm";
+import restoreRealmData from "@/constants/restoreBackupFromFirebase";
+import { downloadBackup } from "@/constants/backupService";
+
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
@@ -52,6 +56,21 @@ export default function SignInScreen() {
       "809634720109-ecv3b8jrv8k9qls86ga3h2mouofiu8ka.apps.googleusercontent.com",
   });
 
+  const fetchBackup = async (userId: any) => {
+    console.log(userId,"uiug")
+    const realm = await getRealm();
+
+    try {
+      const backupData: any = await downloadBackup(userId);
+
+      await restoreRealmData(realm, backupData);
+
+      console.log("Backup restored successfully");
+    } catch (error) {
+      console.error("Failed to fetch and restore backup:", error);
+    }
+  };
+
   React.useEffect(() => {
     const handleGoogleSignIn = async () => {
       if (response?.type === "success") {
@@ -65,9 +84,9 @@ export default function SignInScreen() {
           const email = user.email ?? "";
           const userName = email.split("@")[0];
           const profilePicture = user.photoURL ?? "";
-
+          console.log(user, "refsfgf")
           await AsyncStorage.setItem("isLoggedIn", "true");
-
+          fetchBackup(user.uid);
           await saveUser({
             userName,
             email,
@@ -104,10 +123,15 @@ export default function SignInScreen() {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
 
       await AsyncStorage.setItem("isLoggedIn", "true");
-
+      fetchBackup(user.uid);
       router.replace("/drawer/home");
     } catch (error: any) {
       const toastConfig = {

@@ -19,7 +19,7 @@ export const ChecklistSchema: Realm.ObjectSchema = {
     taskType: "string",
     isCompleted: "bool",
     category: "string",
-    createdAt: "int",
+    createdAt: "date?",
     deadline: "date?",
     lastSaved: "date?",
     tasks: "Task[]",

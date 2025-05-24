@@ -13,8 +13,11 @@ const BackButtonHeader: React.FC<HeaderProps> = ({ title, route }) => {
     if(route){
       router.push(route);
     }
-    else{
+    if (router.canGoBack?.()) {
       router.back();
+    }
+    else{
+      router.push('/drawer/home')
     }
   }
 

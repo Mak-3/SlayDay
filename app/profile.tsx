@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Switch,
+  ActivityIndicator,
 } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import BackButtonHeader from "@/components/backButtonHeader";
@@ -16,12 +17,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { getUser, saveUser } from "@/db/service/UserService";
+import { getRealm } from "@/db/realm";
+import { triggerBackup } from "@/constants/backupService";
 
 const ProfileScreen = () => {
   const [jsonUploadEnabled, setJsonUploadEnabled] = useState<boolean>(false);
   const [originalPreferences, setOriginalPreferences] =
     useState<boolean>(false);
   const [user, setUser] = useState<any>({});
+  const [loading, setLoading] = useState(false);
+
+  const handleBackup = async () => {
+    setLoading(true);
+    try {
+      await triggerBackup();
+    } catch (err) {
+      console.error("Backup error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     getProfile();
@@ -31,6 +46,10 @@ const ProfileScreen = () => {
     try {
       await signOut(auth);
       await AsyncStorage.setItem("isLoggedIn", "false");
+      const realm = await getRealm();
+      realm.write(() => {
+        realm.deleteAll();
+      });
       router.replace("/signIn");
     } catch (error) {
       console.error("Error during logout:", error);
@@ -92,6 +111,19 @@ const ProfileScreen = () => {
           <Feather name="lock" size={20} />
           <Text style={styles.cardText}>Forgot Password</Text>
           <Feather name="chevron-right" size={24} color="#aaa" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.cardRow}
+          onPress={handleBackup}
+          disabled={loading}
+        >
+          <Feather name="upload" size={20} />
+          <Text style={styles.cardText}>Backup</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color={CrimsonLuxe.primary400} />
+          ) : (
+            <Feather name="chevron-right" size={24} color="#aaa" />
+          )}
         </TouchableOpacity>
       </View>
 

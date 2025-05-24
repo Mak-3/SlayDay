@@ -16,7 +16,7 @@ export const createChecklist = async ({
   taskType: string;
   category: string;
   isCompleted: boolean;
-  createdAt: number;
+  createdAt: Date;
   deadline?: Date;
   lastSaved?: Date;
   tasks: { title: string; isCompleted: boolean, deadline?: Date }[];

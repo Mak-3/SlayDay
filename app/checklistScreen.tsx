@@ -8,7 +8,6 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
 } from "react-native";
@@ -582,103 +581,95 @@ const ChecklistScreen = () => {
     <>
       <PageLayout>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ flex: 1 }}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
-          >
-            <TouchableWithoutFeedback onPress={handleOutsideClick}>
-              <View style={styles.container}>
-                <BackButtonHeader />
-                <View style={styles.progressWrapper}>
-                  <View style={styles.checklistHeader}>
-                    <View style={styles.checklistTitleWrapper}>
-                      {renderIcon(checklist.category, CrimsonLuxe.primary500)}
-                      <Text style={styles.sectionTitle}>{checklist.title}</Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={openTitleSheet}
-                      style={styles.icons}
-                    >
-                      <MaterialIcons name="edit" size={20} color="gray" />
-                    </TouchableOpacity>
+          <TouchableWithoutFeedback onPress={handleOutsideClick}>
+            <View style={styles.container}>
+              <BackButtonHeader />
+              <View style={styles.progressWrapper}>
+                <View style={styles.checklistHeader}>
+                  <View style={styles.checklistTitleWrapper}>
+                    {renderIcon(checklist.category, CrimsonLuxe.primary500)}
+                    <Text style={styles.sectionTitle}>{checklist.title}</Text>
                   </View>
-
-                  <Text
-                    style={styles.sectionDescription}
-                    ellipsizeMode="tail"
-                    numberOfLines={3}
-                  >
-                    {checklist.description}
-                  </Text>
-                  <ProgressBar
-                    activeColor={CrimsonLuxe.primary400}
-                    showStatus={false}
-                    progress={getProgress()}
-                  />
-                </View>
-                <DraggableFlatList
-                  showsVerticalScrollIndicator={false}
-                  data={checklist.tasks || []}
-                  renderItem={renderItem}
-                  keyExtractor={(item, index) => index.toString()}
-                  scrollEnabled={false}
-                  onDragEnd={({ data }) => {
-                    setChecklist(
-                      (prevChecklist) =>
-                        ({
-                          ...prevChecklist,
-                          tasks: data,
-                        } as any)
-                    );
-                  }}
-                  containerStyle={{ flex: 1 }}
-                  activationDistance={10}
-                  dragItemOverflow={true}
-                />
-
-                <View style={styles.tasksButtonWrapper}>
-                  {jsonUploadEnabled && (
-                    <TouchableOpacity
-                      style={styles.importButton}
-                      onPress={handleUploadJson}
-                    >
-                      <Text style={styles.importButtonText}>
-                        📤 Import Tasks
-                      </Text>
-                    </TouchableOpacity>
-                  )}
                   <TouchableOpacity
-                    style={styles.addTaskButton}
-                    onPress={addTask}
+                    onPress={openTitleSheet}
+                    style={styles.icons}
                   >
-                    <Text style={styles.addTaskText}>+ Add Task</Text>
+                    <MaterialIcons name="edit" size={20} color="gray" />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity
-                  style={[
-                    styles.saveChecklistButton,
-                    !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
-                  ]}
-                  onPress={handleSaveChecklistTasks}
-                  disabled={!isChanged}
+                <Text
+                  style={styles.sectionDescription}
+                  ellipsizeMode="tail"
+                  numberOfLines={3}
                 >
-                  <Text style={styles.saveChecklistText}>Save Checklist</Text>
-                </TouchableOpacity>
-
-                {showPicker && (
-                  <DateTimePicker
-                    value={selectedDate ?? new Date()}
-                    mode="date"
-                    display={Platform.OS === "ios" ? "inline" : "default"}
-                    onChange={onDateChange}
-                    minimumDate={new Date()}
-                  />
-                )}
+                  {checklist.description}
+                </Text>
+                <ProgressBar
+                  activeColor={CrimsonLuxe.primary400}
+                  showStatus={false}
+                  progress={getProgress()}
+                />
               </View>
-            </TouchableWithoutFeedback>
-          </KeyboardAvoidingView>
+              <DraggableFlatList
+                showsVerticalScrollIndicator={false}
+                data={checklist.tasks || []}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => index.toString()}
+                scrollEnabled={false}
+                onDragEnd={({ data }) => {
+                  setChecklist(
+                    (prevChecklist) =>
+                      ({
+                        ...prevChecklist,
+                        tasks: data,
+                      } as any)
+                  );
+                }}
+                containerStyle={{ flex: 1 }}
+                activationDistance={10}
+                dragItemOverflow={true}
+              />
+
+              <View style={styles.tasksButtonWrapper}>
+                {jsonUploadEnabled && (
+                  <TouchableOpacity
+                    style={styles.importButton}
+                    onPress={handleUploadJson}
+                  >
+                    <Text style={styles.importButtonText}>📤 Import Tasks</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={styles.addTaskButton}
+                  onPress={addTask}
+                >
+                  <Text style={styles.addTaskText}>+ Add Task</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.saveChecklistButton,
+                  !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
+                ]}
+                onPress={handleSaveChecklistTasks}
+                disabled={!isChanged}
+              >
+                <Text style={styles.saveChecklistText}>Save Checklist</Text>
+              </TouchableOpacity>
+
+              {showPicker && (
+                <DateTimePicker
+                  value={selectedDate ?? new Date()}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "inline" : "default"}
+                  onChange={onDateChange}
+                  minimumDate={new Date()}
+                />
+              )}
+            </View>
+          </TouchableWithoutFeedback>
         </GestureHandlerRootView>
       </PageLayout>
       {renderBottomSheet()}

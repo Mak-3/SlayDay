@@ -51,7 +51,7 @@ const CreateChecklist = () => {
         description: description,
         taskType: "OneTime",
         category: selectedCategory,
-        createdAt: Date.now(),
+        createdAt: new Date(),
         lastSaved: new Date(),
         isCompleted: false,
         tasks: [],
