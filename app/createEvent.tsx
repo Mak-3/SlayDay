@@ -69,6 +69,8 @@ const CreateEventScreen = () => {
     "Anniversary",
     "Reading",
     "Writing",
+    "Travel",
+    "Health",
     "Self-Improvement",
     "Personal",
     "Meditation",

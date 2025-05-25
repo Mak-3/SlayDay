@@ -46,7 +46,7 @@ const Home = () => {
     <View style={{ flex: 1 }}>
       <PageLayout style={styles.container}>
         <Animated.View
-          style={[styles.content, { opacity: isMenuOpen ? 0.4 : 1 }]}
+          style={[styles.content]}
         >
           <Header />
           {hasData ? (
@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     zIndex: 1,
   },
   section: {

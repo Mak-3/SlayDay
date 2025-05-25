@@ -104,8 +104,6 @@ const EventsLanding = () => {
     }
   };
 
-  const today = new Date().toISOString().split("T")[0];
-
   const renderRightActions = (id: string) => (
     <TouchableOpacity
       style={styles.deleteButton}
@@ -115,13 +113,14 @@ const EventsLanding = () => {
     </TouchableOpacity>
   );
 
-  const renderItem = ({ item, index }: any) => (
+  const renderItem = ({ item, index }: any) => {
+    return (
     <Swipeable renderRightActions={() => renderRightActions(item.id)}>
       <View style={styles.taskContainer}>
         <View
           style={[
             styles.iconBox,
-            { backgroundColor: cardColors[index % data.length].dark },
+            { backgroundColor: cardColors[index % cardColors.length].dark },
           ]}
         >
           {renderIcon(item.category, "#ffffff")}
@@ -140,7 +139,8 @@ const EventsLanding = () => {
         </View>
       </View>
     </Swipeable>
-  );
+    )
+  };
 
   return (
     <PageLayout style={styles.container}>

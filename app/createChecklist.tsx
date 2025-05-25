@@ -34,6 +34,8 @@ const CreateChecklist = () => {
     "Self-Improvement",
     "Personal",
     "Meditation",
+    "Travel",
+    "Health",
     "Exercise",
     "Creativity",
     "Hobbies",

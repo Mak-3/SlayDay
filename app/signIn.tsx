@@ -57,7 +57,6 @@ export default function SignInScreen() {
   });
 
   const fetchBackup = async (userId: any) => {
-    console.log(userId,"uiug")
     const realm = await getRealm();
 
     try {
@@ -84,7 +83,6 @@ export default function SignInScreen() {
           const email = user.email ?? "";
           const userName = email.split("@")[0];
           const profilePicture = user.photoURL ?? "";
-          console.log(user, "refsfgf")
           await AsyncStorage.setItem("isLoggedIn", "true");
           fetchBackup(user.uid);
           await saveUser({

@@ -136,13 +136,13 @@ const checkList = () => {
                     styles.category,
                     {
                       backgroundColor:
-                        cardColors[index % checklists.length].light,
+                        cardColors[index % cardColors.length].light,
                     },
                   ]}
                 >
                   <View style={styles.categoryHeader}>
                     <TouchableOpacity onPress={() => handleNavigation(item.id)} style={styles.titleWrapper}>
-                      {renderIcon(item.category, cardColors[index % checklists.length].dark)}
+                      {renderIcon(item.category, cardColors[index % cardColors.length].dark)}
                       <Text style={styles.categoryText}>{item.name}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -152,7 +152,7 @@ const checkList = () => {
                       <Text
                         style={[
                           styles.categoryStatus,
-                          { color: cardColors[index % checklists.length].dark },
+                          { color: cardColors[index % cardColors.length].dark },
                         ]}
                       >
                         {item.completed}/{checklists[index].items.length}
@@ -160,7 +160,7 @@ const checkList = () => {
                       <Icon
                         name={expanded[item.id] ? "chevron-up" : "chevron-down"}
                         size={18}
-                        color={cardColors[index % checklists.length].dark}
+                        color={cardColors[index % cardColors.length].dark}
                       />
                     </TouchableOpacity>
                   </View>

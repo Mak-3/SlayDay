@@ -51,7 +51,7 @@ const fetchEventsForDate = async (selectedDate: string) => {
           result.push(event);
         }
       } else if (event.repeatType === "Weekly") {
-        const dayName = selected.format("dddd");
+        const dayName = selected.format("ddd");
         const diffWeeks = selected.diff(eventDate, "week");
         const isValidDay = event.weekDays?.includes(dayName);
         if (diffWeeks >= 0 && diffWeeks % interval === 0 && isValidDay) {
@@ -97,10 +97,11 @@ const fetchEventsForDate = async (selectedDate: string) => {
   }));
 
   const sorted = mapped.sort((a, b) => {
-    const aTime = dayjs(`${dayjs(a.date).format("YYYY-MM-DD")}T${a.time}`);
-    const bTime = dayjs(`${dayjs(b.date).format("YYYY-MM-DD")}T${b.time}`);
-    return aTime.valueOf() - bTime.valueOf();
-  });
+  const aDateTime = dayjs(a.time);
+  const bDateTime = dayjs(b.time);
+  return aDateTime.valueOf() - bDateTime.valueOf();
+});
+
 
   return sorted;
 };
@@ -137,24 +138,6 @@ const CalenderScreen = () => {
     loadEvents();
   }, [selectedDate]);
 
-  const parseTime = (timeStr: any) => {
-    if (!timeStr || typeof timeStr !== "string")
-      return new Date(8640000000000000); // max date fallback
-
-    const [time, modifier] = timeStr.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
-
-    if (modifier === "PM" && hours !== 12) hours += 12;
-    if (modifier === "AM" && hours === 12) hours = 0;
-
-    const date = new Date();
-    date.setHours(hours, minutes, 0, 0);
-    return date;
-  };
-
-  const sortedEventData = [...events].sort((a, b) =>
-    parseTime(a.time) > parseTime(b.time) ? 1 : -1
-  );
   return (
     <PageLayout style={styles.container}>
       <BackButtonHeader />
@@ -205,6 +188,7 @@ const CalenderScreen = () => {
                 item.date === selectedDate && styles.selectedDate,
               ]}
               onPress={() => setSelectedDate(item.date)}
+              key={item.id}
             >
               <Text
                 style={[
@@ -226,10 +210,11 @@ const CalenderScreen = () => {
           )}
         />
 
-        {sortedEventData.length > 0 ? (
-          sortedEventData.map((event, index) => (
+        {events.length > 0 ? (
+          events.map((event, index) => (
             <View
               style={[styles.cardWrapper, index % 2 != 0 && { marginLeft: 50 }]}
+              key={event.id}
             >
               <View style={styles.timeWrapper}>
                 <Text style={styles.time}>

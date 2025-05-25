@@ -7,9 +7,10 @@ import {
   FlatList,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { CrimsonLuxe } from "@/constants/Colors";
+import { cardColors, CrimsonLuxe } from "@/constants/Colors";
 import { ObjectId } from "bson";
 import { getAllEvents } from "@/db/service/EventService";
+import { renderIcon } from "../renderIcon";
 
 interface EventType {
   id: ObjectId;
@@ -20,7 +21,7 @@ interface EventType {
   repeatType?: string;
   customInterval?: string;
   interval?: number;
-  category?: string;
+  category: string;
   isOneTime: boolean;
   weekDays?: string[];
   createdAt: Date;
@@ -56,7 +57,7 @@ const TaskCard = () => {
       }
 
       if (event.repeatType === "Weekly" && event.weekDays) {
-        const currentDay = today.toLocaleString("en-US", { weekday: "long" });
+        const currentDay = today.toLocaleString("en-US", { weekday: "short" });
         return eventDate <= today && event.weekDays.includes(currentDay);
       }
 
@@ -87,6 +88,11 @@ const TaskCard = () => {
     const filtered = allEvents.filter((event: EventType) =>
       isMatchingRepeat(event)
     );
+
+    filtered.sort(
+      (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+    );
+    
     setTodayEvents(filtered);
   };
 
@@ -103,14 +109,15 @@ const TaskCard = () => {
       data={todayEvents}
       keyExtractor={(item) => item.id.toString()}
       scrollEnabled={false}
-      renderItem={({ item }) => (
+      renderItem={({ item, index }) => (
         <View style={styles.card}>
-          <View style={styles.iconWrapper}>
-            <MaterialCommunityIcons
-              name="clock"
-              size={28}
-              color={CrimsonLuxe.primary400}
-            />
+          <View
+            style={[
+              styles.iconWrapper,
+              { backgroundColor: cardColors[index % cardColors.length].dark },
+            ]}
+          >
+            {renderIcon(item.category, "#ffffff")}
           </View>
 
           <View style={styles.infoWrapper}>
@@ -160,7 +167,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 6,
     marginVertical: 10,
-    marginHorizontal: 6
+    marginHorizontal: 6,
   },
   iconWrapper: {
     width: 40,

@@ -116,6 +116,18 @@ export const getIcon: Record<
     color: "#FFFFFF",
     backgroundColor: "#EC407A",
   },
+  Travel: {
+    icon: "airplane",
+    library: "MaterialCommunityIcons",
+    color: "#FFFFFF",
+    backgroundColor: "#0288D1",
+  },
+  Health: {
+    icon: "heart-pulse",
+    library: "MaterialCommunityIcons",
+    color: "#FFFFFF",
+    backgroundColor: "#C2185B",
+  },
   Other: {
     icon: "help-circle",
     library: "MaterialCommunityIcons",
