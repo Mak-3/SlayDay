@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   FlatList,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { getAllChecklists } from "@/db/service/ChecklistService";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 
 interface Checklist {
   id: string;
@@ -87,27 +87,29 @@ const Progress = () => {
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const navigation = useNavigation<any>();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const all = await getAllChecklists();
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        const all = await getAllChecklists();
 
-      const incompleteOnly = all.filter((c) => !c.completed);
+        const incompleteOnly = all.filter((c) => !c.completed);
 
-      const inProgress = incompleteOnly.filter(
-        (c) =>
-          c.items.length > 0 &&
-          c.items.some((t: any) => t.isCompleted) &&
-          c.items.some((t: any) => !t.isCompleted)
-      );
-      const notStarted = incompleteOnly.filter((c) =>
-        c.items.every((t: any) => !t.isCompleted)
-      );
+        const inProgress = incompleteOnly.filter(
+          (c) =>
+            c.items.length > 0 &&
+            c.items.some((t: any) => t.isCompleted) &&
+            c.items.some((t: any) => !t.isCompleted)
+        );
+        const notStarted = incompleteOnly.filter((c) =>
+          c.items.every((t: any) => !t.isCompleted)
+        );
 
-      setChecklists([...inProgress, ...notStarted]);
-    };
+        setChecklists([...inProgress, ...notStarted]);
+      };
 
-    fetchData();
-  }, []);
+      fetchData();
+    }, [])
+  );
 
   const AddNewCard = ({
     index,
