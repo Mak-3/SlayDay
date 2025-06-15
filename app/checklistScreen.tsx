@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -82,6 +82,308 @@ const ChecklistScreen = () => {
   const lottieRef = useRef<LottieView>(null);
   const keyboardHeightRef = useRef(0);
 
+  // Add new state for keyboard handling
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleKeyboardShow = useCallback((e: any) => {
+    setKeyboardVisible(true);
+    setKeyboardHeight(e.endCoordinates.height);
+  }, []);
+
+  const handleKeyboardHide = useCallback(() => {
+    setKeyboardVisible(false);
+    setKeyboardHeight(0);
+    
+    // Only adjust bottom sheets if they're visible
+    if (isBottomSheetVisible) {
+      taskBottomSheetRef.current?.snapToIndex(0);
+    } else if (isTitleSheetVisible) {
+      checklistBottomSheetRef.current?.snapToIndex(0);
+    }
+  }, [isBottomSheetVisible, isTitleSheetVisible]);
+
+  // Improved keyboard effect
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      handleKeyboardShow
+    );
+    const hideSubscription = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      handleKeyboardHide
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [handleKeyboardShow, handleKeyboardHide]);
+
+  // Improved bottom sheet handling
+  const openBottomSheet = useCallback((task: Task) => {
+    setBottomSheetTask(task);
+    setSelectedDate(task.deadline ? task.deadline : null);
+    setIsBottomSheetVisible(true);
+    taskBottomSheetRef.current?.expand();
+  }, []);
+
+  const closeBottomSheet = useCallback(() => {
+    taskBottomSheetRef.current?.close();
+    setIsBottomSheetVisible(false);
+    setBottomSheetTask(null);
+  }, []);
+
+  const openTitleSheet = useCallback(() => {
+    setEditedTitle(checklist?.title || "");
+    setIsTitleSheetVisible(true);
+    checklistBottomSheetRef.current?.expand();
+  }, [checklist?.title]);
+
+  const closeTitleSheet = useCallback(() => {
+    checklistBottomSheetRef.current?.close();
+    setIsTitleSheetVisible(false);
+    setEditedTitle("");
+  }, []);
+
+  const handleSaveChecklistTasks = useCallback(async () => {
+    if (!checklist) return;
+    try {
+      await updateChecklist(new ObjectId(checklist._id), {
+        title: checklist.title,
+        tasks: checklist.tasks
+          .filter((task) => task.title.trim() !== "")
+          .map(({ id, title, isCompleted, deadline }) => ({
+            id,
+            title,
+            isCompleted,
+            deadline,
+          })),
+        deadline: checklist.deadline,
+        lastSaved: new Date(),
+      });
+      Toast.show({ type: "success", text1: "Checklist updated successfully" });
+      setIsChanged(false);
+      router.replace("/drawer/checklistOverview");
+    } catch (err) {
+      console.error("Failed to update checklist", err);
+    }
+  }, [checklist, router]);
+
+  const handleChecklistCompleted = useCallback(() => {
+    setShowDoneModal(false);
+    handleSaveChecklistTasks();
+    router.push("/drawer/checklistOverview");
+  }, [handleSaveChecklistTasks, router]);
+
+  const renderDoneModal = useCallback((title: string) => {
+    return (
+      showDoneModal && (
+        <View style={StyleSheet.absoluteFillObject}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContainer}>
+              <LottieView
+                ref={lottieRef}
+                source={require("../assets/files/checklistComplete.json")}
+                autoPlay
+                loop={false}
+                style={{ width: 200, height: 200 }}
+              />
+              <Text style={styles.modalText}>{title} Completed!</Text>
+              <Pressable
+                style={styles.modalCloseButton}
+                onPress={handleChecklistCompleted}
+              >
+                <Text style={styles.modalBtnText}>Close</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )
+    );
+  }, [showDoneModal, handleChecklistCompleted]);
+
+  // Improved bottom sheet render function
+  const renderBottomSheet = useCallback(() => {
+    if (!bottomSheetTask) return null;
+
+    const handleUpdate = () => {
+      if (!checklist) return;
+      
+      setChecklist((prev) =>
+        prev
+          ? {
+              ...prev,
+              tasks: prev.tasks.map((task) =>
+                task.id === bottomSheetTask.id
+                  ? {
+                      ...task,
+                      title: bottomSheetTask.title,
+                      deadline: selectedDate
+                        ? dayjs(selectedDate).toDate()
+                        : undefined,
+                    }
+                  : task
+              ),
+            }
+          : prev
+      );
+      closeBottomSheet();
+    };
+
+    const handleDelete = () => {
+      deleteTask(bottomSheetTask.id);
+      closeBottomSheet();
+    };
+
+    return (
+      <>
+        {isBottomSheetVisible && (
+          <TouchableWithoutFeedback onPress={closeBottomSheet}>
+            <View style={styles.overlay} />
+          </TouchableWithoutFeedback>
+        )}
+
+        <BottomSheet
+          ref={taskBottomSheetRef}
+          snapPoints={['50%']}
+          enablePanDownToClose
+          onClose={closeBottomSheet}
+          keyboardBehavior="extend"
+          keyboardBlurBehavior="restore"
+        >
+          <BottomSheetView style={{ flex: 1 }}>
+            <View style={styles.sheetContent}>
+              <Text style={styles.sheetTitle}>Edit Task</Text>
+              <BottomSheetTextInput
+                placeholder="Title"
+                value={bottomSheetTask.title}
+                onChangeText={(text: string) =>
+                  setBottomSheetTask({ ...bottomSheetTask, title: text })
+                }
+                style={[
+                  styles.bottomSheetInput,
+                  styles.bottomSheetFocusedInput,
+                ]}
+              />
+
+              <TouchableOpacity
+                style={styles.deadlineButton}
+                onPress={() => {
+                  closeBottomSheet();
+                  setSelectedDate(bottomSheetTask.deadline || null);
+                  setShowPicker(true);
+                }}
+              >
+                <Text style={styles.deadlineText}>
+                  📅 Deadline:{" "}
+                  {selectedDate
+                    ? dayjs(selectedDate).format("MMM DD, YYYY")
+                    : "No deadline set"}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.sheetActions}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDelete}
+                >
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleUpdate}
+                >
+                  <Text style={styles.saveText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </BottomSheetView>
+        </BottomSheet>
+      </>
+    );
+  }, [bottomSheetTask, isBottomSheetVisible, selectedDate, closeBottomSheet]);
+
+  // Improved title bottom sheet render function
+  const renderTitleBottomSheet = useCallback(() => {
+    if (!editedTitle) return null;
+
+    const handleMarkAllDone = () => {
+      setChecklist((prev) =>
+        prev
+          ? {
+              ...prev,
+              tasks: prev.tasks.map((task) => ({ ...task, isCompleted: true })),
+            }
+          : prev
+      );
+    };
+
+    const handleSaveChecklist = () => {
+      setChecklist((prev) => (prev ? { ...prev, title: editedTitle } : prev));
+      closeTitleSheet();
+    };
+
+    return (
+      <>
+        {isTitleSheetVisible && (
+          <TouchableWithoutFeedback onPress={closeTitleSheet}>
+            <View style={styles.overlay} />
+          </TouchableWithoutFeedback>
+        )}
+
+        <BottomSheet
+          ref={checklistBottomSheetRef}
+          snapPoints={['50%']}
+          enablePanDownToClose
+          onClose={closeTitleSheet}
+          keyboardBehavior="extend"
+          keyboardBlurBehavior="restore"
+        >
+          <BottomSheetView style={{ flex: 1 }}>
+            <View style={styles.sheetContent}>
+              <Text style={styles.sheetTitle}>Edit Checklist</Text>
+
+              <BottomSheetTextInput
+                placeholder="Checklist Title"
+                value={editedTitle}
+                onChangeText={setEditedTitle}
+                style={[
+                  styles.bottomSheetInput,
+                  styles.bottomSheetFocusedInput,
+                ]}
+              />
+
+              <TouchableOpacity
+                style={styles.markDoneButton}
+                onPress={handleMarkAllDone}
+              >
+                <Text style={styles.markDoneText}>Mark All as Done</Text>
+              </TouchableOpacity>
+
+              <View style={styles.sheetActions}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDeleteChecklist}
+                >
+                  <Text style={styles.deleteText}>Delete Checklist</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleSaveChecklist}
+                >
+                  <Text style={styles.saveText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </BottomSheetView>
+        </BottomSheet>
+      </>
+    );
+  }, [editedTitle, isTitleSheetVisible, closeTitleSheet]);
+
   useEffect(() => {
     setTimeout(() => {
       if (lottieRef.current) {
@@ -119,30 +421,6 @@ const ChecklistScreen = () => {
 
   useEffect(() => {
     getProfile();
-  }, []);
-
-  useEffect(() => {
-    const handleKeyboardShow = (e: any) => {
-       console.log(isBottomSheetVisible, isTitleSheetVisible, "visibility")
-      keyboardHeightRef.current = e.endCoordinates.height;
-    };
-
-    const handleKeyboardHide = () => {
-      console.log(isBottomSheetVisible, isTitleSheetVisible, "visibility")
-      if (isBottomSheetVisible) {
-        taskBottomSheetRef.current?.snapToIndex(0);
-      } else if (isTitleSheetVisible) {
-        checklistBottomSheetRef.current?.snapToIndex(0);
-      }
-    };
-
-    const showSub = Keyboard.addListener("keyboardDidShow", handleKeyboardShow);
-    const hideSub = Keyboard.addListener("keyboardDidHide", handleKeyboardHide);
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
   }, []);
 
   const getProfile = async () => {
@@ -236,30 +514,6 @@ const ChecklistScreen = () => {
     );
   };
 
-  const handleSaveChecklistTasks = async () => {
-    if (!checklist) return;
-    try {
-      await updateChecklist(new ObjectId(checklist._id), {
-        title: checklist.title,
-        tasks: checklist.tasks
-          .filter((task) => task.title.trim() !== "")
-          .map(({ id, title, isCompleted, deadline }) => ({
-            id,
-            title,
-            isCompleted,
-            deadline,
-          })),
-        deadline: checklist.deadline,
-        lastSaved: new Date(),
-      });
-      Toast.show({ type: "success", text1: "Checklist updated successfully" });
-      setIsChanged(false);
-      router.replace("/drawer/checklistOverview");
-    } catch (err) {
-      console.error("Failed to update checklist", err);
-    }
-  };
-
   const handleDeleteChecklist = async () => {
     try {
       await deleteChecklist(new ObjectId(new ObjectId(id)));
@@ -309,225 +563,7 @@ const ChecklistScreen = () => {
       Toast.show({ type: "error", text1: "Failed to import tasks" });
     }
   };
-  const openBottomSheet = (task: Task) => {
-    setBottomSheetTask(task);
-    setSelectedDate(task.deadline ? task.deadline : null);
-    setIsBottomSheetVisible(true);
-    setTimeout(() => {
-      taskBottomSheetRef.current?.expand();
-    }, 100);
-  };
 
-  const closeBottomSheet = () => {
-    taskBottomSheetRef.current?.close();
-    setIsBottomSheetVisible(false);
-  };
-
-  const openTitleSheet = () => {
-    setEditedTitle(checklist?.title || "");
-    setIsTitleSheetVisible(true);
-    checklistBottomSheetRef.current?.expand();
-  };
-
-  const closeTitleSheet = () => {
-    checklistBottomSheetRef.current?.close();
-    setIsTitleSheetVisible(false);
-  };
-
-  const handleChecklistCompleted = () => {
-    setShowDoneModal(false);
-    handleSaveChecklistTasks();
-    router.push("/drawer/checklistOverview");
-  };
-
-  const renderBottomSheet = () => {
-    if (!bottomSheetTask) return null;
-
-    const handleUpdate = () => {
-      setChecklist((prev) =>
-        prev
-          ? {
-              ...prev,
-              tasks: prev.tasks.map((task) =>
-                task.id === bottomSheetTask.id
-                  ? {
-                      ...task,
-                      title: bottomSheetTask.title,
-                      deadline: selectedDate
-                        ? dayjs(selectedDate).toDate()
-                        : undefined,
-                    }
-                  : task
-              ),
-            }
-          : prev
-      );
-      closeBottomSheet();
-    };
-
-    const handleDelete = () => {
-      deleteTask(bottomSheetTask.id);
-      closeBottomSheet();
-    };
-
-    return (
-      <>
-        {isBottomSheetVisible && (
-          <TouchableWithoutFeedback onPress={closeBottomSheet}>
-            <View style={styles.overlay} />
-          </TouchableWithoutFeedback>
-        )}
-
-        <BottomSheet ref={taskBottomSheetRef}>
-          <BottomSheetView style={{ flex: 1 }}>
-            <View style={styles.sheetContent}>
-              <Text style={styles.sheetTitle}>Edit Task</Text>
-              <BottomSheetTextInput
-                placeholder="Title"
-                value={bottomSheetTask.title}
-                onChangeText={(text: string) =>
-                  setBottomSheetTask({ ...bottomSheetTask, title: text })
-                }
-                style={[
-                  styles.bottomSheetInput,
-                  styles.bottomSheetFocusedInput,
-                ]}
-              />
-
-              <TouchableOpacity
-                style={styles.deadlineButton}
-                onPress={() => {
-                  setIsBottomSheetVisible(false);
-                  setSelectedDate(bottomSheetTask.deadline || null);
-                  setShowPicker(true);
-                }}
-              >
-                <Text style={styles.deadlineText}>
-                  📅 Deadline:{" "}
-                  {selectedDate
-                    ? dayjs(selectedDate).format("MMM DD, YYYY")
-                    : "No deadline set"}
-                </Text>
-              </TouchableOpacity>
-
-              <View style={styles.sheetActions}>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDelete}
-                >
-                  <Text style={styles.deleteText}>Delete</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={handleUpdate}
-                >
-                  <Text style={styles.saveText}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </BottomSheetView>
-        </BottomSheet>
-      </>
-    );
-  };
-
-  const renderTitleBottomSheet = () => {
-    if (!editedTitle) return null;
-
-    const handleMarkAllDone = () => {
-      setChecklist((prev) =>
-        prev
-          ? {
-              ...prev,
-              tasks: prev.tasks.map((task) => ({ ...task, isCompleted: true })),
-            }
-          : prev
-      );
-    };
-
-    const handleSaveChecklist = () => {
-      setChecklist((prev) => (prev ? { ...prev, title: editedTitle } : prev));
-      closeTitleSheet();
-    };
-
-    return (
-      <>
-        {isTitleSheetVisible && (
-          <TouchableWithoutFeedback onPress={closeTitleSheet}>
-            <View style={styles.overlay} />
-          </TouchableWithoutFeedback>
-        )}
-
-        <BottomSheet ref={checklistBottomSheetRef}>
-          <BottomSheetView style={{ flex: 1 }}>
-            <View style={styles.sheetContent}>
-              <Text style={styles.sheetTitle}>Edit Checklist</Text>
-
-              <BottomSheetTextInput
-                placeholder="Checklist Title"
-                value={editedTitle}
-                onChangeText={setEditedTitle}
-                style={[
-                  styles.bottomSheetInput,
-                  styles.bottomSheetFocusedInput,
-                ]}
-              />
-
-              <TouchableOpacity
-                style={styles.markDoneButton}
-                onPress={handleMarkAllDone}
-              >
-                <Text style={styles.markDoneText}>Mark All as Done</Text>
-              </TouchableOpacity>
-
-              <View style={styles.sheetActions}>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDeleteChecklist}
-                >
-                  <Text style={styles.deleteText}>Delete Checklist</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={handleSaveChecklist}
-                >
-                  <Text style={styles.saveText}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </BottomSheetView>
-        </BottomSheet>
-      </>
-    );
-  };
-
-  const renderDoneModal = (title: string) => {
-    return (
-      showDoneModal && (
-        <View style={StyleSheet.absoluteFillObject}>
-          <View style={styles.modalBackground}>
-            <View style={styles.modalContainer}>
-              <LottieView
-                ref={lottieRef}
-                source={require("../assets/files/checklistComplete.json")}
-                autoPlay
-                loop={false}
-                style={{ width: 200, height: 200 }}
-              />
-              <Text style={styles.modalText}>{title} Completed!</Text>
-              <Pressable
-                style={styles.modalCloseButton}
-                onPress={handleChecklistCompleted}
-              >
-                <Text style={styles.modalBtnText}>Close</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      )
-    );
-  };
   const formatDeadline = (deadline: any) => {
     return dayjs(deadline).format("MMM D, YYYY");
   };
@@ -677,6 +713,7 @@ const ChecklistScreen = () => {
         style={{ flex: 1, backgroundColor: "#FFFFFF", padding: 20 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+        enabled={!keyboardVisible}
       >
         <GestureHandlerRootView style={{ flex: 1 }}>
           <TouchableWithoutFeedback onPress={handleOutsideClick}>
@@ -688,7 +725,7 @@ const ChecklistScreen = () => {
                 showsVerticalScrollIndicator={false}
                 data={checklist.tasks || []}
                 renderItem={renderItem}
-                keyExtractor={(item, index) => item.id}
+                keyExtractor={(item) => item.id}
                 onDragEnd={({ data }) => {
                   setChecklist(
                     (prevChecklist) =>
@@ -700,6 +737,7 @@ const ChecklistScreen = () => {
                 }}
                 ListHeaderComponent={renderHeader}
                 ListFooterComponent={renderFooter}
+                contentContainerStyle={{ paddingBottom: keyboardHeight }}
               />
 
               {showPicker && (
@@ -842,10 +880,25 @@ const styles = StyleSheet.create({
     borderColor: CrimsonLuxe.primary300,
   },
   bottomSheetContainer: {
-    backgroundColor: "#fff",
-    borderTopRightRadius: 16,
-    borderTopLeftRadius: 16,
-    paddingBottom: 30,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  bottomSheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 8,
   },
   sheetContent: {
     paddingHorizontal: 20,
@@ -873,6 +926,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 24,
+    marginBottom: 12
   },
   saveButton: {
     flex: 1,
