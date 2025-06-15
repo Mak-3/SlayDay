@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "slayday",
+    "name": "SlayDay",
     "slug": "slayday",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -36,6 +36,12 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "We need access to your photo library to let you update your profile picture."
         }
       ]
     ],

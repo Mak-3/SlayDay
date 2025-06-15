@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
+  Linking,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import AntDesign from "react-native-vector-icons/AntDesign";
@@ -65,15 +66,16 @@ export default function SignupScreen() {
       );
       const user = userCredential.user;
 
-      const userName = email.split("@")[0];
+      const name = email.split("@")[0];
+      const profilePicture = user.photoURL ?? "";
 
       await AsyncStorage.setItem("isLoggedIn", "true");
       // Save to Realm
       await saveUser({
-        userName,
+        name,
         email,
+        profilePicture,
         lastOpened: new Date(),
-        profilePicture: "",
       });
 
       setPasswordMismatch(false);
@@ -138,13 +140,13 @@ export default function SignupScreen() {
           const user = userCredential.user;
 
           const email = user.email ?? "";
-          const userName = email.split("@")[0];
+          const name = email.split("@")[0];
           const profilePicture = user.photoURL ?? "";
 
           await AsyncStorage.setItem("isLoggedIn", "true");
 
           await saveUser({
-            userName,
+            name,
             email,
             profilePicture,
             lastOpened: new Date(),
@@ -384,6 +386,25 @@ export default function SignupScreen() {
               <Text style={styles.signInText}>Sign in</Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            onPress={() =>
+              Linking.openURL(
+                "https://sites.google.com/view/slayday-privacy-policy"
+              )
+            }
+          >
+            <Text style={styles.privacyText}>
+              By signing up, you agree to our{" "}
+              <Text
+                style={{
+                  textDecorationLine: "underline",
+                  color: CrimsonLuxe.primary400,
+                }}
+              >
+                Privacy Policy
+              </Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </TouchableWithoutFeedback>
     </PageLayout>
@@ -521,5 +542,12 @@ const styles = StyleSheet.create({
   signInText: {
     color: CrimsonLuxe.primary400,
     fontWeight: "bold",
+  },
+  privacyText: {
+    marginTop: 20,
+    fontSize: 12,
+    color: "#666",
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
 });

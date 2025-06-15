@@ -3,7 +3,8 @@ export const UserSchema: Realm.ObjectSchema = {
   primaryKey: 'id',
   properties: {
     id: 'string',
-    userName: 'string',
+    name: 'string',
+    userName: 'string?',
     email: 'string',
     profilePicture: 'string?',
     lastOpened: 'date',
@@ -16,6 +17,7 @@ export const UserPreferencesSchema: Realm.ObjectSchema = {
   embedded: true,
   properties: {
     jsonUploadEnabled: { type: 'bool', default: false },
+    automaticBackupEnabled: {type: 'bool', default: true}
   },
 };
 

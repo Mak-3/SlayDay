@@ -10,6 +10,8 @@ import {
   Keyboard,
   Platform,
   Pressable,
+  KeyboardAvoidingView,
+  Dimensions,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -70,7 +72,7 @@ const ChecklistScreen = () => {
   const [showDoneModal, setShowDoneModal] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   const [isTitleSheetVisible, setIsTitleSheetVisible] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
@@ -78,6 +80,7 @@ const ChecklistScreen = () => {
   const taskBottomSheetRef = useRef<BottomSheet>(null);
   const checklistBottomSheetRef = useRef<BottomSheet>(null);
   const lottieRef = useRef<LottieView>(null);
+  const keyboardHeightRef = useRef(0);
 
   useEffect(() => {
     setTimeout(() => {
@@ -118,6 +121,30 @@ const ChecklistScreen = () => {
     getProfile();
   }, []);
 
+  useEffect(() => {
+    const handleKeyboardShow = (e: any) => {
+       console.log(isBottomSheetVisible, isTitleSheetVisible, "visibility")
+      keyboardHeightRef.current = e.endCoordinates.height;
+    };
+
+    const handleKeyboardHide = () => {
+      console.log(isBottomSheetVisible, isTitleSheetVisible, "visibility")
+      if (isBottomSheetVisible) {
+        taskBottomSheetRef.current?.snapToIndex(0);
+      } else if (isTitleSheetVisible) {
+        checklistBottomSheetRef.current?.snapToIndex(0);
+      }
+    };
+
+    const showSub = Keyboard.addListener("keyboardDidShow", handleKeyboardShow);
+    const hideSub = Keyboard.addListener("keyboardDidHide", handleKeyboardHide);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const getProfile = async () => {
     try {
       const userInfo: any = await getUser();
@@ -131,8 +158,8 @@ const ChecklistScreen = () => {
   const onDateChange = (event: any, date?: Date) => {
     setShowPicker(false);
     setIsBottomSheetVisible(true);
-    if (date) {
-      setSelectedDate(new Date(date));
+    if (event.type === "set" && date) {
+      setSelectedDate(date);
     }
   };
 
@@ -214,12 +241,14 @@ const ChecklistScreen = () => {
     try {
       await updateChecklist(new ObjectId(checklist._id), {
         title: checklist.title,
-        tasks: checklist.tasks.map(({ id, title, isCompleted, deadline }) => ({
-          id,
-          title,
-          isCompleted: isCompleted,
-          deadline: deadline,
-        })),
+        tasks: checklist.tasks
+          .filter((task) => task.title.trim() !== "")
+          .map(({ id, title, isCompleted, deadline }) => ({
+            id,
+            title,
+            isCompleted,
+            deadline,
+          })),
         deadline: checklist.deadline,
         lastSaved: new Date(),
       });
@@ -282,8 +311,11 @@ const ChecklistScreen = () => {
   };
   const openBottomSheet = (task: Task) => {
     setBottomSheetTask(task);
+    setSelectedDate(task.deadline ? task.deadline : null);
     setIsBottomSheetVisible(true);
-    taskBottomSheetRef.current?.expand();
+    setTimeout(() => {
+      taskBottomSheetRef.current?.expand();
+    }, 100);
   };
 
   const closeBottomSheet = () => {
@@ -321,7 +353,9 @@ const ChecklistScreen = () => {
                   ? {
                       ...task,
                       title: bottomSheetTask.title,
-                      deadline: dayjs(selectedDate).toDate(),
+                      deadline: selectedDate
+                        ? dayjs(selectedDate).toDate()
+                        : undefined,
                     }
                   : task
               ),
@@ -364,12 +398,15 @@ const ChecklistScreen = () => {
                 style={styles.deadlineButton}
                 onPress={() => {
                   setIsBottomSheetVisible(false);
+                  setSelectedDate(bottomSheetTask.deadline || null);
                   setShowPicker(true);
                 }}
               >
                 <Text style={styles.deadlineText}>
                   📅 Deadline:{" "}
-                  {selectedDate && dayjs(selectedDate).format("MMM DD, YYYY")}
+                  {selectedDate
+                    ? dayjs(selectedDate).format("MMM DD, YYYY")
+                    : "No deadline set"}
                 </Text>
               </TouchableOpacity>
 
@@ -492,7 +529,7 @@ const ChecklistScreen = () => {
     );
   };
   const formatDeadline = (deadline: any) => {
-    return dayjs(deadline).format("MMM D, HH:mm");
+    return dayjs(deadline).format("MMM D, YYYY");
   };
 
   const renderItem = ({ item, drag, isActive }: any) => {
@@ -568,7 +605,64 @@ const ChecklistScreen = () => {
       </PageLayout>
     );
   }
+  const renderHeader = () => {
+    return (
+      <View style={styles.progressWrapper}>
+        <View style={styles.checklistHeader}>
+          <View style={styles.checklistTitleWrapper}>
+            {renderIcon(checklist.category, CrimsonLuxe.primary500)}
+            <Text style={styles.sectionTitle}>{checklist.title}</Text>
+          </View>
+          <TouchableOpacity onPress={openTitleSheet} style={styles.icons}>
+            <MaterialIcons name="edit" size={20} color="gray" />
+          </TouchableOpacity>
+        </View>
 
+        <Text
+          style={styles.sectionDescription}
+          ellipsizeMode="tail"
+          numberOfLines={3}
+        >
+          {checklist.description}
+        </Text>
+        <ProgressBar
+          activeColor={CrimsonLuxe.primary400}
+          showStatus={false}
+          progress={getProgress()}
+        />
+      </View>
+    );
+  };
+  const renderFooter = () => {
+    return (
+      <>
+        <View style={styles.tasksButtonWrapper}>
+          {jsonUploadEnabled && (
+            <TouchableOpacity
+              style={styles.importButton}
+              onPress={handleUploadJson}
+            >
+              <Text style={styles.importButtonText}>📤 Import Tasks</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.addTaskButton} onPress={addTask}>
+            <Text style={styles.addTaskText}>+ Add Task</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.saveChecklistButton,
+            !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
+          ]}
+          onPress={handleSaveChecklistTasks}
+          disabled={!isChanged}
+        >
+          <Text style={styles.saveChecklistText}>Save Checklist</Text>
+        </TouchableOpacity>
+      </>
+    );
+  };
   const getProgress = () => {
     const completedCount =
       checklist?.tasks.filter((task) => task.isCompleted).length || 0;
@@ -579,44 +673,22 @@ const ChecklistScreen = () => {
 
   return (
     <>
-      <PageLayout>
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: "#FFFFFF", padding: 20 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      >
         <GestureHandlerRootView style={{ flex: 1 }}>
           <TouchableWithoutFeedback onPress={handleOutsideClick}>
             <View style={styles.container}>
               <BackButtonHeader />
-              <View style={styles.progressWrapper}>
-                <View style={styles.checklistHeader}>
-                  <View style={styles.checklistTitleWrapper}>
-                    {renderIcon(checklist.category, CrimsonLuxe.primary500)}
-                    <Text style={styles.sectionTitle}>{checklist.title}</Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={openTitleSheet}
-                    style={styles.icons}
-                  >
-                    <MaterialIcons name="edit" size={20} color="gray" />
-                  </TouchableOpacity>
-                </View>
 
-                <Text
-                  style={styles.sectionDescription}
-                  ellipsizeMode="tail"
-                  numberOfLines={3}
-                >
-                  {checklist.description}
-                </Text>
-                <ProgressBar
-                  activeColor={CrimsonLuxe.primary400}
-                  showStatus={false}
-                  progress={getProgress()}
-                />
-              </View>
               <DraggableFlatList
+                keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
                 data={checklist.tasks || []}
                 renderItem={renderItem}
-                keyExtractor={(item, index) => index.toString()}
-                scrollEnabled={false}
+                keyExtractor={(item, index) => item.id}
                 onDragEnd={({ data }) => {
                   setChecklist(
                     (prevChecklist) =>
@@ -626,42 +698,13 @@ const ChecklistScreen = () => {
                       } as any)
                   );
                 }}
-                containerStyle={{ flex: 1 }}
-                activationDistance={10}
-                dragItemOverflow={true}
+                ListHeaderComponent={renderHeader}
+                ListFooterComponent={renderFooter}
               />
-
-              <View style={styles.tasksButtonWrapper}>
-                {jsonUploadEnabled && (
-                  <TouchableOpacity
-                    style={styles.importButton}
-                    onPress={handleUploadJson}
-                  >
-                    <Text style={styles.importButtonText}>📤 Import Tasks</Text>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={styles.addTaskButton}
-                  onPress={addTask}
-                >
-                  <Text style={styles.addTaskText}>+ Add Task</Text>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.saveChecklistButton,
-                  !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
-                ]}
-                onPress={handleSaveChecklistTasks}
-                disabled={!isChanged}
-              >
-                <Text style={styles.saveChecklistText}>Save Checklist</Text>
-              </TouchableOpacity>
 
               {showPicker && (
                 <DateTimePicker
-                  value={selectedDate ?? new Date()}
+                  value={selectedDate ? new Date(selectedDate) : new Date()}
                   mode="date"
                   display={Platform.OS === "ios" ? "inline" : "default"}
                   onChange={onDateChange}
@@ -671,7 +714,7 @@ const ChecklistScreen = () => {
             </View>
           </TouchableWithoutFeedback>
         </GestureHandlerRootView>
-      </PageLayout>
+      </KeyboardAvoidingView>
       {renderBottomSheet()}
       {renderTitleBottomSheet()}
       {renderDoneModal(checklist.title)}
@@ -682,7 +725,6 @@ const ChecklistScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
   },
   sectionTitle: {
     fontSize: 22,

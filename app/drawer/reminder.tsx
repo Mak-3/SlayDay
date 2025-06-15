@@ -157,7 +157,8 @@ const EventsLanding = () => {
           <Text style={styles.startButtonText}>Create Reminder</Text>
         </TouchableOpacity>
       </View>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      {(upcomingEvents?.length === 0 && pastEvents?.length === 0) ? <Text style={{ textAlign: "center" }}>No events.</Text> : 
+      (<GestureHandlerRootView style={{ flex: 1 }}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Upcoming Events</Text>
           <FlatList
@@ -182,7 +183,8 @@ const EventsLanding = () => {
             }
           />
         </View>
-      </GestureHandlerRootView>
+      </GestureHandlerRootView>)
+      }
     </PageLayout>
   );
 };

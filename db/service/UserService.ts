@@ -5,18 +5,20 @@ const USER_ID = "current_user";
 
 // Save or update user with default preferences if missing
 export const saveUser = async (user: {
-  userName: string;
+  name: string;
+  userName?: string;
   profilePicture?: string;
   lastOpened: Date;
   email: string;
   preferences?: {
     jsonUploadEnabled?: boolean;
+    automaticBackupEnabled?: boolean;
   };
 }) => {
   const realm = await getRealm();
   const existingUser = realm.objectForPrimaryKey("User", USER_ID);
 
-  let updatedPreferences: any= { jsonUploadEnabled: false };
+  let updatedPreferences: any= { jsonUploadEnabled: false, automaticBackupEnabled: true };
 
   if (existingUser && existingUser.preferences) {
     updatedPreferences = {
@@ -26,6 +28,7 @@ export const saveUser = async (user: {
   } else if (user.preferences) {
     updatedPreferences = {
       jsonUploadEnabled: user.preferences?.jsonUploadEnabled ?? false,
+      automaticBackupEnabled: user.preferences?.automaticBackupEnabled ?? true
     };
   }
 

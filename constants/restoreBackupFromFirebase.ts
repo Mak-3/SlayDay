@@ -47,7 +47,8 @@ interface PomodoroBackup {
 
 interface UserBackup {
   id: string;
-  userName: string;
+  name?: string;
+  userName?: string;
   email: string;
   profilePicture?: string;
   lastOpened: string;
@@ -75,7 +76,7 @@ async function restoreRealmData(realm: Realm, backup: BackupData | null): Promis
     if (backup.user) {
       realm.create("User", {
         id: backup.user.id,
-        userName: backup.user.userName,
+        name: backup.user.name,
         email: backup.user.email,
         profilePicture: backup.user.profilePicture,
         lastOpened: new Date(backup.user.lastOpened),

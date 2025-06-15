@@ -63,11 +63,7 @@ export default function SignInScreen() {
       const backupData: any = await downloadBackup(userId);
 
       await restoreRealmData(realm, backupData);
-
-      console.log("Backup restored successfully");
-    } catch (error) {
-      console.error("Failed to fetch and restore backup:", error);
-    }
+    } catch (error) {}
   };
 
   React.useEffect(() => {
@@ -81,12 +77,12 @@ export default function SignInScreen() {
           const user = userCredential.user;
 
           const email = user.email ?? "";
-          const userName = email.split("@")[0];
+          const name = email.split("@")[0];
           const profilePicture = user.photoURL ?? "";
           await AsyncStorage.setItem("isLoggedIn", "true");
           fetchBackup(user.uid);
           await saveUser({
-            userName,
+            name,
             email,
             profilePicture,
             lastOpened: new Date(),
@@ -130,6 +126,16 @@ export default function SignInScreen() {
 
       await AsyncStorage.setItem("isLoggedIn", "true");
       fetchBackup(user.uid);
+      const name = email.split("@")[0];
+      const profilePicture = user.photoURL ?? "";
+
+      await saveUser({
+        name,
+        email,
+        profilePicture,
+        lastOpened: new Date(),
+      });
+
       router.replace("/drawer/home");
     } catch (error: any) {
       const toastConfig = {

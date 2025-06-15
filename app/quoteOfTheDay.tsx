@@ -11,7 +11,7 @@ const { width } = Dimensions.get("window");
 
 export default function QuoteCardOverlay() {
   const [cardHeight, setCardHeight] = useState(0);
-  const [userName, setUserName] = useState<any>("");
+  const [name, setName] = useState<any>("");
 
   const getQuoteOfTheDay = () => {
     const startDate = new Date("2025-01-01");
@@ -39,7 +39,7 @@ export default function QuoteCardOverlay() {
   const getProfile = async () => {
     try {
       const userInfo: any = await getUser();
-      setUserName(userInfo.userName);
+      setName(userInfo.name);
     } catch (error) {
       console.error("Failed to load user:", error);
     }
@@ -70,7 +70,7 @@ export default function QuoteCardOverlay() {
             }}
           >
             <Text style={styles.greeting}>
-              {getGreeting()}, <Text style={styles.username}>{userName}</Text>{" "}
+              {getGreeting()}, <Text style={styles.name}>{name}</Text>{" "}
               👋
             </Text>
             <Text style={styles.quoteMark}>“</Text>
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     color: "#374151",
     marginBottom: 40,
   },
-  username: {
+  name: {
     color: CrimsonLuxe.primary400,
     fontWeight: "700",
     lineHeight: 30

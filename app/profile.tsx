@@ -19,13 +19,33 @@ import { auth } from "@/firebaseConfig";
 import { getUser, saveUser } from "@/db/service/UserService";
 import { getRealm } from "@/db/realm";
 import { triggerBackup } from "@/constants/backupService";
+import * as Clipboard from "expo-clipboard";
+
+const exampleJson = `{
+  "tasks": [
+    {
+      "title": "Buy groceries",
+      "isCompleted": false,
+      "deadline": "2025-05-17T00:00:00Z"
+    },
+    {
+      "title": "Finish report",
+      "isCompleted": true
+    }
+  ]
+}`;
 
 const ProfileScreen = () => {
   const [jsonUploadEnabled, setJsonUploadEnabled] = useState<boolean>(false);
-  const [originalPreferences, setOriginalPreferences] =
+  const [originalJSONUploadPref, setOriginalJSONUploadPref] =
+    useState<boolean>(false);
+  const [originalAutomaticBackupEnabled, setOriginalAutomaticBackupEnabled] =
     useState<boolean>(false);
   const [user, setUser] = useState<any>({});
   const [loading, setLoading] = useState(false);
+  const [showJsonExample, setShowJsonExample] = useState(false);
+  const [automaticBackupEnabled, setAutomaticBackupEnabled] =
+    useState<boolean>(false);
 
   const handleBackup = async () => {
     setLoading(true);
@@ -60,9 +80,14 @@ const ProfileScreen = () => {
     try {
       const userInfo = await getUser();
       setUser(userInfo);
-      const prefValue = userInfo?.preferences?.jsonUploadEnabled ?? false;
-      setJsonUploadEnabled(prefValue);
-      setOriginalPreferences(prefValue);
+      const prefs = userInfo?.preferences as any;
+      const jsonPref = prefs.jsonUploadEnabled ?? false;
+      const autoBackupPref = prefs.automaticBackupEnabled ?? false;
+      setJsonUploadEnabled(jsonPref);
+      setAutomaticBackupEnabled(autoBackupPref);
+
+      setOriginalJSONUploadPref(jsonPref);
+      setOriginalAutomaticBackupEnabled(autoBackupPref);
     } catch (error) {
       console.error("Failed to load user:", error);
     }
@@ -71,26 +96,41 @@ const ProfileScreen = () => {
   const handleSavePreferences = async () => {
     try {
       await saveUser({
-        userName: user.userName,
-        profilePicture: user.profilePicture,
-        email: user.email,
+        ...user,
         lastOpened: new Date(),
         preferences: {
-          jsonUploadEnabled: jsonUploadEnabled,
+          jsonUploadEnabled,
+          automaticBackupEnabled,
         },
       });
-      setOriginalPreferences(jsonUploadEnabled);
+      setOriginalJSONUploadPref(jsonUploadEnabled);
+      setOriginalAutomaticBackupEnabled(automaticBackupEnabled);
     } catch (error) {
       console.error("Failed to save preferences:", error);
     }
   };
+  const getInitial = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : "";
+  };
 
   return (
-    <PageLayout style={styles.container}>
+    <PageLayout
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 80 }}
+    >
       <BackButtonHeader />
       <View style={styles.profileContainer}>
-        <Image source={{ uri: user.profilePicture }} style={styles.avatar} />
-        <Text style={styles.name}>{user.userName}</Text>
+        {user.profilePicture ? (
+          <Image
+            source={{ uri: user.profilePicture }}
+            style={styles.profilePicture}
+          />
+        ) : (
+          <View style={styles.placeholderCircle}>
+            <Text style={styles.initial}>{getInitial(user.name)}</Text>
+          </View>
+        )}
+        <Text style={styles.name}>{user.name}</Text>
         <Text style={styles.email}>{user.email}</Text>
       </View>
 
@@ -131,16 +171,52 @@ const ProfileScreen = () => {
       <View style={styles.card}>
         <View style={styles.cardRow}>
           <Feather name="file" size={24} color="#000" />
-          <Text style={styles.cardText}>JSON uploads for checklist</Text>
+          <Text style={styles.cardText}>Enable file upload for tasks</Text>
           <Switch
             value={jsonUploadEnabled}
             onValueChange={(value) => setJsonUploadEnabled(value)}
           />
         </View>
+        <View style={styles.expandSection}>
+          <TouchableOpacity style={styles.expandToggle}>
+            <Text style={styles.toggleText}>Accepted File Format</Text>
+
+            <View
+              style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
+            >
+              <Feather
+                name={showJsonExample ? "chevron-up" : "chevron-down"}
+                size={20}
+                color="#333"
+                onPress={() => setShowJsonExample(!showJsonExample)}
+              />
+              <Feather
+                name="copy"
+                size={16}
+                color="#333"
+                onPress={() => Clipboard.setStringAsync(exampleJson)}
+              />
+            </View>
+          </TouchableOpacity>
+
+          {showJsonExample && (
+            <View style={styles.exampleBox}>
+              <Text style={styles.exampleText}>{exampleJson}</Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.cardRow}>
+          <MaterialCommunityIcons name="cloud-upload-outline" size={24} />
+          <Text style={styles.cardText}>Allow Automatic Backup</Text>
+          <Switch
+            value={automaticBackupEnabled}
+            onValueChange={setAutomaticBackupEnabled}
+          />
+        </View>
       </View>
 
-      {/* 🔽 Save button only shown if preferences changed */}
-      {jsonUploadEnabled !== originalPreferences && (
+      {(jsonUploadEnabled !== originalJSONUploadPref ||
+        automaticBackupEnabled !== originalAutomaticBackupEnabled) && (
         <TouchableOpacity
           style={styles.saveButton}
           onPress={handleSavePreferences}
@@ -168,11 +244,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  avatar: {
+  profilePicture: {
     width: 80,
     height: 80,
     borderRadius: 40,
     marginBottom: 10,
+  },
+  placeholderCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+    backgroundColor: CrimsonLuxe.primary400,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  initial: {
+    color: "#fff",
+    fontSize: 32,
+    fontWeight: "bold",
   },
   name: {
     fontSize: 20,
@@ -212,6 +302,57 @@ const styles = StyleSheet.create({
     color: "#333",
     marginLeft: 12,
   },
+  expandSection: {
+    marginTop: 16,
+    backgroundColor: "#f2f2f2",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+
+  expandToggle: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: "#e0e0e0",
+  },
+
+  toggleText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#333",
+  },
+
+  exampleBox: {
+    padding: 12,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderColor: "#ccc",
+    position: "relative",
+  },
+
+  exampleText: {
+    fontFamily: "monospace",
+    fontSize: 13,
+    color: "#444",
+  },
+
+  copyButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: CrimsonLuxe.primary400,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    alignSelf: "flex-end",
+    marginTop: 10,
+  },
+  copyText: {
+    color: "#fff",
+    marginLeft: 6,
+    fontWeight: "600",
+  },
+
   logoutButton: {
     position: "absolute",
     width: "100%",
@@ -222,7 +363,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 12,
     marginLeft: 16,
-    bottom: 30,
+    bottom: 10,
   },
   logoutText: {
     fontSize: 16,

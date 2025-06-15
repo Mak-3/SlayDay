@@ -1,6 +1,3 @@
-import BackButtonHeader from "@/components/backButtonHeader";
-import PageLayout from "@/components/pageLayout";
-import { getUser } from "@/db/service/UserService";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -9,39 +6,167 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { signOut } from "firebase/auth";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+} from "firebase/firestore";
+import { router } from "expo-router";
+
+import BackButtonHeader from "@/components/backButtonHeader";
+import PageLayout from "@/components/pageLayout";
+import { CrimsonLuxe } from "@/constants/Colors";
+import { getUser, saveUser } from "@/db/service/UserService";
+import { getRealm } from "@/db/realm";
+import { auth, db } from "@/firebaseConfig"; // 🔧 FIXED
 
 const EditProfileScreen = () => {
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [avatar, setAvatar] = useState("");
+  const [profilePicture, setProfilePicture] = useState("");
+  const [originalName, setOriginalName] = useState("");
+  const [showSaveButton, setShowSaveButton] = useState(false);
 
   const getProfile = async () => {
     try {
       const userInfo: any = await getUser();
-      setUsername(userInfo.userName);
-      setAvatar(userInfo.profilePicture);
-      setEmail(userInfo.email);
-    } catch (error) {}
+      if (userInfo) {
+        setName(userInfo.name);
+        setOriginalName(userInfo.name);
+        setProfilePicture(userInfo.profilePicture);
+        setEmail(userInfo.email);
+      }
+    } catch (error) {
+      console.error("Failed to get profile:", error);
+    }
   };
 
   useEffect(() => {
     getProfile();
   }, []);
 
+  const getInitial = (name: string) =>
+    name ? name.charAt(0).toUpperCase() : "";
+
+  const handleImagePick = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      alert("Permission to access media library is required!");
+      return;
+    }
+
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.5,
+      allowsEditing: true,
+      aspect: [1, 1],
+      base64: true,
+    });
+
+    if (!pickerResult.canceled && pickerResult.assets?.[0]?.base64) {
+      const base64Image = `data:image/jpeg;base64,${pickerResult.assets[0].base64}`;
+      setProfilePicture(base64Image);
+
+      const userInfo: any = await getUser();
+      if (userInfo) {
+        await saveUser({
+          ...userInfo,
+          profilePicture: base64Image,
+        });
+      }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to permanently delete your account? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const user = auth.currentUser;
+              if (!user) throw new Error("No user logged in");
+              console.log(user.uid);
+              // 🔥 Delete Firestore doc
+              const backupsRef = collection(db, "users", user.uid, "backup");
+              const backupDocs = await getDocs(backupsRef);
+              const deleteBackupPromises = backupDocs.docs.map((docSnap) =>
+                deleteDoc(docSnap.ref)
+              );
+              await Promise.all(deleteBackupPromises);
+
+              // Step 2: Delete user document
+              const userDocRef = doc(db, "users", user.uid);
+              await deleteDoc(userDocRef);
+              // 🧹 Clear Realm
+              const realm = await getRealm();
+              realm.write(() => {
+                realm.deleteAll();
+              });
+
+              // 🔓 Sign out
+              await signOut(auth);
+              await AsyncStorage.setItem("isLoggedIn", "false");
+              router.replace("/signIn");
+            } catch (err) {
+              console.error("Failed to delete account:", err);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSaveName = async () => {
+    try {
+      const userInfo: any = await getUser();
+      if (!userInfo) return;
+      await saveUser({
+        ...userInfo,
+        name: name,
+      });
+      setOriginalName(name);
+      setShowSaveButton(false);
+    } catch (err) {
+      console.error("Error saving profile:", err);
+    }
+  };
+
   return (
     <PageLayout style={styles.container}>
       <BackButtonHeader title="Edit Profile" />
       <View style={styles.wrapper}>
         <View style={styles.avatarContainer}>
-          <Image source={{ uri: avatar }} style={styles.avatar} />
-          <TouchableOpacity style={styles.editIcon} onPress={() => {}}>
+          {profilePicture ? (
+            <Image
+              source={{ uri: profilePicture }}
+              style={styles.profilePicture}
+            />
+          ) : (
+            <View style={styles.placeholderCircle}>
+              <Text style={styles.initial}>{getInitial(name)}</Text>
+            </View>
+          )}
+          <TouchableOpacity style={styles.editIcon} onPress={handleImagePick}>
             <Icon name="edit" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.name}>{username}</Text>
+        <Text style={styles.name}>{name}</Text>
 
         <View style={styles.formContainer}>
           <Text style={styles.label}>Email Address</Text>
@@ -51,21 +176,38 @@ const EditProfileScreen = () => {
             editable={false}
           />
 
-          <Text style={styles.label}>Username</Text>
+          <Text style={styles.label}>Display Name</Text>
           <View style={styles.inputWithIcon}>
             <Text style={styles.atSymbol}>@</Text>
             <TextInput
               style={[styles.input, { paddingLeft: 20 }]}
-              value={username}
-              onChangeText={setUsername}
+              value={name}
+              onChangeText={(text) => {
+                setName(text);
+                setShowSaveButton(text !== originalName);
+              }}
             />
             <Icon name="check-circle" size={20} color="green" />
           </View>
 
+          {showSaveButton && (
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleSaveName}
+            >
+              <Text style={styles.saveButtonText}>Save Profile</Text>
+            </TouchableOpacity>
+          )}
         </View>
-      </View>
-      <View style={styles.joinedWrapper}>
-        <Text style={styles.joinedText}>Joined 21 Jan 2020</Text>
+
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDeleteAccount}
+        >
+          <Text style={styles.deleteButtonText}>
+            Delete Account Permanently
+          </Text>
+        </TouchableOpacity>
       </View>
     </PageLayout>
   );
@@ -80,6 +222,7 @@ const styles = StyleSheet.create({
   wrapper: {
     padding: 20,
     alignItems: "center",
+    flex: 1,
   },
   header: {
     width: "100%",
@@ -96,12 +239,27 @@ const styles = StyleSheet.create({
     position: "relative",
     marginBottom: 15,
   },
-  avatar: {
+  profilePicture: {
     width: 150,
     height: 150,
     borderRadius: 75,
     borderWidth: 2,
     borderColor: "#007bff",
+  },
+  placeholderCircle: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    borderWidth: 2,
+    borderColor: "#007bff",
+    backgroundColor: CrimsonLuxe.primary400,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  initial: {
+    color: "#fff",
+    fontSize: 48,
+    fontWeight: "bold",
   },
   editIcon: {
     position: "absolute",
@@ -166,16 +324,33 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
   },
-  joinedWrapper: {
+  deleteButton: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    marginHorizontal: 30,
+    bottom: 20,
+    width: "100%",
+    marginTop: 24,
+    padding: 12,
+    backgroundColor: "#ff4d4d",
+    borderRadius: 8,
+    alignItems: "center",
   },
-  joinedText: {
-    marginTop: 30,
-    textAlign: "center",
-    color: "#aaa",
-    fontSize: 12,
+
+  deleteButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  saveButton: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: CrimsonLuxe.primary400,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  saveButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

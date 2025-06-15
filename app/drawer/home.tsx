@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   StyleSheet,
   Animated,
@@ -10,7 +10,7 @@ import {
 import Header from "@/components/header";
 import Progress from "@/components/progress";
 import FloatingMenu from "@/components/floatingMenu";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import PageLayout from "@/components/pageLayout";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { CrimsonLuxe } from "@/constants/Colors";
@@ -24,21 +24,23 @@ const Home = () => {
   const [checklistCount, setChecklistCount] = useState<number>(0);
   const [eventCount, setEventCount] = useState<number>(0);
 
-  useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const checklistRes = await getChecklistCount();
-        const eventRes = await getEventCount();
+  useFocusEffect(
+    useCallback(() => {
+      const fetchCounts = async () => {
+        try {
+          const checklistRes = await getChecklistCount();
+          const eventRes = await getEventCount();
 
-        setChecklistCount(checklistRes.total || 0);
-        setEventCount(eventRes.total || 0);
-      } catch (error) {
-        console.error("Failed to fetch counts:", error);
-      }
-    };
+          setChecklistCount(checklistRes.total || 0);
+          setEventCount(eventRes.total || 0);
+        } catch (error) {
+          console.error("Failed to fetch counts:", error);
+        }
+      };
 
-    fetchCounts();
-  }, []);
+      fetchCounts();
+    }, [])
+  );
 
   const hasData = eventCount > 0 || checklistCount > 0;
 

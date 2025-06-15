@@ -1,3 +1,4 @@
+import React from 'react';
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -63,17 +64,22 @@ function InnerApp() {
 
   useEffect(() => {
     const decideNavigation = async () => {
-      if (!isAuthChecked) return;
+      if (!isAuthChecked || !isLayoutMounted || !fontsLoaded) return;
 
-      if (authUser) {
-        await checkAndRedirectForFirstOpen();
-      } else {
+      try {
+        if (authUser) {
+          await checkAndRedirectForFirstOpen();
+        } else {
+          router.replace("/signIn");
+        }
+      } catch (error) {
+        console.error("Navigation error:", error);
         router.replace("/signIn");
       }
     };
 
     decideNavigation();
-  }, [isAuthChecked, authUser]);
+  }, [isAuthChecked, authUser, isLayoutMounted, fontsLoaded]);
 
   if (!fontsLoaded || !isLayoutMounted || !isAuthChecked) {
     return null;
@@ -86,7 +92,7 @@ function InnerApp() {
 
       if (!userData || !userData.lastOpened) {
         await saveUser({
-          userName: userData?.userName || "Guest",
+          name: userData?.name || "Guest",
           profilePicture: userData?.profilePicture,
           email: userData?.email || "",
           lastOpened: today,
@@ -102,7 +108,9 @@ function InnerApp() {
         lastOpenedDate.getFullYear() === today.getFullYear();
 
       if (!isSameDay) {
-        triggerBackup();
+        if(userData.preferences?.automaticBackupEnabled){
+          triggerBackup();
+        }
         await saveUser({ ...userData, lastOpened: today });
         router.replace("/quoteOfTheDay");
       } else {
@@ -116,29 +124,31 @@ function InnerApp() {
 
   return (
     <>
-      <Stack>
-        <Stack.Screen name="intro" options={{ headerShown: false }} />
-        <Stack.Screen name="signIn" options={{ headerShown: false }} />
-        <Stack.Screen name="signUp" options={{ headerShown: false }} />
-        <Stack.Screen name="forgotPassword" options={{ headerShown: false }} />
-        <Stack.Screen name="quoteOfTheDay" options={{ headerShown: false }} />
-        <Stack.Screen name="drawer" options={{ headerShown: false }} />
-        <Stack.Screen name="pomodoro" options={{ headerShown: false }} />
-        <Stack.Screen name="createPomodoro" options={{ headerShown: false }} />
-        <Stack.Screen name="pomodoroScreen" options={{ headerShown: false }} />
-        <Stack.Screen name="pomodoroSessions" options={{ headerShown: false }} />
-        <Stack.Screen name="timer" options={{ headerShown: false }} />
-        <Stack.Screen name="calender" options={{ headerShown: false }} />
-        <Stack.Screen name="reminder" options={{ headerShown: false }} />
-        <Stack.Screen name="createEvent" options={{ headerShown: false }} />
-        <Stack.Screen name="createChecklist" options={{ headerShown: false }} />
-        <Stack.Screen name="checklistScreen" options={{ headerShown: false }} />
-        <Stack.Screen name="checkList" options={{ headerShown: false }} />
-        <Stack.Screen name="checklistOverview" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-        <Stack.Screen name="profile" options={{ headerShown: false }} />
-        <Stack.Screen name="editProfile" options={{ headerShown: false }} />
-        <Stack.Screen name="createNotes" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="intro" />
+        <Stack.Screen name="signIn" />
+        <Stack.Screen name="signUp" />
+        <Stack.Screen name="forgotPassword" />
+        <Stack.Screen name="quoteOfTheDay" />
+        <Stack.Screen name="drawer" />
+        <Stack.Screen name="pomodoro" />
+        <Stack.Screen name="createPomodoro" />
+        <Stack.Screen name="pomodoroScreen" />
+        <Stack.Screen name="pomodoroSessions" />
+        <Stack.Screen name="timer" />
+        <Stack.Screen name="calender" />
+        <Stack.Screen name="reminder" />
+        <Stack.Screen name="createEvent" />
+        <Stack.Screen name="createChecklist" />
+        <Stack.Screen name="checklistScreen" />
+        <Stack.Screen name="checkList" />
+        <Stack.Screen name="checklistOverview" />
+        <Stack.Screen name="profile" />
+        <Stack.Screen name="editProfile" />
+        <Stack.Screen name="createNotes" />
+        <Stack.Screen name="notes" />
+        <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
       </Stack>
       <Toast />
     </>

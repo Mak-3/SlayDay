@@ -25,6 +25,10 @@ const Header = () => {
     getProfile();
   }, []);
 
+  const getInitial = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : "";
+  };
+
   return (
     <View style={styles.header}>
       <View style={styles.menuWrapper}>
@@ -44,10 +48,16 @@ const Header = () => {
           goToProfile();
         }}
       >
-        <Image
-          source={{ uri: user.profilePicture }}
-          style={styles.profileImage}
-        />
+        {user.profilePicture ? (
+          <Image
+            source={{ uri: user.profilePicture }}
+            style={styles.profilePicture}
+          />
+        ) : (
+          <View style={styles.placeholderCircle}>
+            <Text style={styles.initial}>{getInitial(user.name)}</Text>
+          </View>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -72,11 +82,7 @@ const styles = StyleSheet.create({
     color: CrimsonLuxe.primary400,
     letterSpacing: 1,
   },
-  username: {
-    color: CrimsonLuxe.primary400,
-    fontWeight: "700",
-  },
-  profileImage: {
+  profilePicture: {
     width: 50,
     height: 50,
     borderRadius: 25,
@@ -86,6 +92,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
+  },
+  placeholderCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: CrimsonLuxe.primary400,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  initial: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
 

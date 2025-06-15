@@ -10,6 +10,7 @@ import {
 import ChecklistSVG from "@/assets/svgs/Checklist.svg";
 import EventsSVG from "@/assets/svgs/Events.svg";
 import PomodoroSVG from "@/assets/svgs/Pomodoro.svg";
+import BackupSVG from "@/assets/svgs/Backup.svg";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { router } from "expo-router";
 
@@ -29,6 +30,10 @@ const slides = [
   {
     image: PomodoroSVG,
     text: "Improve your productivity through engaging timer challenges and the Pomodoro technique.",
+  },
+  {
+    image: BackupSVG,
+    text: "Keep your data safe with automatic daily backups",
   },
 ];
 EventsSVG;

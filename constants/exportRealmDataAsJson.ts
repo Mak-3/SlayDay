@@ -52,7 +52,8 @@ interface Preferences {
 
 interface User {
   id: string;
-  userName: string;
+  name: string;
+  userName?: string;
   email: string;
   profilePicture?: string;
   lastOpened: Date;
@@ -66,7 +67,8 @@ interface ExportedData {
   pomodoros: any[];
   user: {
     id: string;
-    userName: string;
+    name: string;
+    userName?: string;
     email: string;
     profilePicture?: string;
     lastOpened: string;
@@ -125,7 +127,7 @@ const realm = await getRealm();
   const userObj = realm.objects<User>("User")[0];
   const user = userObj ? {
     id: userObj.id,
-    userName: userObj.userName,
+    name: userObj.name,
     email: userObj.email,
     profilePicture: userObj.profilePicture,
     lastOpened: userObj.lastOpened.toISOString(),

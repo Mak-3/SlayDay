@@ -30,6 +30,7 @@
     "expo-document-picker": "~13.0.3",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
+    "expo-image-picker": "~16.0.6",
     "expo-linear-gradient": "~14.0.2",
     "expo-linking": "~7.0.5",
     "expo-navigation-bar": "~4.0.9",
@@ -62,7 +63,8 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "realm": "^12.14.1",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.3",
+    "expo-clipboard": "~7.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
