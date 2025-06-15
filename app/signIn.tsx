@@ -73,8 +73,24 @@ export default function SignInScreen() {
           const { id_token } = response.params;
           const credential = GoogleAuthProvider.credential(id_token);
 
+          // First check if the user exists
           const userCredential = await signInWithCredential(auth, credential);
           const user = userCredential.user;
+
+          // Check if this is a new user by looking at metadata
+          const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+
+          if (isNewUser) {
+            // Sign out the user since they don't have an account
+            await auth.signOut();
+            Toast.show({
+              type: "error",
+              text1: "Account Not Found",
+              text2: "Please sign up first to create an account",
+              position: "bottom",
+            });
+            return;
+          }
 
           const email = user.email ?? "";
           const name = email.split("@")[0];
@@ -277,7 +293,7 @@ export default function SignInScreen() {
           </View>
 
           <View style={styles.footerTextContainer}>
-            <Text style={styles.footerText}>Don’t have an account? </Text>
+            <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => router.replace("/signUp")}>
               <Text style={styles.signInText}>Sign up</Text>
             </TouchableOpacity>

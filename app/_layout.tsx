@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -16,7 +16,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-        <InnerApp />
+      <InnerApp />
     </GestureHandlerRootView>
   );
 }
@@ -108,7 +108,7 @@ function InnerApp() {
         lastOpenedDate.getFullYear() === today.getFullYear();
 
       if (!isSameDay) {
-        if(userData.preferences?.automaticBackupEnabled){
+        if (userData.preferences?.automaticBackupEnabled) {
           triggerBackup();
         }
         await saveUser({ ...userData, lastOpened: today });
@@ -126,11 +126,29 @@ function InnerApp() {
     <>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="intro" />
-        <Stack.Screen name="signIn" />
-        <Stack.Screen name="signUp" />
+        <Stack.Screen
+          name="signIn"
+          options={{
+            gestureEnabled: false,
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="signUp"
+          options={{
+            gestureEnabled: false,
+            headerShown: false,
+          }}
+        />
         <Stack.Screen name="forgotPassword" />
         <Stack.Screen name="quoteOfTheDay" />
-        <Stack.Screen name="drawer" />
+        <Stack.Screen
+          name="drawer"
+          options={{
+            gestureEnabled: false,
+            headerShown: false,
+          }}
+        />
         <Stack.Screen name="pomodoro" />
         <Stack.Screen name="createPomodoro" />
         <Stack.Screen name="pomodoroScreen" />
@@ -147,8 +165,11 @@ function InnerApp() {
         <Stack.Screen name="editProfile" />
         <Stack.Screen name="createNotes" />
         <Stack.Screen name="notes" />
-        <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
+        <Stack.Screen
+          name="(drawer)"
+          options={{ headerShown: false, gestureEnabled: false }}
+        />
+        <Stack.Screen name="+not-found" options={{ presentation: "modal" }} />
       </Stack>
       <Toast />
     </>

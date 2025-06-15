@@ -107,11 +107,11 @@ const ChecklistScreen = () => {
   // Improved keyboard effect
   useEffect(() => {
     const showSubscription = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       handleKeyboardShow
     );
     const hideSubscription = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
       handleKeyboardHide
     );
 
@@ -177,32 +177,35 @@ const ChecklistScreen = () => {
     router.push("/drawer/checklistOverview");
   }, [handleSaveChecklistTasks, router]);
 
-  const renderDoneModal = useCallback((title: string) => {
-    return (
-      showDoneModal && (
-        <View style={StyleSheet.absoluteFillObject}>
-          <View style={styles.modalBackground}>
-            <View style={styles.modalContainer}>
-              <LottieView
-                ref={lottieRef}
-                source={require("../assets/files/checklistComplete.json")}
-                autoPlay
-                loop={false}
-                style={{ width: 200, height: 200 }}
-              />
-              <Text style={styles.modalText}>{title} Completed!</Text>
-              <Pressable
-                style={styles.modalCloseButton}
-                onPress={handleChecklistCompleted}
-              >
-                <Text style={styles.modalBtnText}>Close</Text>
-              </Pressable>
+  const renderDoneModal = useCallback(
+    (title: string) => {
+      return (
+        showDoneModal && (
+          <View style={StyleSheet.absoluteFillObject}>
+            <View style={styles.modalBackground}>
+              <View style={styles.modalContainer}>
+                <LottieView
+                  ref={lottieRef}
+                  source={require("../assets/files/checklistComplete.json")}
+                  autoPlay
+                  loop={false}
+                  style={{ width: 200, height: 200 }}
+                />
+                <Text style={styles.modalText}>{title} Completed!</Text>
+                <Pressable
+                  style={styles.modalCloseButton}
+                  onPress={handleChecklistCompleted}
+                >
+                  <Text style={styles.modalBtnText}>Close</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        </View>
-      )
-    );
-  }, [showDoneModal, handleChecklistCompleted]);
+        )
+      );
+    },
+    [showDoneModal, handleChecklistCompleted]
+  );
 
   // Improved bottom sheet render function
   const renderBottomSheet = useCallback(() => {
@@ -210,7 +213,7 @@ const ChecklistScreen = () => {
 
     const handleUpdate = () => {
       if (!checklist) return;
-      
+
       setChecklist((prev) =>
         prev
           ? {
@@ -247,7 +250,7 @@ const ChecklistScreen = () => {
 
         <BottomSheet
           ref={taskBottomSheetRef}
-          snapPoints={['50%']}
+          snapPoints={["50%"]}
           enablePanDownToClose
           onClose={closeBottomSheet}
           keyboardBehavior="extend"
@@ -335,7 +338,7 @@ const ChecklistScreen = () => {
 
         <BottomSheet
           ref={checklistBottomSheetRef}
-          snapPoints={['50%']}
+          snapPoints={["50%"]}
           enablePanDownToClose
           onClose={closeTitleSheet}
           keyboardBehavior="extend"
@@ -880,10 +883,10 @@ const styles = StyleSheet.create({
     borderColor: CrimsonLuxe.primary300,
   },
   bottomSheetContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: -4,
@@ -895,9 +898,9 @@ const styles = StyleSheet.create({
   bottomSheetHandle: {
     width: 40,
     height: 4,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: "#E0E0E0",
     borderRadius: 2,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 8,
   },
   sheetContent: {
@@ -926,7 +929,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 24,
-    marginBottom: 12
+    marginBottom: 12,
   },
   saveButton: {
     flex: 1,

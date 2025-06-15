@@ -65,11 +65,14 @@ const ProfileScreen = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+
       await AsyncStorage.setItem("isLoggedIn", "false");
+
       const realm = await getRealm();
       realm.write(() => {
         realm.deleteAll();
       });
+
       router.replace("/signIn");
     } catch (error) {
       console.error("Error during logout:", error);

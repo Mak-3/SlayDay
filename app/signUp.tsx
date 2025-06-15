@@ -139,6 +139,24 @@ export default function SignupScreen() {
           const userCredential = await signInWithCredential(auth, credential);
           const user = userCredential.user;
 
+          // Check if this is a new user by looking at metadata
+          const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+
+          if (!isNewUser) {
+            // Sign out the user since they already have an account
+            await auth.signOut();
+            Toast.show({
+              type: "error",
+              text1: "Account Already Exists",
+              text2: "Please sign in instead",
+              position: "bottom",
+            });
+            setTimeout(() => {
+              router.replace("/signIn");
+            }, 1500);
+            return;
+          }
+
           const email = user.email ?? "";
           const name = email.split("@")[0];
           const profilePicture = user.photoURL ?? "";
@@ -154,7 +172,7 @@ export default function SignupScreen() {
 
           Toast.show({
             type: "success",
-            text1: "Google Sign-in Success",
+            text1: "Account Created Successfully",
             text2: "Redirecting...",
             position: "bottom",
           });
@@ -163,7 +181,7 @@ export default function SignupScreen() {
         } catch (error: any) {
           Toast.show({
             type: "error",
-            text1: "Google Sign-in Failed",
+            text1: "Google Sign-up Failed",
             text2: error.message,
             position: "bottom",
           });

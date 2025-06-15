@@ -50,6 +50,7 @@ export default function DrawerLayout() {
           name="home"
           options={{
             title: "Home",
+            gestureEnabled: false,
             drawerLabel: () => <DrawerItemWithCount title="Home" count={0} />,
           }}
         />

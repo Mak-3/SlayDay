@@ -6,6 +6,7 @@ import {
   View,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  BackHandler,
 } from "react-native";
 import Header from "@/components/header";
 import Progress from "@/components/progress";
@@ -42,14 +43,26 @@ const Home = () => {
     }, [])
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
+
   const hasData = eventCount > 0 || checklistCount > 0;
 
   return (
     <View style={{ flex: 1 }}>
       <PageLayout style={styles.container}>
-        <Animated.View
-          style={[styles.content]}
-        >
+        <Animated.View style={[styles.content]}>
           <Header />
           {hasData ? (
             <>

@@ -11,7 +11,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signOut } from "firebase/auth";
+import { signOut, Auth } from "firebase/auth";
 import {
   collection,
   deleteDoc,
@@ -26,7 +26,7 @@ import PageLayout from "@/components/pageLayout";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { getUser, saveUser } from "@/db/service/UserService";
 import { getRealm } from "@/db/realm";
-import { auth, db } from "@/firebaseConfig"; // 🔧 FIXED
+import { auth, db } from "@/firebaseConfig";
 
 const EditProfileScreen = () => {
   const [name, setName] = useState("");
@@ -66,8 +66,8 @@ const EditProfileScreen = () => {
     }
 
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.5,
+      mediaTypes: ['images'],
+      quality: 0.3,
       allowsEditing: true,
       aspect: [1, 1],
       base64: true,
@@ -100,7 +100,6 @@ const EditProfileScreen = () => {
             try {
               const user = auth.currentUser;
               if (!user) throw new Error("No user logged in");
-              console.log(user.uid);
               // 🔥 Delete Firestore doc
               const backupsRef = collection(db, "users", user.uid, "backup");
               const backupDocs = await getDocs(backupsRef);
