@@ -527,6 +527,14 @@ const ChecklistScreen = () => {
     }
   };
 
+  const getProgress = () => {
+    const completedCount =
+      checklist?.tasks.filter((task) => task.isCompleted).length || 0;
+    const totalTasks = checklist?.tasks.length || 0;
+    const progress = totalTasks ? (completedCount / totalTasks) * 100 : 0;
+    return progress;
+  };
+
   const handleUploadJson = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -644,76 +652,11 @@ const ChecklistScreen = () => {
       </PageLayout>
     );
   }
-  const renderHeader = () => {
-    return (
-      <View style={styles.progressWrapper}>
-        <View style={styles.checklistHeader}>
-          <View style={styles.checklistTitleWrapper}>
-            {renderIcon(checklist.category, CrimsonLuxe.primary500)}
-            <Text style={styles.sectionTitle}>{checklist.title}</Text>
-          </View>
-          <TouchableOpacity onPress={openTitleSheet} style={styles.icons}>
-            <MaterialIcons name="edit" size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-
-        <Text
-          style={styles.sectionDescription}
-          ellipsizeMode="tail"
-          numberOfLines={3}
-        >
-          {checklist.description}
-        </Text>
-        <ProgressBar
-          activeColor={CrimsonLuxe.primary400}
-          showStatus={false}
-          progress={getProgress()}
-        />
-      </View>
-    );
-  };
-  const renderFooter = () => {
-    return (
-      <>
-        <View style={styles.tasksButtonWrapper}>
-          {jsonUploadEnabled && (
-            <TouchableOpacity
-              style={styles.importButton}
-              onPress={handleUploadJson}
-            >
-              <Text style={styles.importButtonText}>📤 Import Tasks</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.addTaskButton} onPress={addTask}>
-            <Text style={styles.addTaskText}>+ Add Task</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={[
-            styles.saveChecklistButton,
-            !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
-          ]}
-          onPress={handleSaveChecklistTasks}
-          disabled={!isChanged}
-        >
-          <Text style={styles.saveChecklistText}>Save Checklist</Text>
-        </TouchableOpacity>
-      </>
-    );
-  };
-  const getProgress = () => {
-    const completedCount =
-      checklist?.tasks.filter((task) => task.isCompleted).length || 0;
-    const totalTasks = checklist?.tasks.length || 0;
-    const progress = totalTasks ? (completedCount / totalTasks) * 100 : 0;
-    return progress;
-  };
 
   return (
     <>
       <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: "#FFFFFF", padding: 20 }}
+        style={{ flex: 1, backgroundColor: "#FFFFFF" }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
         enabled={!keyboardVisible}
@@ -722,26 +665,83 @@ const ChecklistScreen = () => {
           <TouchableWithoutFeedback onPress={handleOutsideClick}>
             <View style={styles.container}>
               <BackButtonHeader />
+              
+              {/* Fixed Header */}
+              <View style={styles.headerContainer}>
+                <View style={styles.progressWrapper}>
+                  <View style={styles.checklistHeader}>
+                    <View style={styles.checklistTitleWrapper}>
+                      {renderIcon(checklist.category, CrimsonLuxe.primary500)}
+                      <Text style={styles.sectionTitle}>{checklist.title}</Text>
+                    </View>
+                    <TouchableOpacity onPress={openTitleSheet} style={styles.icons}>
+                      <MaterialIcons name="edit" size={20} color="gray" />
+                    </TouchableOpacity>
+                  </View>
 
-              <DraggableFlatList
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                data={checklist.tasks || []}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                onDragEnd={({ data }) => {
-                  setChecklist(
-                    (prevChecklist) =>
-                      ({
-                        ...prevChecklist,
-                        tasks: data,
-                      } as any)
-                  );
-                }}
-                ListHeaderComponent={renderHeader}
-                ListFooterComponent={renderFooter}
-                contentContainerStyle={{ paddingBottom: keyboardHeight }}
-              />
+                  <Text
+                    style={styles.sectionDescription}
+                    ellipsizeMode="tail"
+                    numberOfLines={3}
+                  >
+                    {checklist.description}
+                  </Text>
+                  <ProgressBar
+                    activeColor={CrimsonLuxe.primary400}
+                    showStatus={false}
+                    progress={getProgress()}
+                  />
+                </View>
+              </View>
+
+              {/* Scrollable List */}
+              <View style={styles.listContainer}>
+                <DraggableFlatList
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  data={checklist.tasks || []}
+                  renderItem={renderItem}
+                  keyExtractor={(item) => item.id}
+                  onDragEnd={({ data }) => {
+                    setChecklist(
+                      (prevChecklist) =>
+                        ({
+                          ...prevChecklist,
+                          tasks: data,
+                        } as any)
+                    );
+                  }}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                />
+              </View>
+
+              {/* Fixed Footer */}
+              <View style={styles.footerContainer}>
+                <View style={styles.tasksButtonWrapper}>
+                  {jsonUploadEnabled && (
+                    <TouchableOpacity
+                      style={styles.importButton}
+                      onPress={handleUploadJson}
+                    >
+                      <Text style={styles.importButtonText}>📤 Import Tasks</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity style={styles.addTaskButton} onPress={addTask}>
+                    <Text style={styles.addTaskText}>+ Add Task</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.saveChecklistButton,
+                    !isChanged && { backgroundColor: CrimsonLuxe.primary200 },
+                  ]}
+                  onPress={handleSaveChecklistTasks}
+                  disabled={!isChanged}
+                >
+                  <Text style={styles.saveChecklistText}>Save Checklist</Text>
+                </TouchableOpacity>
+              </View>
 
               {showPicker && (
                 <DateTimePicker
@@ -766,6 +766,17 @@ const ChecklistScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
+  },
+  headerContainer: {
+    marginBottom: 20,
+  },
+  listContainer: {
+    flex: 1,
+  },
+  footerContainer: {
+    paddingTop: 10,
+    backgroundColor: '#FFFFFF',
   },
   sectionTitle: {
     fontSize: 22,
@@ -837,10 +848,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
-    marginVertical: 10,
+    marginBottom: 10,
   },
   addTaskButton: {
-    marginTop: 16,
     padding: 12,
     borderWidth: 1,
     borderColor: "#ccc",
@@ -852,7 +862,6 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   saveChecklistButton: {
-    marginTop: 16,
     backgroundColor: CrimsonLuxe.primary400,
     padding: 14,
     borderRadius: 10,
