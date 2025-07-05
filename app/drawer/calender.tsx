@@ -97,11 +97,10 @@ const fetchEventsForDate = async (selectedDate: string) => {
   }));
 
   const sorted = mapped.sort((a, b) => {
-  const aDateTime = dayjs(a.time);
-  const bDateTime = dayjs(b.time);
-  return aDateTime.valueOf() - bDateTime.valueOf();
-});
-
+    const aDateTime = dayjs(a.time);
+    const bDateTime = dayjs(b.time);
+    return aDateTime.valueOf() - bDateTime.valueOf();
+  });
 
   return sorted;
 };

@@ -70,8 +70,7 @@ export default function QuoteCardOverlay() {
             }}
           >
             <Text style={styles.greeting}>
-              {getGreeting()}, <Text style={styles.name}>{name}</Text>{" "}
-              👋
+              {getGreeting()}, <Text style={styles.name}>{name}</Text> 👋
             </Text>
             <Text style={styles.quoteMark}>“</Text>
             <Text style={styles.quoteText}>{quote}</Text>
@@ -116,7 +115,7 @@ const styles = StyleSheet.create({
   name: {
     color: CrimsonLuxe.primary400,
     fontWeight: "700",
-    lineHeight: 30
+    lineHeight: 30,
   },
   cardWrapper: {
     width: width * 0.8,

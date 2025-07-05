@@ -7,7 +7,7 @@ const PomodoroSchema = {
     time: "int",
     category: "string",
     createdAt: "date",
-    endAt: "date"
+    endAt: "date",
   },
   primaryKey: "_id",
 };

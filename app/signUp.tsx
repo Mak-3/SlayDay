@@ -16,17 +16,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { router } from "expo-router";
 import {
-  createUserWithEmailAndPassword,
   getAuth,
   GoogleAuthProvider,
   signInWithCredential,
 } from "firebase/auth";
-import { auth } from "../firebaseConfig";
 import Toast from "react-native-toast-message";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { saveUser } from "@/db/service/UserService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../context/AuthContext";
 
 export default function SignupScreen() {
   const [email, setEmail] = useState("");
@@ -38,6 +37,8 @@ export default function SignupScreen() {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
+
+  const { signUp, user, loading } = useAuth();
 
   const handleOutsideClick = () => {
     Keyboard.dismiss();
@@ -57,27 +58,8 @@ export default function SignupScreen() {
       });
       return;
     }
-
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      const name = email.split("@")[0];
-      const profilePicture = user.photoURL ?? "";
-
-      await AsyncStorage.setItem("isLoggedIn", "true");
-      // Save to Realm
-      await saveUser({
-        name,
-        email,
-        profilePicture,
-        lastOpened: new Date(),
-      });
-
+      await signUp(email, password);
       setPasswordMismatch(false);
       Toast.show({
         type: "success",
@@ -85,7 +67,6 @@ export default function SignupScreen() {
         text2: "Redirecting to home...",
         position: "bottom",
       });
-
       setTimeout(() => {
         router.replace("/drawer/home");
       }, 1500);
@@ -112,7 +93,6 @@ export default function SignupScreen() {
           text2: "Please try again later",
         },
       } as any;
-
       const { type, text1, text2 } =
         toastConfig[error.code] || toastConfig.default;
       Toast.show({ type, text1, text2, position: "bottom" });
@@ -140,7 +120,8 @@ export default function SignupScreen() {
           const user = userCredential.user;
 
           // Check if this is a new user by looking at metadata
-          const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+          const isNewUser =
+            user.metadata.creationTime === user.metadata.lastSignInTime;
 
           if (!isNewUser) {
             // Sign out the user since they already have an account

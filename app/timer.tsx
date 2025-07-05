@@ -68,9 +68,9 @@ const TimerPage = () => {
   };
 
   const handlePausePlay = () => {
-    if(secondsElapsed == 0){
-        setStartDateTime(Date.now())
-        setIsRunning((prev) => !prev)
+    if (secondsElapsed == 0) {
+      setStartDateTime(Date.now());
+      setIsRunning((prev) => !prev);
     }
   };
 
@@ -80,7 +80,7 @@ const TimerPage = () => {
   };
 
   const handleEndNow = () => {
-    setEndDateTime(Date.now())
+    setEndDateTime(Date.now());
     setShowLogPrompt(true);
     setIsRunning(false);
   };
@@ -93,7 +93,7 @@ const TimerPage = () => {
         time: secondsElapsed,
         category: category as string,
         createdAt: startDateTime,
-        endAt: endDateTime
+        endAt: endDateTime,
       });
     } catch (error) {
       console.error("Failed to create Pomodoro:", error);
@@ -147,7 +147,8 @@ const TimerPage = () => {
         <TouchableOpacity
           style={styles.playPauseButton}
           onPress={() => {
-            handlePausePlay}}
+            handlePausePlay;
+          }}
         >
           <FontAwesome5
             name={isRunning ? "pause" : "play"}

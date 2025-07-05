@@ -51,9 +51,11 @@ const checkList = () => {
         const sortedItems = cat.items.sort(
           (a: any, b: any) => Number(a.isCompleted) - Number(b.isCompleted)
         );
-      
-        const completedItems = sortedItems.filter((item: any) => item.isCompleted).length;
-      
+
+        const completedItems = sortedItems.filter(
+          (item: any) => item.isCompleted
+        ).length;
+
         return {
           ...cat,
           items: sortedItems,
@@ -141,8 +143,14 @@ const checkList = () => {
                   ]}
                 >
                   <View style={styles.categoryHeader}>
-                    <TouchableOpacity onPress={() => handleNavigation(item.id)} style={styles.titleWrapper}>
-                      {renderIcon(item.category, cardColors[index % cardColors.length].dark)}
+                    <TouchableOpacity
+                      onPress={() => handleNavigation(item.id)}
+                      style={styles.titleWrapper}
+                    >
+                      {renderIcon(
+                        item.category,
+                        cardColors[index % cardColors.length].dark
+                      )}
                       <Text style={styles.categoryText}>{item.name}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -209,11 +217,11 @@ const styles = StyleSheet.create({
   categoryText: { fontSize: 16, fontWeight: "bold", flex: 1 },
   categoryStatus: { fontSize: 14, color: "#7B61FF", fontWeight: "bold" },
   titleWrapper: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     flexShrink: 1,
-    gap: 10
+    gap: 10,
   },
   taskSection: { marginVertical: 10 },
   itemList: { marginTop: 10 },

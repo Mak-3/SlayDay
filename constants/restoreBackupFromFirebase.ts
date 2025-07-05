@@ -65,7 +65,10 @@ interface BackupData {
 }
 
 // The restore function
-async function restoreRealmData(realm: Realm, backup: BackupData | null): Promise<void> {
+async function restoreRealmData(
+  realm: Realm,
+  backup: BackupData | null
+): Promise<void> {
   if (!backup) return;
 
   realm.write(() => {
@@ -80,14 +83,16 @@ async function restoreRealmData(realm: Realm, backup: BackupData | null): Promis
         email: backup.user.email,
         profilePicture: backup.user.profilePicture,
         lastOpened: new Date(backup.user.lastOpened),
-        preferences: backup.user.preferences ? {
-          jsonUploadEnabled: backup.user.preferences.jsonUploadEnabled,
-        } : null,
+        preferences: backup.user.preferences
+          ? {
+              jsonUploadEnabled: backup.user.preferences.jsonUploadEnabled,
+            }
+          : null,
       });
     }
 
     // Restore Checklists and tasks
-    backup.checklists.forEach(cl => {
+    backup.checklists.forEach((cl) => {
       realm.create("Checklist", {
         _id: new Realm.BSON.ObjectId(cl._id),
         title: cl.title,
@@ -98,7 +103,7 @@ async function restoreRealmData(realm: Realm, backup: BackupData | null): Promis
         createdAt: new Date(cl.createdAt),
         deadline: cl.deadline ? new Date(cl.deadline) : null,
         lastSaved: cl.lastSaved ? new Date(cl.lastSaved) : null,
-        tasks: cl.tasks.map(task => ({
+        tasks: cl.tasks.map((task) => ({
           id: task.id,
           title: task.title,
           isCompleted: task.isCompleted,
@@ -108,7 +113,7 @@ async function restoreRealmData(realm: Realm, backup: BackupData | null): Promis
     });
 
     // Restore Events
-    backup.events.forEach(ev => {
+    backup.events.forEach((ev) => {
       realm.create("Event", {
         _id: new Realm.BSON.ObjectId(ev._id),
         title: ev.title,
@@ -126,7 +131,7 @@ async function restoreRealmData(realm: Realm, backup: BackupData | null): Promis
     });
 
     // Restore Pomodoros
-    backup.pomodoros.forEach(p => {
+    backup.pomodoros.forEach((p) => {
       realm.create("Pomodoro", {
         _id: new Realm.BSON.ObjectId(p._id),
         title: p.title,

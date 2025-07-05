@@ -120,8 +120,7 @@ const CreateEventScreen = () => {
       } else if (repeatType === "Monthly") {
         eventData.repeatType = "Monthly";
         eventData.interval = parseInt(interval) || 1;
-      }
-      else if (repeatType === "Yearly") {
+      } else if (repeatType === "Yearly") {
         eventData.repeatType = "Yearly";
       }
     }

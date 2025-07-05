@@ -1,4 +1,3 @@
-import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebaseConfig";
 import Toast from "react-native-toast-message";
 import exportRealmDataAsJson from "./exportRealmDataAsJson";
@@ -8,22 +7,22 @@ export async function triggerBackup() {
   try {
     const backup = await exportRealmDataAsJson();
 
-    onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser?.uid) {
-        await uploadBackup(firebaseUser.uid, backup);
-        Toast.show({
-          type: "success",
-          text1: "Backup successful",
-        });
-      } else {
-        Toast.show({
-          type: "error",
-          text1: "Backup failed",
-          text2: "User not logged in",
-        });
-        console.error("Backup error: User not logged in");
-      }
-    });
+    const firebaseUser = auth.currentUser;
+
+    if (firebaseUser?.uid) {
+      await uploadBackup(firebaseUser.uid, backup);
+      Toast.show({
+        type: "success",
+        text1: "Backup successful",
+      });
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Backup failed",
+        text2: "User not logged in",
+      });
+      console.error("Backup error: User not logged in");
+    }
   } catch (err: any) {
     Toast.show({
       type: "error",

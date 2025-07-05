@@ -35,7 +35,7 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export { auth };
 
-export const listenForAuthChanges = (callback) => {
+export const listenForAuthChanges = (callback: any) => {
   return onAuthStateChanged(auth, (user) => {
     callback(user);
   });

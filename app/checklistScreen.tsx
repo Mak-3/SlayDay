@@ -11,7 +11,6 @@ import {
   Platform,
   Pressable,
   KeyboardAvoidingView,
-  Dimensions,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -80,21 +79,17 @@ const ChecklistScreen = () => {
   const taskBottomSheetRef = useRef<BottomSheet>(null);
   const checklistBottomSheetRef = useRef<BottomSheet>(null);
   const lottieRef = useRef<LottieView>(null);
-  const keyboardHeightRef = useRef(0);
 
   // Add new state for keyboard handling
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleKeyboardShow = useCallback((e: any) => {
     setKeyboardVisible(true);
-    setKeyboardHeight(e.endCoordinates.height);
   }, []);
 
   const handleKeyboardHide = useCallback(() => {
     setKeyboardVisible(false);
-    setKeyboardHeight(0);
     
     // Only adjust bottom sheets if they're visible
     if (isBottomSheetVisible) {

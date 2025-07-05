@@ -45,13 +45,13 @@ const CreatePomodoroScreen = () => {
     "Social",
     "Gaming",
     "Other",
-  ];  
+  ];
 
   const handleCreatePomodoro = async () => {
     const timeToSave = isCustomTime ? Number(customTime) : selectedTime;
 
     if (!title || !timeToSave || !selectedCategory) {
-      setShowErrors(true)
+      setShowErrors(true);
       return;
     }
     if (taskType == "Pomodoro") {
@@ -181,26 +181,28 @@ const CreatePomodoroScreen = () => {
             transparent
             animationType="slide"
           >
-            <TouchableWithoutFeedback onPress={() => setCategoryModalVisible(false)}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <FlatList
-                  data={categories}
-                  keyExtractor={(item) => item}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.categoryItem}
-                      onPress={() => {
-                        setSelectedCategory(item);
-                        setCategoryModalVisible(false);
-                      }}
-                    >
-                      <Text style={styles.categoryText}>{item}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
+            <TouchableWithoutFeedback
+              onPress={() => setCategoryModalVisible(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <FlatList
+                    data={categories}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.categoryItem}
+                        onPress={() => {
+                          setSelectedCategory(item);
+                          setCategoryModalVisible(false);
+                        }}
+                      >
+                        <Text style={styles.categoryText}>{item}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
               </View>
-            </View>
             </TouchableWithoutFeedback>
           </Modal>
 

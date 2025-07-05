@@ -80,8 +80,8 @@ interface ExportedData {
 
 // The function
 async function exportRealmData(): Promise<ExportedData> {
-const realm = await getRealm();
-  const checklists = realm.objects<Checklist>("Checklist").map(item => ({
+  const realm = await getRealm();
+  const checklists = realm.objects<Checklist>("Checklist").map((item) => ({
     _id: item._id.toHexString(),
     title: item.title,
     description: item.description,
@@ -91,7 +91,7 @@ const realm = await getRealm();
     createdAt: item.createdAt ? item.createdAt.toISOString() : null,
     deadline: item.deadline ? item.deadline.toISOString() : null,
     lastSaved: item.lastSaved ? item.lastSaved.toISOString() : null,
-    tasks: item.tasks.map(task => ({
+    tasks: item.tasks.map((task) => ({
       id: task.id,
       title: task.title,
       isCompleted: task.isCompleted,
@@ -99,7 +99,7 @@ const realm = await getRealm();
     })),
   }));
 
-  const events = realm.objects<Event>("Event").map(event => ({
+  const events = realm.objects<Event>("Event").map((event) => ({
     _id: event._id.toHexString(),
     title: event.title,
     description: event.description,
@@ -114,7 +114,7 @@ const realm = await getRealm();
     createdAt: event.createdAt.toISOString(),
   }));
 
-  const pomodoros = realm.objects<Pomodoro>("Pomodoro").map(p => ({
+  const pomodoros = realm.objects<Pomodoro>("Pomodoro").map((p) => ({
     _id: p._id.toHexString(),
     title: p.title,
     taskType: p.taskType,
@@ -125,16 +125,20 @@ const realm = await getRealm();
   }));
 
   const userObj = realm.objects<User>("User")[0];
-  const user = userObj ? {
-    id: userObj.id,
-    name: userObj.name,
-    email: userObj.email,
-    profilePicture: userObj.profilePicture,
-    lastOpened: userObj.lastOpened.toISOString(),
-    preferences: userObj.preferences ? {
-      jsonUploadEnabled: userObj.preferences.jsonUploadEnabled,
-    } : undefined,
-  } : null;
+  const user = userObj
+    ? {
+        id: userObj.id,
+        name: userObj.name,
+        email: userObj.email,
+        profilePicture: userObj.profilePicture,
+        lastOpened: userObj.lastOpened.toISOString(),
+        preferences: userObj.preferences
+          ? {
+              jsonUploadEnabled: userObj.preferences.jsonUploadEnabled,
+            }
+          : undefined,
+      }
+    : null;
 
   return { checklists, events, pomodoros, user };
 }

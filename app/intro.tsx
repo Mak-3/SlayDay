@@ -50,9 +50,8 @@ const Intro = () => {
         x: nextIndex * CARD_WIDTH,
         animated: true,
       });
-    }
-    else{
-      router.replace('/signUp');
+    } else {
+      router.replace("/signUp");
     }
   };
 
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-    paddingHorizontal: PADDING_HORIZONTAL
+    paddingHorizontal: PADDING_HORIZONTAL,
   },
   carousel: {
     flex: 1,

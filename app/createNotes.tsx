@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,11 +6,11 @@ import {
   View,
   Modal,
   TouchableOpacity,
-} from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
-import BackButtonHeader from '@/components/backButtonHeader';
-import DrawingCanvas from '@/components/drawingCanvas';
-import RichNoteEditor from '@/components/textEditor';
+} from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
+import BackButtonHeader from "@/components/backButtonHeader";
+import DrawingCanvas from "@/components/drawingCanvas";
+import RichNoteEditor from "@/components/textEditor";
 
 const CreateNotes = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -22,26 +22,25 @@ const CreateNotes = () => {
     setSelectedOption(option);
 
     switch (option) {
-      case 'Draw':
+      case "Draw":
         setShowDrawingModal(true);
         break;
-      case 'Text':
+      case "Text":
         setShowTextModal(true);
         break;
-      case 'Speak':
+      case "Speak":
         startRecording();
         break;
     }
   };
 
-  const startRecording = () => {
-  };
+  const startRecording = () => {};
 
   const [showDrawingModal, setShowDrawingModal] = useState(false);
   const [drawingData, setDrawingData] = useState<string | null>(null);
 
   const handleSaveDrawing = (drawingUri: string) => {
-    const newNote = { type: 'drawing', content: drawingUri };
+    const newNote = { type: "drawing", content: drawingUri };
     setNotes([...notes, newNote]);
     setDrawingData(drawingUri);
     setShowDrawingModal(false);
@@ -56,11 +55,11 @@ const CreateNotes = () => {
   const handleSaveText = (newNote: { id: string; content: string }) => {
     setNotes((prevNotes) => [newNote, ...prevNotes]);
     setShowTextModal(false);
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <BackButtonHeader title='Create Note' />
+      <BackButtonHeader title="Create Note" />
 
       <View style={styles.notesOptionWrapper}>
         <Pressable
@@ -68,7 +67,7 @@ const CreateNotes = () => {
             styles.notesOption,
             pressed && styles.notesOptionPressed,
           ]}
-          onPress={() => handleSelection('Draw')}
+          onPress={() => handleSelection("Draw")}
         >
           <FontAwesome5 name="pencil-alt" size={20} color="white" />
         </Pressable>
@@ -78,7 +77,7 @@ const CreateNotes = () => {
             styles.notesOption,
             pressed && styles.notesOptionPressed,
           ]}
-          onPress={() => handleSelection('Text')}
+          onPress={() => handleSelection("Text")}
         >
           <Text style={styles.textIcon}>T</Text>
         </Pressable>
@@ -88,7 +87,7 @@ const CreateNotes = () => {
             styles.notesOption,
             pressed && styles.notesOptionPressed,
           ]}
-          onPress={() => handleSelection('Speak')}
+          onPress={() => handleSelection("Speak")}
         >
           <FontAwesome5 name="microphone" size={20} color="white" />
         </Pressable>
@@ -96,8 +95,10 @@ const CreateNotes = () => {
       <Modal visible={showTextModal} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-        <RichNoteEditor onCancel={() => setShowTextModal(false)} onSave={handleSaveText}/>
-            
+            <RichNoteEditor
+              onCancel={() => setShowTextModal(false)}
+              onSave={handleSaveText}
+            />
           </View>
         </View>
       </Modal>
@@ -105,14 +106,17 @@ const CreateNotes = () => {
       <Modal visible={showDrawingModal} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <DrawingCanvas onSave={handleSaveDrawing} onCancel={handleCancelDrawing} />
+            <DrawingCanvas
+              onSave={handleSaveDrawing}
+              onCancel={handleCancelDrawing}
+            />
             <TouchableOpacity style={styles.saveButton} onPress={() => {}}>
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
                 setShowDrawingModal(false);
-                setDrawingData('');
+                setDrawingData("");
               }}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -128,12 +132,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fef5f2',
+    backgroundColor: "#fef5f2",
   },
   header: {
     fontSize: 24,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 20,
   },
   notesContainer: {
@@ -144,68 +148,68 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   drawingImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
-    resizeMode: 'contain',
+    resizeMode: "contain",
     borderRadius: 8,
   },
   notesOptionWrapper: {
     gap: 10,
     right: 20,
     top: 80,
-    position: 'absolute',
-    flexDirection: 'column',
+    position: "absolute",
+    flexDirection: "column",
   },
   notesOption: {
     width: 48,
     height: 48,
-    backgroundColor: '#4A90E2',
+    backgroundColor: "#4A90E2",
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 4,
   },
   notesOptionPressed: {
-    backgroundColor: '#357ABD',
+    backgroundColor: "#357ABD",
   },
   textIcon: {
     fontSize: 20,
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 20,
-    height: 500
+    height: 500,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
-    color: '#333',
+    color: "#333",
   },
   saveButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: "#4A90E2",
     borderRadius: 8,
     padding: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 8,
   },
   saveButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 16,
   },
   cancelButtonText: {
-    color: '#FF6347',
-    textAlign: 'center',
+    color: "#FF6347",
+    textAlign: "center",
     marginTop: 8,
   },
 });

@@ -16,11 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { router } from "expo-router";
 import { auth } from "../firebaseConfig";
-import {
-  GoogleAuthProvider,
-  signInWithCredential,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Toast from "react-native-toast-message";
@@ -32,6 +28,7 @@ import { saveUser } from "@/db/service/UserService";
 import { getRealm } from "@/db/realm";
 import restoreRealmData from "@/constants/restoreBackupFromFirebase";
 import { downloadBackup } from "@/constants/backupService";
+import { useAuth } from "../context/AuthContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -42,6 +39,8 @@ export default function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const { signIn } = useAuth();
 
   const handleOutsideClick = () => {
     Keyboard.dismiss();
@@ -78,7 +77,8 @@ export default function SignInScreen() {
           const user = userCredential.user;
 
           // Check if this is a new user by looking at metadata
-          const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+          const isNewUser =
+            user.metadata.creationTime === user.metadata.lastSignInTime;
 
           if (isNewUser) {
             // Sign out the user since they don't have an account
@@ -131,27 +131,8 @@ export default function SignInScreen() {
       Alert.alert("Error", "Please fill in both email and password.");
       return;
     }
-
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      await AsyncStorage.setItem("isLoggedIn", "true");
-      fetchBackup(user.uid);
-      const name = email.split("@")[0];
-      const profilePicture = user.photoURL ?? "";
-
-      await saveUser({
-        name,
-        email,
-        profilePicture,
-        lastOpened: new Date(),
-      });
-
+      await signIn(email, password);
       router.replace("/drawer/home");
     } catch (error: any) {
       const toastConfig = {
@@ -166,7 +147,6 @@ export default function SignInScreen() {
           text2: "Please try again later",
         },
       } as any;
-
       const { type, text1, text2 } =
         toastConfig[error.code] || toastConfig.default;
       Toast.show({ type, text1, text2, position: "bottom" });

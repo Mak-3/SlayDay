@@ -1,24 +1,24 @@
 export const UserSchema: Realm.ObjectSchema = {
-  name: 'User',
-  primaryKey: 'id',
+  name: "User",
+  primaryKey: "id",
   properties: {
-    id: 'string',
-    name: 'string',
-    userName: 'string?',
-    email: 'string',
-    profilePicture: 'string?',
-    lastOpened: 'date',
-    preferences: 'UserPreferences?',
+    id: "string",
+    name: "string",
+    userName: "string?",
+    email: "string",
+    profilePicture: "string?",
+    lastOpened: "date",
+    preferences: "UserPreferences?",
   },
 };
 
 export const UserPreferencesSchema: Realm.ObjectSchema = {
-  name: 'UserPreferences',
+  name: "UserPreferences",
   embedded: true,
   properties: {
-    jsonUploadEnabled: { type: 'bool', default: false },
-    automaticBackupEnabled: {type: 'bool', default: true}
+    jsonUploadEnabled: { type: "bool", default: false },
+    automaticBackupEnabled: { type: "bool", default: true },
   },
 };
 
-export const schemas = [UserSchema, UserPreferencesSchema]
+export const schemas = [UserSchema, UserPreferencesSchema];

@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     paddingBottom: 30,
     pointerEvents: "box-none",
-  },  
+  },
   floatingContainer: {
     alignItems: "center",
   },

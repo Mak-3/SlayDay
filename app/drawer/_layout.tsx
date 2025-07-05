@@ -1,7 +1,6 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { withLayoutContext } from "expo-router";
 import { ThemeProvider } from "@react-navigation/native";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { getChecklistCount } from "@/db/service/ChecklistService";
@@ -14,7 +13,6 @@ const DrawerNavigator = createDrawerNavigator();
 const Drawer = withLayoutContext(DrawerNavigator.Navigator);
 
 export default function DrawerLayout() {
-  const colorScheme = useColorScheme();
 
   const [checklistCount, setChecklistCount] = useState<number>(0);
   const [pomodoroCount, setPomodoroCount] = useState<number>(0);
@@ -35,7 +33,7 @@ export default function DrawerLayout() {
   }, []);
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DefaultTheme}>
       <Drawer
         screenOptions={{
           headerShown: false,
@@ -77,7 +75,10 @@ export default function DrawerLayout() {
           options={{
             title: "Reminder",
             drawerLabel: () => (
-              <DrawerItemWithCount title="Events & Reminder" count={eventCount} />
+              <DrawerItemWithCount
+                title="Events & Reminder"
+                count={eventCount}
+              />
             ),
           }}
         />
@@ -85,9 +86,7 @@ export default function DrawerLayout() {
           name="calender"
           options={{
             title: "Calendar",
-            drawerLabel: () => (
-              <DrawerItemWithCount title="Calendar" />
-            ),
+            drawerLabel: () => <DrawerItemWithCount title="Calendar" />,
           }}
         />
       </Drawer>

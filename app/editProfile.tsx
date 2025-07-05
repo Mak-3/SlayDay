@@ -10,23 +10,13 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signOut, Auth } from "firebase/auth";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-} from "firebase/firestore";
 import { router } from "expo-router";
 
 import BackButtonHeader from "@/components/backButtonHeader";
 import PageLayout from "@/components/pageLayout";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { getUser, saveUser } from "@/db/service/UserService";
-import { getRealm } from "@/db/realm";
-import { auth, db } from "@/firebaseConfig";
+import { useAuth } from "../context/AuthContext";
 
 const EditProfileScreen = () => {
   const [name, setName] = useState("");
@@ -34,6 +24,8 @@ const EditProfileScreen = () => {
   const [profilePicture, setProfilePicture] = useState("");
   const [originalName, setOriginalName] = useState("");
   const [showSaveButton, setShowSaveButton] = useState(false);
+
+  const { deleteAccount } = useAuth();
 
   const getProfile = async () => {
     try {
@@ -98,28 +90,7 @@ const EditProfileScreen = () => {
           style: "destructive",
           onPress: async () => {
             try {
-              const user = auth.currentUser;
-              if (!user) throw new Error("No user logged in");
-              // 🔥 Delete Firestore doc
-              const backupsRef = collection(db, "users", user.uid, "backup");
-              const backupDocs = await getDocs(backupsRef);
-              const deleteBackupPromises = backupDocs.docs.map((docSnap) =>
-                deleteDoc(docSnap.ref)
-              );
-              await Promise.all(deleteBackupPromises);
-
-              // Step 2: Delete user document
-              const userDocRef = doc(db, "users", user.uid);
-              await deleteDoc(userDocRef);
-              // 🧹 Clear Realm
-              const realm = await getRealm();
-              realm.write(() => {
-                realm.deleteAll();
-              });
-
-              // 🔓 Sign out
-              await signOut(auth);
-              await AsyncStorage.setItem("isLoggedIn", "false");
+              await deleteAccount();
               router.replace("/signIn");
             } catch (err) {
               console.error("Failed to delete account:", err);

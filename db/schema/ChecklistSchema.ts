@@ -2,7 +2,7 @@ export const TaskSchema: Realm.ObjectSchema = {
   name: "Task",
   embedded: true,
   properties: {
-    id: 'string',
+    id: "string",
     title: "string",
     isCompleted: "bool",
     deadline: "date?",

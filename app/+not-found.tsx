@@ -8,7 +8,7 @@ export default function NotFoundScreen() {
     <PageLayout contentContainerStyle={styles.container}>
       <Image
         source={require("../assets/images/splash-icon.png")}
-        style={{ width: 120, height: 120 }}
+        style={{ width: 120, height: 120, }}
       />
     </PageLayout>
   );

@@ -3,20 +3,22 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import { getUser, saveUser } from "@/db/service/UserService";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { AuthProvider, useAuth } from "../context/AuthContext";
 
 import { triggerBackup } from "../constants/backupService";
-import { listenForAuthChanges } from "@/firebaseConfig";
+import { getRealm } from "@/db/realm";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <InnerApp />
+      <AuthProvider>
+        <InnerApp />
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }
@@ -24,64 +26,44 @@ export default function RootLayout() {
 function InnerApp() {
   const router = useRouter();
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [authUser, setAuthUser] = useState<any>(null);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
-
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
   useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const userStatus = await AsyncStorage.getItem("isLoggedIn");
-        setIsLoggedIn(userStatus === "true");
-
-        setTimeout(() => {
-          setIsLayoutMounted(true);
-        }, 100);
-      } catch (error) {
-        console.error("Error loading settings:", error);
-      }
-    };
-
-    loadSettings();
+    setTimeout(() => {
+      setIsLayoutMounted(true);
+    }, 100);
   }, []);
 
   useEffect(() => {
-    const unsubscribe = listenForAuthChanges((user: any) => {
-      setAuthUser(user);
-      setIsAuthChecked(true);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const decideNavigation = async () => {
-      if (!isAuthChecked || !isLayoutMounted || !fontsLoaded) return;
-
-      try {
-        if (authUser) {
-          await checkAndRedirectForFirstOpen();
-        } else {
-          router.replace("/signIn");
-        }
-      } catch (error) {
-        console.error("Navigation error:", error);
-        router.replace("/signIn");
+    if (!loading && isLayoutMounted && fontsLoaded) {
+      if (user) {
+        checkAndRedirectForFirstOpen();
+      } else {
+        (async () => {
+          try {
+            const realm = await getRealm();
+            realm.write(() => {
+              realm.deleteAll();
+            });
+          } catch (err) {
+            console.error("Failed to clear local Realm:", err);
+          }
+          setTimeout(() => {
+            router.replace("/signIn");
+          }, 100);
+        })();
       }
-    };
+    }
+  }, [loading, user, isLayoutMounted, fontsLoaded]);
 
-    decideNavigation();
-  }, [isAuthChecked, authUser, isLayoutMounted, fontsLoaded]);
-
-  if (!fontsLoaded || !isLayoutMounted || !isAuthChecked) {
+  if (!fontsLoaded || !isLayoutMounted || loading) {
     return null;
   }
 

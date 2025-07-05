@@ -13,13 +13,10 @@ import BackButtonHeader from "@/components/backButtonHeader";
 import { router } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
 import PageLayout from "@/components/pageLayout";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { signOut } from "firebase/auth";
-import { auth } from "@/firebaseConfig";
 import { getUser, saveUser } from "@/db/service/UserService";
-import { getRealm } from "@/db/realm";
 import { triggerBackup } from "@/constants/backupService";
 import * as Clipboard from "expo-clipboard";
+import { useAuth } from "../context/AuthContext";
 
 const exampleJson = `{
   "tasks": [
@@ -46,6 +43,7 @@ const ProfileScreen = () => {
   const [showJsonExample, setShowJsonExample] = useState(false);
   const [automaticBackupEnabled, setAutomaticBackupEnabled] =
     useState<boolean>(false);
+  const { signOut } = useAuth();
 
   const handleBackup = async () => {
     setLoading(true);
@@ -64,18 +62,9 @@ const ProfileScreen = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-
-      await AsyncStorage.setItem("isLoggedIn", "false");
-
-      const realm = await getRealm();
-      realm.write(() => {
-        realm.deleteAll();
-      });
-
-      router.replace("/signIn");
+      await signOut();
     } catch (error) {
-      console.error("Error during logout:", error);
+      console.error("Error during logouter:", error);
     }
   };
 

@@ -10,16 +10,15 @@ interface HeaderProps {
 
 const BackButtonHeader: React.FC<HeaderProps> = ({ title, route }) => {
   const handleNavigation = () => {
-    if(route){
+    if (route) {
       router.push(route);
     }
     if (router.canGoBack?.()) {
       router.back();
+    } else {
+      router.push("/drawer/home");
     }
-    else{
-      router.push('/drawer/home')
-    }
-  }
+  };
 
   return title ? (
     <View style={styles.headerWrapper}>

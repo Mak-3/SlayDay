@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { useState } from "react";
 import Toast from "react-native-toast-message";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -34,33 +28,38 @@ export default function ForgotPassword() {
   };
 
   return (
-  <PageLayout style={styles.container} contentContainerStyle={{justifyContent: 'center'}}>
-    <View style={styles.formContainer}>
-      <View style={styles.centered}>
-        <Image source={require('../assets/images/splash-icon.png')} style={{ width: 120, height: 120, marginBottom: 40 }} />
-        <Text style={styles.title}>Forgot Password</Text>
+    <PageLayout
+      style={styles.container}
+      contentContainerStyle={{ justifyContent: "center" }}
+    >
+      <View style={styles.formContainer}>
+        <View style={styles.centered}>
+          <Image
+            source={require("../assets/images/splash-icon.png")}
+            style={{ width: 120, height: 120, marginBottom: 40 }}
+          />
+          <Text style={styles.title}>Forgot Password</Text>
+        </View>
+
+        <CustomTextInput
+          style={styles.input}
+          name="email"
+          placeholder="Enter your email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <TouchableOpacity
+          style={styles.signUpButton}
+          onPress={handleForgotPassword}
+        >
+          <Text style={styles.signUpButtonText}>Send Reset Link</Text>
+        </TouchableOpacity>
       </View>
-
-      <CustomTextInput
-        style={styles.input}
-        name="email"
-        placeholder="Enter your email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <TouchableOpacity
-        style={styles.signUpButton}
-        onPress={handleForgotPassword}
-      >
-        <Text style={styles.signUpButtonText}>Send Reset Link</Text>
-      </TouchableOpacity>
-    </View>
-  </PageLayout>
-);
-
+    </PageLayout>
+  );
 }
 
 const styles = StyleSheet.create({
