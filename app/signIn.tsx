@@ -96,7 +96,7 @@ export default function SignInScreen() {
           const name = email.split("@")[0];
           const profilePicture = user.photoURL ?? "";
           await AsyncStorage.setItem("isLoggedIn", "true");
-          fetchBackup(user.uid);
+          await fetchBackup(user.uid);
           await saveUser({
             name,
             email,

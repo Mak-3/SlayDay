@@ -388,7 +388,7 @@ export default function SignupScreen() {
           <TouchableOpacity
             onPress={() =>
               Linking.openURL(
-                "https://sites.google.com/view/slayday-privacy-policy"
+                "https://sites.google.com/view/slayday-privacy-policy/home"
               )
             }
           >
