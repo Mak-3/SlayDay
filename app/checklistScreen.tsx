@@ -90,7 +90,7 @@ const ChecklistScreen = () => {
 
   const handleKeyboardHide = useCallback(() => {
     setKeyboardVisible(false);
-    
+
     // Only adjust bottom sheets if they're visible
     if (isBottomSheetVisible) {
       taskBottomSheetRef.current?.snapToIndex(0);
@@ -269,7 +269,6 @@ const ChecklistScreen = () => {
               <TouchableOpacity
                 style={styles.deadlineButton}
                 onPress={() => {
-                  closeBottomSheet();
                   setSelectedDate(bottomSheetTask.deadline || null);
                   setShowPicker(true);
                 }}
@@ -437,6 +436,7 @@ const ChecklistScreen = () => {
     if (event.type === "set" && date) {
       setSelectedDate(date);
     }
+    setIsBottomSheetVisible(true);
   };
 
   const toggleComplete = (taskId: string) => {
@@ -660,7 +660,7 @@ const ChecklistScreen = () => {
           <TouchableWithoutFeedback onPress={handleOutsideClick}>
             <View style={styles.container}>
               <BackButtonHeader />
-              
+
               {/* Fixed Header */}
               <View style={styles.headerContainer}>
                 <View style={styles.progressWrapper}>
@@ -669,7 +669,10 @@ const ChecklistScreen = () => {
                       {renderIcon(checklist.category, CrimsonLuxe.primary500)}
                       <Text style={styles.sectionTitle}>{checklist.title}</Text>
                     </View>
-                    <TouchableOpacity onPress={openTitleSheet} style={styles.icons}>
+                    <TouchableOpacity
+                      onPress={openTitleSheet}
+                      style={styles.icons}
+                    >
                       <MaterialIcons name="edit" size={20} color="gray" />
                     </TouchableOpacity>
                   </View>
@@ -718,10 +721,15 @@ const ChecklistScreen = () => {
                       style={styles.importButton}
                       onPress={handleUploadJson}
                     >
-                      <Text style={styles.importButtonText}>📤 Import Tasks</Text>
+                      <Text style={styles.importButtonText}>
+                        📤 Import Tasks
+                      </Text>
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity style={styles.addTaskButton} onPress={addTask}>
+                  <TouchableOpacity
+                    style={styles.addTaskButton}
+                    onPress={addTask}
+                  >
                     <Text style={styles.addTaskText}>+ Add Task</Text>
                   </TouchableOpacity>
                 </View>
@@ -771,7 +779,7 @@ const styles = StyleSheet.create({
   },
   footerContainer: {
     paddingTop: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   sectionTitle: {
     fontSize: 22,
