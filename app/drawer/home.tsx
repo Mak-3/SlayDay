@@ -13,7 +13,7 @@ import Progress from "@/components/progress";
 import FloatingMenu from "@/components/floatingMenu";
 import { router, useFocusEffect } from "expo-router";
 import PageLayout from "@/components/pageLayout";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CrimsonLuxe } from "@/constants/Colors";
 import TaskCard from "@/components/taskStatusCard";
 import { getChecklistCount } from "@/db/service/ChecklistService";

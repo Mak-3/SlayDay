@@ -9,7 +9,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import BackButtonHeader from "@/components/backButtonHeader";
 import PageLayout from "@/components/pageLayout";
 import { cardColors, CrimsonLuxe } from "@/constants/Colors";

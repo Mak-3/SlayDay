@@ -9,8 +9,7 @@ import {
   Keyboard,
   Linking,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
-import AntDesign from "react-native-vector-icons/AntDesign";
+import { Ionicons as Icon, AntDesign } from "@expo/vector-icons";
 import PageLayout from "@/components/pageLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { CrimsonLuxe } from "@/constants/Colors";

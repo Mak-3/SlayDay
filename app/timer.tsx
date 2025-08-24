@@ -13,9 +13,7 @@ import { CrimsonLuxe } from "@/constants/Colors";
 import PageLayout from "@/components/pageLayout";
 import BackButtonHeader from "@/components/backButtonHeader";
 
-import Icon from "react-native-vector-icons/MaterialIcons";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { MaterialIcons as Icon, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { createPomodoro } from "@/db/service/PomodoroService";
 
@@ -109,12 +107,12 @@ const TimerPage = () => {
   const renderIcon = (icon: string, lib: string, color: string) => {
     switch (lib) {
       case "FontAwesome":
-        return <FontAwesome name={icon} size={24} color="#fff" />;
+        return <FontAwesome name={icon as any} size={24} color="#fff" />;
       case "MaterialCommunityIcons":
-        return <MaterialCommunityIcons name={icon} size={24} color="#fff" />;
+        return <MaterialCommunityIcons name={icon as any} size={24} color="#fff" />;
       case "MaterialIcons":
       default:
-        return <Icon name={icon} size={24} color="#fff" />;
+        return <Icon name={icon as any} size={24} color="#fff" />;
     }
   };
 

@@ -16,7 +16,7 @@ import CustomTextInput from "@/components/textInput";
 import CustomTextArea from "@/components/textArea";
 import { router } from "expo-router";
 import { createChecklist } from "@/db/service/ChecklistService";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
 
 const CreateChecklist = () => {
   const [title, setTitle] = useState("");

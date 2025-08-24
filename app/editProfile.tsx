@@ -8,7 +8,7 @@ import {
   Image,
   Alert,
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 

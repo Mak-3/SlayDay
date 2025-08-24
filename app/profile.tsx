@@ -150,7 +150,7 @@ const ProfileScreen = () => {
           disabled={loading}
         >
           <Feather name="upload" size={20} />
-          <Text style={styles.cardText}>Backup</Text>
+          <Text style={styles.cardText}>Trigger Backup</Text>
           {loading ? (
             <ActivityIndicator size="small" color={CrimsonLuxe.primary400} />
           ) : (

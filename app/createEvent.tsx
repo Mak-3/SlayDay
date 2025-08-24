@@ -17,7 +17,7 @@ import PageLayout from "@/components/pageLayout";
 import CustomTextInput from "@/components/textInput";
 import CustomTextArea from "@/components/textArea";
 import { CrimsonLuxe } from "@/constants/Colors";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { createEvent } from "@/db/service/EventService";
 import { router, useLocalSearchParams } from "expo-router";
 

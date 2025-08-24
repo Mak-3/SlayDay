@@ -12,7 +12,7 @@ import {
   GestureHandlerRootView,
   Swipeable,
 } from "react-native-gesture-handler";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
 
 import { deletePomodoro, getAllPomodoros } from "@/db/service/PomodoroService";
 import { getIcon } from "@/constants/IconsMapping";

@@ -14,7 +14,7 @@ import {
   GestureHandlerRootView,
   Swipeable,
 } from "react-native-gesture-handler";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { deleteEvent, getAllEvents } from "@/db/service/EventService";
 import { renderIcon } from "@/components/renderIcon";
 import { ObjectId } from "bson";

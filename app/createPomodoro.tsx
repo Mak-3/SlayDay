@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import PageLayout from "@/components/pageLayout";
 import { CrimsonLuxe } from "@/constants/Colors";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
 import CustomTextInput from "@/components/textInput";
 import { router } from "expo-router";
 

@@ -17,8 +17,7 @@ import LottieView from "lottie-react-native";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { router, useLocalSearchParams } from "expo-router";
 
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import { MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import { createPomodoro } from "@/db/service/PomodoroService";
 import { renderIcon } from "@/components/renderIcon";
 

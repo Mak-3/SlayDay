@@ -1,29 +1,31 @@
 import React from "react";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import Feather from "react-native-vector-icons/Feather";
+import { 
+  FontAwesome, 
+  FontAwesome5, 
+  MaterialCommunityIcons, 
+  MaterialIcons, 
+  Feather 
+} from "@expo/vector-icons";
 import { getIcon } from "@/constants/IconsMapping";
 
 export const renderIcon = (category: string, overrideColor?: string) => {
   const { icon, library, color } = getIcon[category] || getIcon["Other"];
   const iconColor = overrideColor || color;
 
-  const iconProps = { name: icon, size: 24, color: iconColor };
+  const iconProps = { size: 24, color: iconColor };
 
   switch (library) {
     case "FontAwesome":
-      return <FontAwesome {...iconProps} />;
+      return <FontAwesome name={icon as any} {...iconProps} />;
     case "FontAwesome5":
-      return <FontAwesome5 {...iconProps} />;
+      return <FontAwesome5 name={icon as any} {...iconProps} />;
     case "MaterialCommunityIcons":
-      return <MaterialCommunityIcons {...iconProps} />;
+      return <MaterialCommunityIcons name={icon as any} {...iconProps} />;
     case "MaterialIcons":
-      return <MaterialIcons {...iconProps} />;
+      return <MaterialIcons name={icon as any} {...iconProps} />;
     case "Feather":
-      return <Feather {...iconProps} />;
+      return <Feather name={icon as any} {...iconProps} />;
     default:
-      return <MaterialIcons name="help" size={24} color={iconColor} />;
+      return <MaterialIcons name="help" {...iconProps} />;
   }
 };
