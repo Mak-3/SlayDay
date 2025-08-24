@@ -8,8 +8,11 @@ import {
   StatusBar,
   ViewStyle,
   StatusBarStyle,
+  View,
 } from "react-native";
 import * as NavigationBar from "expo-navigation-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 interface PageProps {
   children: ReactNode;
   style?: ViewStyle;
@@ -25,6 +28,8 @@ const PageLayout: React.FC<PageProps> = ({
   backgroundColor = "#FFFFFF",
   statusBarColor = "dark-content",
 }) => {
+  const insets = useSafeAreaInsets();
+
   useEffect(() => {
     if (Platform.OS === "android") {
       NavigationBar.setBackgroundColorAsync(backgroundColor);
@@ -33,29 +38,49 @@ const PageLayout: React.FC<PageProps> = ({
       );
     }
   }, [backgroundColor, statusBarColor]);
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor }, style]}>
-      <StatusBar barStyle={statusBarColor} backgroundColor={backgroundColor} />
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <View style={[styles.container, { backgroundColor }]}>
+      <StatusBar 
+        barStyle={statusBarColor} 
+        backgroundColor={backgroundColor}
+        translucent={true}
+      />
+      <SafeAreaView 
+        style={[
+          styles.safeArea, 
+          { 
+            backgroundColor,
+            paddingTop: Platform.OS === "android" ? insets.top : 0,
+            paddingBottom: Platform.OS === "android" ? insets.bottom : 0,
+          }, 
+          style
+        ]}
       >
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollViewContent,
-            contentContainerStyle,
-          ]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          {children}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          <ScrollView
+            contentContainerStyle={[
+              styles.scrollViewContent,
+              contentContainerStyle,
+            ]}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
   },

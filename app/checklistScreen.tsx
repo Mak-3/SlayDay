@@ -11,7 +11,9 @@ import {
   Platform,
   Pressable,
   KeyboardAvoidingView,
+  StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import DraggableFlatList, {
@@ -22,7 +24,6 @@ import { ObjectId } from "bson";
 import { router, useLocalSearchParams } from "expo-router";
 import Toast from "react-native-toast-message";
 
-import PageLayout from "@/components/pageLayout";
 import ProgressBar from "@/components/progressBar";
 import BackButtonHeader from "@/components/backButtonHeader";
 import { CrimsonLuxe } from "@/constants/Colors";
@@ -245,10 +246,9 @@ const ChecklistScreen = () => {
 
         <BottomSheet
           ref={taskBottomSheetRef}
-          snapPoints={["50%"]}
           enablePanDownToClose
           onClose={closeBottomSheet}
-          keyboardBehavior="extend"
+          keyboardBehavior="interactive"
           keyboardBlurBehavior="restore"
         >
           <BottomSheetView style={{ flex: 1 }}>
@@ -332,10 +332,9 @@ const ChecklistScreen = () => {
 
         <BottomSheet
           ref={checklistBottomSheetRef}
-          snapPoints={["50%"]}
           enablePanDownToClose
           onClose={closeTitleSheet}
-          keyboardBehavior="extend"
+          keyboardBehavior="interactive"
           keyboardBlurBehavior="restore"
         >
           <BottomSheetView style={{ flex: 1 }}>
@@ -634,24 +633,27 @@ const ChecklistScreen = () => {
 
   if (loading) {
     return (
-      <PageLayout>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+        <StatusBar barStyle="dark-content" />
         <ActivityIndicator size="large" />
-      </PageLayout>
+      </SafeAreaView>
     );
   }
 
   if (!checklist) {
     return (
-      <PageLayout>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+        <StatusBar barStyle="dark-content" />
         <Text style={styles.errorText}>Checklist not found.</Text>
-      </PageLayout>
+      </SafeAreaView>
     );
   }
 
   return (
-    <>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      <StatusBar barStyle="dark-content" />
       <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: "#FFFFFF" }}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
         enabled={!keyboardVisible}
@@ -709,7 +711,9 @@ const ChecklistScreen = () => {
                         } as any)
                     );
                   }}
-                  contentContainerStyle={{ paddingBottom: 20 }}
+                  contentContainerStyle={{ 
+                    paddingBottom: Platform.OS === "android" ? 40 : 20 
+                  }}
                 />
               </View>
 
@@ -762,7 +766,7 @@ const ChecklistScreen = () => {
       {renderBottomSheet()}
       {renderTitleBottomSheet()}
       {renderDoneModal(checklist.title)}
-    </>
+    </SafeAreaView>
   );
 };
 
@@ -770,6 +774,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    paddingTop: Platform.OS === "android" ? 10 : 0,
   },
   headerContainer: {
     marginBottom: 20,
@@ -779,6 +784,7 @@ const styles = StyleSheet.create({
   },
   footerContainer: {
     paddingTop: 10,
+    paddingBottom: Platform.OS === "android" ? 20 : 10,
     backgroundColor: "#FFFFFF",
   },
   sectionTitle: {

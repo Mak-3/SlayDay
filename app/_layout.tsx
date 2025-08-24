@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Toast from "react-native-toast-message";
 import { getUser, saveUser } from "@/db/service/UserService";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 
 import { triggerBackup } from "../constants/backupService";
@@ -15,11 +16,13 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <InnerApp />
-      </AuthProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AuthProvider>
+          <InnerApp />
+        </AuthProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 
