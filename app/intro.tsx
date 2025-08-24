@@ -12,6 +12,7 @@ import EventsSVG from "@/assets/svgs/Events.svg";
 import PomodoroSVG from "@/assets/svgs/Pomodoro.svg";
 import BackupSVG from "@/assets/svgs/Backup.svg";
 import { CrimsonLuxe } from "@/constants/Colors";
+import { markAppAsInstalled } from "@/constants/appInstallation";
 import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
@@ -42,7 +43,7 @@ const Intro = () => {
   const scrollViewRef = useRef<any>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < slides.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
@@ -51,6 +52,7 @@ const Intro = () => {
         animated: true,
       });
     } else {
+      await markAppAsInstalled();
       router.replace("/signUp");
     }
   };

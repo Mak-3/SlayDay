@@ -8,6 +8,7 @@ import { getUser, saveUser } from "@/db/service/UserService";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import { isAppInstalled } from "@/constants/appInstallation";
 
 import { triggerBackup } from "../constants/backupService";
 import { getRealm } from "@/db/realm";
@@ -33,10 +34,26 @@ function InnerApp() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
   const { user, loading } = useAuth();
+  const [appInstallationStatus, setAppInstallationStatus] = useState<boolean | null>(null);
 
   useEffect(() => {
     SplashScreen.hideAsync();
   }, [fontsLoaded]);
+
+  // Check if app has been installed before
+  useEffect(() => {
+    const checkAppInstallation = async () => {
+      try {
+        const appInstalled = await isAppInstalled();
+        setAppInstallationStatus(appInstalled);
+      } catch (error) {
+        console.error("Error checking app installation status:", error);
+        setAppInstallationStatus(false);
+      }
+    };
+    
+    checkAppInstallation();
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -45,28 +62,32 @@ function InnerApp() {
   }, []);
 
   useEffect(() => {
-    if (!loading && isLayoutMounted && fontsLoaded) {
+    if (!loading && isLayoutMounted && fontsLoaded && appInstallationStatus !== null) {
       if (user) {
         checkAndRedirectForFirstOpen();
       } else {
-        (async () => {
-          try {
-            const realm = await getRealm();
-            realm.write(() => {
-              realm.deleteAll();
-            });
-          } catch (err) {
-            console.error("Failed to clear local Realm:", err);
-          }
-          setTimeout(() => {
-            router.replace("/signIn");
-          }, 100);
-        })();
+        if (!appInstallationStatus) {
+          router.replace("/intro");
+        } else {
+          (async () => {
+            try {
+              const realm = await getRealm();
+              realm.write(() => {
+                realm.deleteAll();
+              });
+            } catch (err) {
+              console.error("Failed to clear local Realm:", err);
+            }
+            setTimeout(() => {
+              router.replace("/signIn");
+            }, 100);
+          })();
+        }
       }
     }
-  }, [loading, user, isLayoutMounted, fontsLoaded]);
+  }, [loading, user, isLayoutMounted, fontsLoaded, appInstallationStatus]);
 
-  if (!fontsLoaded || !isLayoutMounted || loading) {
+  if (!fontsLoaded || !isLayoutMounted || loading || appInstallationStatus === null) {
     return null;
   }
 
@@ -82,7 +103,6 @@ function InnerApp() {
           email: userData?.email || "",
           lastOpened: today,
         });
-        router.replace("/quoteOfTheDay");
         return;
       }
 

@@ -1,4 +1,44 @@
-# Welcome to your Expo app 👋
+# Habitus - Productivity App
+
+A comprehensive productivity app built with Expo and React Native, featuring checklists, events, Pomodoro timer, and automatic backups.
+
+## Features
+
+- **Checklists**: Create and manage tasks with smart organization
+- **Events**: Schedule events with deadlines and reminders
+- **Pomodoro Timer**: Improve productivity with focused work sessions
+- **Automatic Backups**: Keep your data safe with daily backups
+- **Intro Screen**: First-time user experience with app features overview
+
+## Intro Screen Logic
+
+The app includes intelligent routing logic that shows the intro screen only when the app is first installed:
+
+- **First Installation**: Users see the intro screen with feature overview
+- **Subsequent Launches**: Users go directly to sign-in screen
+- **Installation Status**: Tracked using AsyncStorage with key `appInstalled`
+
+### Implementation Details
+
+- **Location**: `app/intro.tsx` - Intro screen component
+- **Utilities**: `constants/appInstallation.ts` - Installation status management
+- **Routing**: `app/_layout.tsx` - Main routing logic
+- **Testing**: `context/AuthContext.tsx` - Includes `resetInstallationStatus()` for testing
+
+### Testing the Intro Screen
+
+To test the intro screen functionality, you can reset the installation status:
+
+```javascript
+import { useAuth } from '@/context/AuthContext';
+
+const { resetInstallationStatus } = useAuth();
+await resetInstallationStatus();
+```
+
+This will cause the app to show the intro screen on the next launch.
+
+---
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 

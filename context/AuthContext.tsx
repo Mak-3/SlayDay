@@ -19,6 +19,7 @@ import { getRealm } from "@/db/realm";
 import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import { downloadBackup } from "@/constants/backupService";
 import restoreRealmData from "@/constants/restoreBackupFromFirebase";
+import { resetAppInstallationStatus } from "@/constants/appInstallation";
 
 interface AuthContextProps {
   user: User | null;
@@ -27,6 +28,7 @@ interface AuthContextProps {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
+  resetInstallationStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -142,9 +144,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const resetInstallationStatus = async () => {
+    await resetAppInstallationStatus();
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, signIn, signUp, signOut, deleteAccount }}
+      value={{ user, loading, signIn, signUp, signOut, deleteAccount, resetInstallationStatus }}
     >
       {children}
     </AuthContext.Provider>
