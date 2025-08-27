@@ -330,10 +330,17 @@ const CreateEventScreen = () => {
               value={date}
               mode="date"
               display="default"
+              minimumDate={new Date()}
               onChange={(event, selectedDate) => {
                 setShowDatePicker(false);
                 if (selectedDate) {
-                  setDate(selectedDate);
+                  const now = new Date();
+                  // If user selects past date, force it to now
+                  if (selectedDate < now) {
+                    setDate(now);
+                  } else {
+                    setDate(selectedDate);
+                  }
                 }
               }}
             />
@@ -355,8 +362,18 @@ const CreateEventScreen = () => {
                       value={date}
                       mode="date"
                       display="spinner"
+                      minimumDate={new Date()}
                       onChange={(event, selectedDate) => {
-                        if (selectedDate) setDate(selectedDate);
+                        setShowDatePicker(false);
+                        if (selectedDate) {
+                          const now = new Date();
+                          // If user selects past date, force it to now
+                          if (selectedDate < now) {
+                            setDate(now);
+                          } else {
+                            setDate(selectedDate);
+                          }
+                        }
                       }}
                     />
                     <TouchableOpacity
@@ -376,10 +393,22 @@ const CreateEventScreen = () => {
               value={time}
               mode="time"
               display="default"
+              minimumDate={new Date()}
               onChange={(event, selectedTime) => {
                 setShowTimePicker(false);
                 if (selectedTime) {
-                  setTime(selectedTime);
+                  const now = new Date();
+                  const picked = new Date(date); // base on chosen date
+                  picked.setHours(selectedTime.getHours());
+                  picked.setMinutes(selectedTime.getMinutes());
+
+                  // Only allow "now or later"
+                  if (picked < now) {
+                    setTime(now);
+                    alert("Please pick a future time");
+                  } else {
+                    setTime(selectedTime);
+                  }
                 }
               }}
             />
@@ -401,8 +430,22 @@ const CreateEventScreen = () => {
                       value={time}
                       mode="time"
                       display="spinner"
+                      minimumDate={new Date()}
                       onChange={(event, selectedTime) => {
-                        if (selectedTime) setTime(selectedTime);
+                        setShowTimePicker(false);
+                        if (selectedTime) {
+                          const now = new Date();
+                          const picked = new Date(date);
+                          picked.setHours(selectedTime.getHours());
+                          picked.setMinutes(selectedTime.getMinutes());
+
+                          if (picked < now) {
+                            setTime(now);
+                            alert("Please pick a future time");
+                          } else {
+                            setTime(selectedTime);
+                          }
+                        }
                       }}
                     />
                     <TouchableOpacity
@@ -461,7 +504,7 @@ const CreateEventScreen = () => {
               style={styles.cancelButton}
               onPress={handleCancel}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>Clear</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[

@@ -47,12 +47,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#222",
+    color: "#666",
     marginTop: 20,
   },
   subtitle: {
     fontSize: 14,
-    color: "#555",
+    color: "#888",
     textAlign: "center",
     marginTop: 10,
     marginBottom: 30,

@@ -58,7 +58,7 @@ const EditProfileScreen = () => {
     }
 
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       quality: 0.3,
       allowsEditing: true,
       aspect: [1, 1],
@@ -117,6 +117,7 @@ const EditProfileScreen = () => {
   };
 
   return (
+    <>
     <PageLayout style={styles.container}>
       <BackButtonHeader title="Edit Profile" />
       <View style={styles.wrapper}>
@@ -157,7 +158,7 @@ const EditProfileScreen = () => {
                 setShowSaveButton(text !== originalName);
               }}
             />
-            <Icon name="check-circle" size={20} color="green" />
+            <Icon name="edit" size={20} color="#666" />
           </View>
 
           {showSaveButton && (
@@ -169,8 +170,10 @@ const EditProfileScreen = () => {
             </TouchableOpacity>
           )}
         </View>
-
-        <TouchableOpacity
+        
+      </View>
+    </PageLayout>
+    <TouchableOpacity
           style={styles.deleteButton}
           onPress={handleDeleteAccount}
         >
@@ -178,8 +181,7 @@ const EditProfileScreen = () => {
             Delete Account Permanently
           </Text>
         </TouchableOpacity>
-      </View>
-    </PageLayout>
+    </>
   );
 };
 
@@ -296,13 +298,13 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     position: "absolute",
-    bottom: 20,
-    width: "100%",
-    marginTop: 24,
+    bottom: 50,
+    width: "90%",
     padding: 12,
     backgroundColor: "#ff4d4d",
     borderRadius: 8,
     alignItems: "center",
+    alignSelf: 'center'
   },
 
   deleteButtonText: {

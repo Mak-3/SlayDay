@@ -1029,7 +1029,6 @@ const styles = StyleSheet.create({
     backgroundColor: CrimsonLuxe.primary400,
     padding: 12,
     borderRadius: 8,
-    marginTop: 16,
     flex: 1,
     alignItems: "center",
   },
