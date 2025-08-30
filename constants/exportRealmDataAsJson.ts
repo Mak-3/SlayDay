@@ -1,6 +1,36 @@
 import { getRealm } from "@/db/realm";
 import Realm from "realm";
 
+function convertRealmObject(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  if (obj instanceof Realm.List) {
+    return Array.from(obj).map(convertRealmObject);
+  }
+  
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
+  
+  if (obj instanceof Realm.BSON.ObjectId) {
+    return obj.toHexString();
+  }
+  
+  if (typeof obj === 'object' && !Array.isArray(obj)) {
+    const converted: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        converted[key] = convertRealmObject(obj[key]);
+      }
+    }
+    return converted;
+  }
+  
+  return obj;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -78,66 +108,64 @@ interface ExportedData {
   } | null;
 }
 
-// The function
 async function exportRealmData(): Promise<ExportedData> {
   const realm = await getRealm();
-  const checklists = realm.objects<Checklist>("Checklist").map((item) => ({
-    _id: item._id.toHexString(),
-    title: item.title,
-    description: item.description,
-    taskType: item.taskType,
-    isCompleted: item.isCompleted,
-    category: item.category,
-    createdAt: item.createdAt ? item.createdAt.toISOString() : null,
-    deadline: item.deadline ? item.deadline.toISOString() : null,
-    lastSaved: item.lastSaved ? item.lastSaved.toISOString() : null,
-    tasks: item.tasks.map((task) => ({
-      id: task.id,
-      title: task.title,
-      isCompleted: task.isCompleted,
-      deadline: task.deadline ? task.deadline.toISOString() : null,
-    })),
-  }));
+  
+  // Use the utility function to safely convert all Realm objects
+  const checklists = realm.objects<Checklist>("Checklist").map((item) => 
+    convertRealmObject({
+      _id: item._id,
+      title: item.title,
+      description: item.description,
+      taskType: item.taskType,
+      isCompleted: item.isCompleted,
+      category: item.category,
+      createdAt: item.createdAt,
+      deadline: item.deadline,
+      lastSaved: item.lastSaved,
+      tasks: item.tasks,
+    })
+  );
 
-  const events = realm.objects<Event>("Event").map((event) => ({
-    _id: event._id.toHexString(),
-    title: event.title,
-    description: event.description,
-    date: event.date.toISOString(),
-    time: event.time.toISOString(),
-    repeatType: event.repeatType,
-    customInterval: event.customInterval,
-    interval: event.interval,
-    category: event.category,
-    isOneTime: event.isOneTime,
-    weekDays: event.weekDays,
-    createdAt: event.createdAt.toISOString(),
-  }));
+  const events = realm.objects<Event>("Event").map((event) => 
+    convertRealmObject({
+      _id: event._id,
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      time: event.time,
+      repeatType: event.repeatType,
+      customInterval: event.customInterval,
+      interval: event.interval,
+      category: event.category,
+      isOneTime: event.isOneTime,
+      weekDays: event.weekDays,
+      createdAt: event.createdAt,
+    })
+  );
 
-  const pomodoros = realm.objects<Pomodoro>("Pomodoro").map((p) => ({
-    _id: p._id.toHexString(),
-    title: p.title,
-    taskType: p.taskType,
-    time: p.time,
-    category: p.category,
-    createdAt: p.createdAt.toISOString(),
-    endAt: p.endAt.toISOString(),
-  }));
+  const pomodoros = realm.objects<Pomodoro>("Pomodoro").map((p) => 
+    convertRealmObject({
+      _id: p._id,
+      title: p.title,
+      taskType: p.taskType,
+      time: p.time,
+      category: p.category,
+      createdAt: p.createdAt,
+      endAt: p.endAt,
+    })
+  );
 
   const userObj = realm.objects<User>("User")[0];
   const user = userObj
-    ? {
+    ? convertRealmObject({
         id: userObj.id,
         name: userObj.name,
         email: userObj.email,
         profilePicture: userObj.profilePicture,
-        lastOpened: userObj.lastOpened.toISOString(),
-        preferences: userObj.preferences
-          ? {
-              jsonUploadEnabled: userObj.preferences.jsonUploadEnabled,
-            }
-          : undefined,
-      }
+        lastOpened: userObj.lastOpened,
+        preferences: userObj.preferences,
+      })
     : null;
 
   return { checklists, events, pomodoros, user };

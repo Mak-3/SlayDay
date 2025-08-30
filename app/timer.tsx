@@ -14,36 +14,55 @@ import PageLayout from "@/components/pageLayout";
 import BackButtonHeader from "@/components/backButtonHeader";
 
 import { MaterialIcons as Icon, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { createPomodoro } from "@/db/service/PomodoroService";
+import { renderIcon } from "@/components/renderIcon";
+
+type params = {
+  title: string;
+  category: string;
+};
 
 const TimerPage = () => {
-  const { title, category } = useLocalSearchParams();
+  const { title, category } = useLocalSearchParams<params>();
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  // Ripple animations: three concentric waves
+  const rippleAnims = useRef([0, 1, 2].map(() => new Animated.Value(0))).current;
+  const rippleLoops = useRef<Animated.CompositeAnimation[]>([]).current;
   const [showLogPrompt, setShowLogPrompt] = useState(false);
   const [startDateTime, setStartDateTime] = useState<any>();
   const [endDateTime, setEndDateTime] = useState<any>(null);
 
   useEffect(() => {
     if (isRunning) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.3,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
+      // Start staggered ripple loops
+      rippleLoops.forEach((loop) => loop.stop());
+      rippleLoops.length = 0;
+      rippleAnims.forEach((anim, index) => {
+        anim.setValue(0);
+        const loop = Animated.loop(
+          Animated.sequence([
+            Animated.delay(index * 350),
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: 1200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 0,
+              duration: 0,
+              useNativeDriver: true,
+            }),
+          ])
+        );
+        rippleLoops.push(loop);
+        loop.start();
+      });
     } else {
-      pulseAnim.setValue(1);
+      // Stop and reset ripples
+      rippleLoops.forEach((loop) => loop.stop());
+      rippleAnims.forEach((anim) => anim.stopAnimation(() => anim.setValue(0)));
     }
   }, [isRunning]);
 
@@ -66,10 +85,10 @@ const TimerPage = () => {
   };
 
   const handlePausePlay = () => {
-    if (secondsElapsed == 0) {
-      setStartDateTime(Date.now());
-      setIsRunning((prev) => !prev);
+    if (secondsElapsed === 0 && !isRunning) {
+      setStartDateTime(new Date());
     }
+    setIsRunning((prev) => !prev);
   };
 
   const handleReset = () => {
@@ -78,7 +97,7 @@ const TimerPage = () => {
   };
 
   const handleEndNow = () => {
-    setEndDateTime(Date.now());
+    setEndDateTime(new Date());
     setShowLogPrompt(true);
     setIsRunning(false);
   };
@@ -90,9 +109,13 @@ const TimerPage = () => {
         taskType: "Timer Challenge",
         time: secondsElapsed,
         category: category as string,
-        createdAt: startDateTime,
-        endAt: endDateTime,
+        createdAt: startDateTime as Date,
+        endAt: (endDateTime as Date) ?? new Date(),
       });
+      setShowLogPrompt(false);
+      setIsRunning(false);
+      setSecondsElapsed(0);
+      router.push("/drawer/pomodoroSessions");
     } catch (error) {
       console.error("Failed to create Pomodoro:", error);
     }
@@ -104,18 +127,6 @@ const TimerPage = () => {
     setShowLogPrompt(false);
   };
 
-  const renderIcon = (icon: string, lib: string, color: string) => {
-    switch (lib) {
-      case "FontAwesome":
-        return <FontAwesome name={icon as any} size={24} color="#fff" />;
-      case "MaterialCommunityIcons":
-        return <MaterialCommunityIcons name={icon as any} size={24} color="#fff" />;
-      case "MaterialIcons":
-      default:
-        return <Icon name={icon as any} size={24} color="#fff" />;
-    }
-  };
-
   return (
     <PageLayout style={styles.container}>
       <BackButtonHeader title="Stopwatch" />
@@ -123,17 +134,31 @@ const TimerPage = () => {
         <View
           style={[styles.iconBox, { backgroundColor: CrimsonLuxe.primary400 }]}
         >
-          {renderIcon("book", "FontAwesome", "#fff")}
+          {renderIcon(category, "#FFFFFF")}
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.duration}>{"time"} minutes</Text>
+          <Text style={styles.duration}>{category}</Text>
         </View>
       </View>
       <View style={styles.center}>
-        <Animated.View
-          style={[styles.pulseCircle, { transform: [{ scale: pulseAnim }] }]}
-        />
+        {rippleAnims.map((anim, index) => {
+          const scale = anim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, 2.4],
+          });
+          const opacity = anim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0.35, 0],
+          });
+          return (
+            <Animated.View
+              key={index}
+              style={[styles.rippleCircle, { transform: [{ scale }], opacity }]}
+            />
+          );
+        })}
+        <View style={styles.coreCircle} />
         <Text style={styles.timerText}>{formatTime(secondsElapsed)}</Text>
       </View>
 
@@ -144,9 +169,7 @@ const TimerPage = () => {
 
         <TouchableOpacity
           style={styles.playPauseButton}
-          onPress={() => {
-            handlePausePlay;
-          }}
+          onPress={handlePausePlay}
         >
           <FontAwesome5
             name={isRunning ? "pause" : "play"}
@@ -201,6 +224,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginVertical: 80,
+    position: "relative",
   },
   taskContainer: {
     flexDirection: "row",
@@ -234,7 +258,15 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     position: "absolute",
   },
-  pulseCircle: {
+  // New ripple-based animation styles
+  rippleCircle: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: CrimsonLuxe.primary200,
+  },
+  coreCircle: {
     width: 180,
     height: 180,
     borderRadius: 90,
