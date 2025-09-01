@@ -13,7 +13,7 @@ export async function triggerBackup() {
       await uploadBackup(firebaseUser.uid, backup);
       Toast.show({
         type: "success",
-        text1: "Backup successful",
+        text1: "Backup successfull",
       });
     } else {
       Toast.show({

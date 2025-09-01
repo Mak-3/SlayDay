@@ -6,6 +6,8 @@ import {
   Text,
   View,
   TouchableOpacity,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import ChecklistSVG from "@/assets/svgs/Checklist.svg";
 import EventsSVG from "@/assets/svgs/Events.svg";
@@ -37,7 +39,7 @@ const slides = [
     text: "Keep your data safe with automatic daily backups",
   },
 ];
-EventsSVG;
+
 const Intro = () => {
   const scrollX = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<any>(null);
@@ -57,6 +59,14 @@ const Intro = () => {
     }
   };
 
+  const handleMomentumScrollEnd = (
+    event: NativeSyntheticEvent<NativeScrollEvent>
+  ) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / CARD_WIDTH);
+    setCurrentIndex(index);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.carousel}>
@@ -64,12 +74,13 @@ const Intro = () => {
           ref={scrollViewRef}
           horizontal
           pagingEnabled
-          scrollEnabled={false}
+          scrollEnabled={true}
           showsHorizontalScrollIndicator={false}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { x: scrollX } } }],
             { useNativeDriver: false }
           )}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
           scrollEventThrottle={16}
         >
           {slides.map((item, index) => (

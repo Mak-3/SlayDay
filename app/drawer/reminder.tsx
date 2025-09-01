@@ -46,7 +46,7 @@ const EventsLanding = () => {
               : event.date,
           time:
             event.time instanceof Date
-              ? event.time.toISOString().split("T")[1].slice(0, 5)
+              ? event.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
               : event.time,
         }));
 

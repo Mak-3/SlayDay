@@ -50,7 +50,7 @@ const CreateEventScreen = () => {
     return new Date();
   });
   const [time, setTime] = useState(new Date());
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Work");
 
   const [repeatType, setRepeatType] = useState("");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
