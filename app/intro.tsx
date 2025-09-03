@@ -9,6 +9,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import ChecklistSVG from "@/assets/svgs/Checklist.svg";
 import EventsSVG from "@/assets/svgs/Events.svg";
 import PomodoroSVG from "@/assets/svgs/Pomodoro.svg";
@@ -68,7 +69,7 @@ const Intro = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.carousel}>
         <Animated.ScrollView
           ref={scrollViewRef}
@@ -128,13 +129,12 @@ const Intro = () => {
           })}
         </View>
       </View>
-
       <TouchableOpacity style={styles.button} onPress={handleNext}>
         <Text style={styles.buttonText}>
           {currentIndex === slides.length - 1 ? "Done" : "Next"}
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 

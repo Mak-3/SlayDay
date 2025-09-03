@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 10,
-    bottom: 10,
+    bottom: 30,
     justifyContent: "flex-end",
     alignItems: "flex-end",
     zIndex: 999,
