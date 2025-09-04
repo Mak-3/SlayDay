@@ -136,7 +136,7 @@ export default function App() {
   return (
     <PageLayout>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <BackButtonHeader title="Pomodoro History" />
+        <BackButtonHeader title="Pomodoro History" createLink="/createPomodoro"/>
         <View style={styles.contentWrapper}>
           <FlatList
             data={data}

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import BackButtonHeader from "@/components/backButtonHeader";
+import NoDataEvents from "@/components/noDataEvents";
 import PageLayout from "@/components/pageLayout";
 import { router } from "expo-router";
 import { cardColors, CrimsonLuxe } from "@/constants/Colors";
@@ -46,7 +47,10 @@ const EventsLanding = () => {
               : event.date,
           time:
             event.time instanceof Date
-              ? event.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              ? event.time.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
               : event.time,
         }));
 
@@ -104,6 +108,10 @@ const EventsLanding = () => {
     }
   };
 
+  if (!loading && data.length == 0) {
+    return <NoDataEvents />;
+  }
+
   const renderRightActions = (id: string) => (
     <TouchableOpacity
       style={styles.deleteButton}
@@ -115,76 +123,66 @@ const EventsLanding = () => {
 
   const renderItem = ({ item, index }: any) => {
     return (
-    <Swipeable renderRightActions={() => renderRightActions(item.id)}>
-      <View style={styles.taskContainer}>
-        <View
-          style={[
-            styles.iconBox,
-            { backgroundColor: cardColors[index % cardColors.length].dark },
-          ]}
-        >
-          {renderIcon(item.category, "#ffffff")}
-        </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>{item.title}</Text>
-          <View style={styles.timeInfoWrapper}>
-            <Text style={styles.duration}>{item.date}</Text>
-            <Text style={styles.duration}>{item.time}</Text>
+      <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+        <View style={styles.taskContainer}>
+          <View
+            style={[
+              styles.iconBox,
+              { backgroundColor: cardColors[index % cardColors.length].dark },
+            ]}
+          >
+            {renderIcon(item.category, "#ffffff")}
           </View>
-          {item.isOneTime ? (
-            <Text style={styles.recurringLabel}>Recurring</Text>
-          ) : (
-            <Text style={styles.recurringLabel}>One-time</Text>
-          )}
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>{item.title}</Text>
+            <View style={styles.timeInfoWrapper}>
+              <Text style={styles.duration}>{item.date}</Text>
+              <Text style={styles.duration}>{item.time}</Text>
+            </View>
+            {item.isOneTime ? (
+              <Text style={styles.recurringLabel}>Recurring</Text>
+            ) : (
+              <Text style={styles.recurringLabel}>One-time</Text>
+            )}
+          </View>
         </View>
-      </View>
-    </Swipeable>
-    )
+      </Swipeable>
+    );
   };
 
   return (
     <PageLayout style={styles.container}>
-      <BackButtonHeader title="Events & Reminders" />
-      <View style={styles.startSessionContainer}>
-        <Text style={styles.startSessionTitle}>Stay Organized!</Text>
-        <Text style={styles.startSessionSubtitle}>
-          Add reminders and never miss an important event.
-        </Text>
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={() => handleNavigation("/createEvent")}
-        >
-          <Text style={styles.startButtonText}>Create Reminder</Text>
-        </TouchableOpacity>
-      </View>
-      {(upcomingEvents?.length === 0 && pastEvents?.length === 0) ? <Text style={{ textAlign: "center" }}>No events.</Text> : 
-      (<GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Upcoming Events</Text>
-          <FlatList
-            data={upcomingEvents}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            scrollEnabled={false}
-            ListEmptyComponent={
-              <Text style={{ textAlign: "center" }}>No upcoming events.</Text>
-            }
-          />
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Past Events</Text>
-          <FlatList
-            data={pastEvents}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            scrollEnabled={false}
-            ListEmptyComponent={
-              <Text style={{ textAlign: "center" }}>No past events.</Text>
-            }
-          />
-        </View>
-      </GestureHandlerRootView>)
-      }
+      <BackButtonHeader title="Events & Reminders" createLink="/createEvent" />
+      {upcomingEvents?.length === 0 && pastEvents?.length === 0 ? (
+        <Text style={{ textAlign: "center" }}>No events.</Text>
+      ) : (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Upcoming Events</Text>
+            <FlatList
+              data={upcomingEvents}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              scrollEnabled={false}
+              ListEmptyComponent={
+                <Text style={{ textAlign: "center" }}>No upcoming events.</Text>
+              }
+            />
+          </View>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Past Events</Text>
+            <FlatList
+              data={pastEvents}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              scrollEnabled={false}
+              ListEmptyComponent={
+                <Text style={{ textAlign: "center" }}>No past events.</Text>
+              }
+            />
+          </View>
+        </GestureHandlerRootView>
+      )}
     </PageLayout>
   );
 };
@@ -194,40 +192,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginVertical: 10,
+    marginVertical: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 8,
-  },
-  startSessionContainer: {
-    backgroundColor: CrimsonLuxe.primary200,
-    borderRadius: 16,
-    padding: 20,
-    marginVertical: 20,
-    alignItems: "center",
-  },
-  startSessionTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  startSessionSubtitle: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  startButton: {
-    backgroundColor: CrimsonLuxe.primary500,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-  },
-  startButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
   },
   taskContainer: {
     flexDirection: "row",

@@ -1,42 +1,40 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-
-import NoDataEventsSVG from "@/assets/svgs/NoEvents.svg";
 import { router } from "expo-router";
+
+import NoDataEventsSVG from "@/assets/svgs/NoEvents.svg"; // replace with your actual events SVG
+import PageLayout from "../pageLayout";
+import BackButtonHeader from "../backButtonHeader";
 import { CrimsonLuxe } from "@/constants/Colors";
 
-export default function NotFoundScreen({selectedDate}: { selectedDate: string }) {
+export default function NoDataEvents() {
   return (
-    <View style={styles.container}>
+    <PageLayout style={styles.container}>
+      <BackButtonHeader title="Events & Reminders" />
       <View style={styles.card}>
-        <NoDataEventsSVG width={"90%"} height={300} />
-        <Text style={styles.title}>No Tasks</Text>
+        <NoDataEventsSVG width={"100%"} height={300} />
+
+        <Text style={styles.title}>No events found</Text>
         <Text style={styles.subtitle}>
-          Nothing scheduled. It's the perfect time to plan something awesome!
+          Looks like you haven’t planned anything yet. 
+          Start by creating your first event!
         </Text>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => {
-            router.push({
-                    pathname: "/createEvent",
-                    params: {
-                      selectedDate
-                    },
-                  });
-          }}
-          
+          onPress={() => router.replace("/createEvent")}
+          activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>Add New Task</Text>
+          <Text style={styles.buttonText}>Create New Event</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </PageLayout>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 20,
+    backgroundColor: "#FFFFFF",
   },
   card: {
     flex: 1,
@@ -47,28 +45,34 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#666",
+    color: "#444",
     marginTop: 20,
   },
   subtitle: {
     fontSize: 14,
-    color: "#888",
+    color: "#666",
     textAlign: "center",
     marginTop: 10,
     marginBottom: 30,
+    lineHeight: 20,
   },
   button: {
     backgroundColor: CrimsonLuxe.primary400,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     width: "100%",
     maxWidth: 350,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "600",
     fontSize: 16,
   },
 });

@@ -106,7 +106,7 @@ const checkList = () => {
     <PageLayout style={styles.container}>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View>
-          <BackButtonHeader title="Checklists" />
+          <BackButtonHeader title="Checklists" createLink="/createChecklist"/>
           <View
             style={[
               styles.searchContainer,

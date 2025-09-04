@@ -12,7 +12,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BackButtonHeader from "@/components/backButtonHeader";
 import PageLayout from "@/components/pageLayout";
-import NoDataEvents from "@/components/noDataEvents";
+import NoDataCalender from "@/components/noDataCalender";
 import { cardColors, CrimsonLuxe } from "@/constants/Colors";
 import { getRealm } from "@/db/realm";
 import { renderIcon } from "@/components/renderIcon";
@@ -256,7 +256,7 @@ const CalenderScreen = () => {
             </View>
           ))
         ) : (
-          <NoDataEvents selectedDate={selectedDate} />
+          <NoDataCalender selectedDate={selectedDate} />
         )}
       </View>
     </PageLayout>
