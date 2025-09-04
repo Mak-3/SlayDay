@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 
-import NoDataEventsSVG from "@/assets/svgs/NoEvents.svg"; // replace with your actual events SVG
+import NoDataEventsSVG from "@/assets/svgs/NoEventsAndReminders.svg"; // replace with your actual events SVG
 import PageLayout from "../pageLayout";
 import BackButtonHeader from "../backButtonHeader";
 import { CrimsonLuxe } from "@/constants/Colors";

@@ -138,9 +138,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   noDataText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#222",
+    color: "#666",
     marginBottom: 40,
   },
 });
