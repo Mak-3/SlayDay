@@ -58,16 +58,19 @@ export default function SignupScreen() {
       return;
     }
     try {
+      await AsyncStorage.setItem("tempSignUpEmail", email);
+      await AsyncStorage.setItem("tempSignUpPassword", password);
+      
       await signUp(email, password);
       setPasswordMismatch(false);
       Toast.show({
         type: "success",
         text1: "Account created",
-        text2: "Redirecting to home...",
+        text2: "Please verify your email",
         position: "bottom",
       });
       setTimeout(() => {
-        router.replace("/drawer/home");
+        router.push("emailVerification" as any);
       }, 1500);
     } catch (error: any) {
       const toastConfig = {

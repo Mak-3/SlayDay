@@ -132,8 +132,27 @@ export default function SignInScreen() {
     }
     try {
       await signIn(email, password);
-      router.replace("/drawer/home");
+      setTimeout(() => {
+        router.replace("/drawer/home");
+      }, 100);
     } catch (error: any) {
+      if (error.message === "Please verify your email before signing in") {
+        await AsyncStorage.setItem("tempSignUpEmail", email);
+        await AsyncStorage.setItem("tempSignUpPassword", password);
+        
+        Toast.show({
+          type: "error",
+          text1: "Email not verified",
+          text2: "Please verify your email first",
+          position: "bottom",
+        });
+        
+        setTimeout(() => {
+          router.push("emailVerification" as any);
+        }, 1500);
+        return;
+      }
+      
       const toastConfig = {
         "auth/invalid-credential": {
           type: "error",
@@ -146,6 +165,7 @@ export default function SignInScreen() {
           text2: "Please try again later",
         },
       } as any;
+      console.log(error)
       const { type, text1, text2 } =
         toastConfig[error.code] || toastConfig.default;
       Toast.show({ type, text1, text2, position: "bottom" });

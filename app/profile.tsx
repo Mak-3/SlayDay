@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import BackButtonHeader from "@/components/backButtonHeader";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { CrimsonLuxe } from "@/constants/Colors";
 import PageLayout from "@/components/pageLayout";
 import { getUser, saveUser } from "@/db/service/UserService";
@@ -56,10 +56,12 @@ const ProfileScreen = () => {
     }
   };
 
-  useEffect(() => {
-    getProfile();
-  }, []);
-
+  useFocusEffect(
+    useCallback(() => {
+      getProfile();
+    }, [])
+  );
+  
   const handleLogout = async () => {
     try {
       await signOut();

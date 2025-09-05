@@ -1,4 +1,4 @@
-# Habitus - Productivity App
+# SlayDay - Productivity App
 
 A comprehensive productivity app built with Expo and React Native, featuring checklists, events, Pomodoro timer, and automatic backups.
 

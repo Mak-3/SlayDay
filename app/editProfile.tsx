@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   Alert,
+  Keyboard,
 } from "react-native";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -91,7 +92,9 @@ const EditProfileScreen = () => {
           onPress: async () => {
             try {
               await deleteAccount();
-              router.replace("/signIn");
+              setTimeout(() => {
+                router.replace("/signIn");
+              }, 100);
             } catch (err) {
               console.error("Failed to delete account:", err);
             }
@@ -110,6 +113,7 @@ const EditProfileScreen = () => {
         name: name,
       });
       setOriginalName(name);
+      Keyboard.dismiss();
       setShowSaveButton(false);
     } catch (err) {
       console.error("Error saving profile:", err);

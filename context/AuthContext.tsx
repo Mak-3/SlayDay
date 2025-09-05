@@ -12,6 +12,8 @@ import {
   signOut as firebaseSignOut,
   User,
   deleteUser,
+  sendEmailVerification,
+  ActionCodeSettings,
 } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { saveUser } from "@/db/service/UserService";
@@ -29,6 +31,8 @@ interface AuthContextProps {
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   resetInstallationStatus: () => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
+  signInForVerification: (email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -46,7 +50,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const unsubscribe = listenForAuthChanges(
       async (firebaseUser: User | null) => {
-        setUser(firebaseUser);
+        if (firebaseUser && firebaseUser.emailVerified) {
+          setUser(firebaseUser);
+        } else if (!firebaseUser) {
+          setUser(null);
+        }
         setLoading(false);
       }
     );
@@ -70,6 +78,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password
       );
       const user = userCredential.user;
+      
+      if (!user.emailVerified) {
+        await firebaseSignOut(auth);
+        throw new Error("Please verify your email before signing in");
+      }
+      
       await AsyncStorage.setItem("isLoggedIn", "true");
       fetchBackup(user.uid);
       const name = email.split("@")[0];
@@ -78,6 +92,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(user);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const signInForVerification = async (email: string, password: string): Promise<void> => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+    } catch (error: any) {
+      throw error;
     }
   };
 
@@ -90,11 +116,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password
       );
       const user = userCredential.user;
-      const name = email.split("@")[0];
-      const profilePicture = user.photoURL ?? "";
-      await AsyncStorage.setItem("isLoggedIn", "true");
-      await saveUser({ name, email, profilePicture, lastOpened: new Date() });
-      setUser(user);
+      
+      const actionCodeSettings: ActionCodeSettings = {
+        url: 'https://slayday-3ab3e.firebaseapp.com/__/auth/action',
+        handleCodeInApp: true,
+      };
+      
+      await sendEmailVerification(user, actionCodeSettings);
+      
+      await AsyncStorage.setItem("isLoggedIn", "false");
+      
+    } catch (error: any) {
+      console.error("Sign up error:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -148,9 +182,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await resetAppInstallationStatus();
   };
 
+  const sendVerificationEmail = async () => {
+    const currentUser = auth.currentUser;
+    if (currentUser && !currentUser.emailVerified) {
+      const actionCodeSettings: ActionCodeSettings = {
+        url: 'https://slayday-3ab3e.firebaseapp.com/__/auth/action',
+        handleCodeInApp: true,
+      };
+      await sendEmailVerification(currentUser, actionCodeSettings);
+    } else if (!currentUser) {
+      throw new Error("No user logged in to send verification email");
+    } else {
+      throw new Error("Email is already verified");
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, signIn, signUp, signOut, deleteAccount, resetInstallationStatus }}
+      value={{ 
+        user, 
+        loading, 
+        signIn, 
+        signUp, 
+        signOut, 
+        deleteAccount, 
+        resetInstallationStatus, 
+        sendVerificationEmail,
+        signInForVerification
+      }}
     >
       {children}
     </AuthContext.Provider>

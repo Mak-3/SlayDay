@@ -98,7 +98,7 @@ function InnerApp() {
 
       if (!userData || !userData.lastOpened) {
         await saveUser({
-          name: userData?.name || "Guest",
+          name: userData?.name || "",
           profilePicture: userData?.profilePicture,
           email: userData?.email || "",
           lastOpened: today,
@@ -140,6 +140,13 @@ function InnerApp() {
         />
         <Stack.Screen
           name="signUp"
+          options={{
+            gestureEnabled: false,
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="emailVerification"
           options={{
             gestureEnabled: false,
             headerShown: false,

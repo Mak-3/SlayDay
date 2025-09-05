@@ -1,6 +1,6 @@
 import { CrimsonLuxe } from "@/constants/Colors";
-import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
@@ -21,9 +21,11 @@ const Header = () => {
     } catch (error) {}
   };
 
-  useEffect(() => {
-    getProfile();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getProfile();
+    }, [])
+  );
 
   const getInitial = (name: string) => {
     return name ? name.charAt(0).toUpperCase() : "";
