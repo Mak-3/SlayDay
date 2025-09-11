@@ -16,6 +16,7 @@
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		B7672A9F779B6116C7CF932E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 77812FEA178AA30341831529 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		B857813643194DD7B458221E /* notification_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = D5125A6C9724448EA9CA548A /* notification_sound.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		E8E4D4B85692494E9EC3B3EC /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "slayday/noop-file.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-slayday/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		D5125A6C9724448EA9CA548A /* notification_sound.wav */ = {isa = PBXFileReference; name = "notification_sound.wav"; path = "slayday/notification_sound.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +64,7 @@
 				E8E4D4B85692494E9EC3B3EC /* noop-file.swift */,
 				869A3F7CCDBD4586AE0BCF14 /* slayday-Bridging-Header.h */,
 				77812FEA178AA30341831529 /* PrivacyInfo.xcprivacy */,
+				D5125A6C9724448EA9CA548A /* notification_sound.wav */,
 			);
 			name = slayday;
 			sourceTree = "<group>";
@@ -204,6 +207,7 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				B7672A9F779B6116C7CF932E /* PrivacyInfo.xcprivacy in Resources */,
+				B857813643194DD7B458221E /* notification_sound.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,7 +411,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mak3.slayday;
-				PRODUCT_NAME = slayday;
+				PRODUCT_NAME = "SlayDay";
 				SWIFT_OBJC_BRIDGING_HEADER = "slayday/slayday-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -435,7 +439,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.mak3.slayday;
-				PRODUCT_NAME = slayday;
+				PRODUCT_NAME = "SlayDay";
 				SWIFT_OBJC_BRIDGING_HEADER = "slayday/slayday-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

@@ -20,6 +20,7 @@ import { CrimsonLuxe } from "@/constants/Colors";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { createEvent } from "@/db/service/EventService";
 import { router, useLocalSearchParams } from "expo-router";
+import { scheduleEventNotification } from "@/constants/notificationService";
 
 type Params = {
   selectedDate?: string;
@@ -133,6 +134,16 @@ const CreateEventScreen = () => {
     try {
       const eventId = await createEvent(eventData);
       if (eventId) {
+        await scheduleEventNotification(
+          eventId,
+          eventData.title,
+          eventData.description,
+          eventData.date,
+          eventData.time,
+          eventData.repeatType,
+          eventData.interval,
+          eventData.weekDays
+        );
         router.replace({
           pathname: "/drawer/calender",
           params: { id: eventId },

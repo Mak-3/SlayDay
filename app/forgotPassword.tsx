@@ -35,7 +35,7 @@ export default function ForgotPassword() {
       <View style={styles.formContainer}>
         <View style={styles.centered}>
           <Image
-            source={require("../assets/images/splash-icon.png")}
+            source={require("../assets/images/splash_icon.png")}
             style={{ width: 120, height: 120, marginBottom: 40 }}
           />
           <Text style={styles.title}>Forgot Password</Text>

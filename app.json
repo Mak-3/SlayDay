@@ -21,7 +21,8 @@
       },
       "package": "com.mak3.slayday",
       "googleServicesFile": "./google-services.json",
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": ["NOTIFICATIONS"]
     },
     "web": {
       "bundler": "metro",
@@ -33,7 +34,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/splash_icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -43,6 +44,15 @@
         "expo-image-picker",
         {
           "photosPermission": "We need access to your photo library to let you update your profile picture."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification_icon.png",
+          "color": "#ff575b",
+          "defaultChannel": "default",
+          "sounds": ["./assets/audio/notification_sound.wav"]
         }
       ]
     ],
