@@ -33,3 +33,13 @@
 -dontwarn io.realm.react.**
 -keep class io.realm.** { *; }
 -dontwarn io.realm.**
+
+# Keep Expo Notifications (optimized)
+-keep class expo.modules.notifications.** { *; }
+-keep class expo.modules.notifications.notifications.** { *; }
+-keep class expo.modules.notifications.service.** { *; }
+-keep class expo.modules.notifications.notifications.triggers.** { *; }
+
+# Keep WorkManager (used internally for scheduling)
+-keep class androidx.work.** { *; }
+-dontwarn androidx.work.**
