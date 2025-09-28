@@ -11,6 +11,7 @@ import { cardColors, CrimsonLuxe } from "@/constants/Colors";
 import { ObjectId } from "bson";
 import { getAllEvents } from "@/db/service/EventService";
 import { renderIcon } from "../renderIcon";
+import { router } from "expo-router";
 
 interface EventType {
   id: ObjectId;
@@ -92,7 +93,7 @@ const TaskCard = () => {
     filtered.sort(
       (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
     );
-    
+
     setTodayEvents(filtered);
   };
 
@@ -104,13 +105,37 @@ const TaskCard = () => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
+  const handleCardPress = (item: EventType) => {
+    router.push({
+      pathname: "/createEvent",
+      params: {
+        editMode: "true",
+        eventId: item.id.toString(),
+        title: item.title,
+        description: item.description || "",
+        date: item.date.toISOString(),
+        time: item.time.toISOString(),
+        category: item.category,
+        isOneTime: item.isOneTime.toString(),
+        repeatType: item.repeatType || "",
+        interval: item.interval?.toString() || "1",
+        weekDays: item.weekDays ? JSON.stringify(item.weekDays) : "",
+        customInterval: item.customInterval || "",
+      },
+    });
+  };
+
   return (
     <FlatList
       data={todayEvents}
       keyExtractor={(item) => item.id.toString()}
       scrollEnabled={false}
       renderItem={({ item, index }) => (
-        <View style={styles.card}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => handleCardPress(item)}
+          activeOpacity={0.7}
+        >
           <View
             style={[
               styles.iconWrapper,
@@ -148,7 +173,7 @@ const TaskCard = () => {
               </Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
     />
   );

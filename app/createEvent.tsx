@@ -18,12 +18,33 @@ import CustomTextInput from "@/components/textInput";
 import CustomTextArea from "@/components/textArea";
 import { CrimsonLuxe } from "@/constants/Colors";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
-import { createEvent } from "@/db/service/EventService";
+import {
+  createEvent,
+  updateEvent,
+  deleteEvent,
+} from "@/db/service/EventService";
 import { router, useLocalSearchParams } from "expo-router";
-import { scheduleEventNotification } from "@/constants/notificationService";
+import {
+  scheduleEventNotification,
+  cancelAllEventNotifications,
+} from "@/constants/notificationService";
+import { ObjectId } from "bson";
+import ConfirmDialog from "@/components/confirmDialog";
 
 type Params = {
   selectedDate?: string;
+  editMode?: string;
+  eventId?: string;
+  title?: string;
+  description?: string;
+  date?: string;
+  time?: string;
+  category?: string;
+  isOneTime?: string;
+  repeatType?: string;
+  interval?: string;
+  weekDays?: string;
+  customInterval?: string;
 };
 
 type Event = {
@@ -40,26 +61,56 @@ type Event = {
 };
 
 const CreateEventScreen = () => {
-  const { selectedDate } = useLocalSearchParams<Params>();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const {
+    selectedDate,
+    editMode,
+    eventId,
+    title: editTitle,
+    description: editDescription,
+    date: editDate,
+    time: editTime,
+    category: editCategory,
+    isOneTime: editIsOneTime,
+    repeatType: editRepeatType,
+    interval: editInterval,
+    weekDays: editWeekDays,
+    customInterval: editCustomInterval,
+  } = useLocalSearchParams<Params>();
+
+  const isEditMode = editMode === "true";
+
+  const [title, setTitle] = useState(editTitle || "");
+  const [description, setDescription] = useState(editDescription || "");
   const [date, setDate] = useState(() => {
+    if (editDate) {
+      return new Date(editDate);
+    }
     if (selectedDate) {
       const parsedDate = new Date(selectedDate);
       return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
     }
     return new Date();
   });
-  const [time, setTime] = useState(new Date());
-  const [selectedCategory, setSelectedCategory] = useState("Work");
+  const [time, setTime] = useState(() => {
+    if (editTime) {
+      return new Date(editTime);
+    }
+    return new Date();
+  });
+  const [selectedCategory, setSelectedCategory] = useState(
+    editCategory || "Work"
+  );
 
-  const [repeatType, setRepeatType] = useState("");
+  const [repeatType, setRepeatType] = useState(editRepeatType || "");
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [interval, setInterval] = useState("1");
+  const [interval, setInterval] = useState(editInterval || "1");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const [isOneTime, setIsOneTime] = useState(true);
+  const [isOneTime, setIsOneTime] = useState(
+    editIsOneTime ? editIsOneTime === "true" : true
+  );
   const categories = [
     "Work",
     "Study",
@@ -85,14 +136,36 @@ const CreateEventScreen = () => {
   ];
   const repeatOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
   const weekdaysList = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const [weekDays, setWeekDays] = useState<Record<string, boolean>>({
-    Mon: false,
-    Tue: true,
-    Wed: false,
-    Thu: false,
-    Fri: false,
-    Sat: false,
-    Sun: false,
+  const [weekDays, setWeekDays] = useState<Record<string, boolean>>(() => {
+    if (editWeekDays) {
+      try {
+        const parsedWeekDays = JSON.parse(editWeekDays);
+        const weekDaysObj: Record<string, boolean> = {
+          Mon: false,
+          Tue: false,
+          Wed: false,
+          Thu: false,
+          Fri: false,
+          Sat: false,
+          Sun: false,
+        };
+        parsedWeekDays.forEach((day: string) => {
+          if (weekDaysObj.hasOwnProperty(day)) {
+            weekDaysObj[day] = true;
+          }
+        });
+        return weekDaysObj;
+      } catch {}
+    }
+    return {
+      Mon: false,
+      Tue: true,
+      Wed: false,
+      Thu: false,
+      Fri: false,
+      Sat: false,
+      Sun: false,
+    };
   });
 
   const handleCreateEvent = async () => {
@@ -132,8 +205,28 @@ const CreateEventScreen = () => {
     }
 
     try {
-      const eventId = await createEvent(eventData);
-      if (eventId) {
+      if (isEditMode && eventId) {
+        const updateData: any = {
+          title: eventData.title,
+          description: eventData.description || "",
+          date: eventData.date,
+          time: eventData.time,
+          category: eventData.category,
+          isOneTime: eventData.isOneTime,
+        };
+
+        if (eventData.repeatType) {
+          updateData.repeatType = eventData.repeatType;
+        }
+        if (eventData.interval) {
+          updateData.interval = eventData.interval;
+        }
+        if (eventData.weekDays && eventData.weekDays.length > 0) {
+          updateData.weekDays = eventData.weekDays;
+        }
+
+        await updateEvent(new ObjectId(eventId), updateData);
+
         await scheduleEventNotification(
           eventId,
           eventData.title,
@@ -144,14 +237,71 @@ const CreateEventScreen = () => {
           eventData.interval,
           eventData.weekDays
         );
+
         router.replace({
-          pathname: "/drawer/calender",
-          params: { id: eventId },
+          pathname: "/drawer/reminder",
         });
+      } else {
+        const newEventId = await createEvent({
+          title: eventData.title,
+          description: eventData.description,
+          date: eventData.date,
+          time: eventData.time,
+          category: eventData.category,
+          isOneTime: eventData.isOneTime,
+          repeatType: eventData.repeatType,
+          interval: eventData.interval,
+          weekDays: eventData.weekDays,
+          createdAt: eventData.createdAt,
+          customInterval: undefined, // We don't use customInterval in this form
+        });
+        if (newEventId) {
+          await scheduleEventNotification(
+            newEventId,
+            eventData.title,
+            eventData.description,
+            eventData.date,
+            eventData.time,
+            eventData.repeatType,
+            eventData.interval,
+            eventData.weekDays
+          );
+          router.replace({
+            pathname: "/drawer/calender",
+            params: { id: newEventId },
+          });
+        }
       }
     } catch (error) {
-      console.error("Failed to create Event:", error);
-      alert("Failed to create event. Please try again.");
+      console.error(
+        `Failed to ${isEditMode ? "update" : "create"} Event:`,
+        error
+      );
+      alert(
+        `Failed to ${isEditMode ? "update" : "create"} event. Please try again.`
+      );
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!eventId) return;
+
+    try {
+      await cancelAllEventNotifications(eventId);
+
+      const success = await deleteEvent(new ObjectId(eventId));
+
+      if (success) {
+        setShowDeleteDialog(false);
+        router.replace({
+          pathname: "/drawer/reminder",
+        });
+      } else {
+        alert("Failed to delete event. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Failed to delete event. Please try again.");
     }
   };
 
@@ -242,7 +392,9 @@ const CreateEventScreen = () => {
     <PageLayout style={styles.container}>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View>
-          <BackButtonHeader title="Create Reminder" />
+          <BackButtonHeader
+            title={isEditMode ? "Edit Reminder" : "Create Reminder"}
+          />
 
           <Text style={styles.label}>Title</Text>
           <CustomTextInput
@@ -510,27 +662,67 @@ const CreateEventScreen = () => {
             </>
           )}
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={handleCancel}
-            >
-              <Text style={styles.cancelText}>Clear</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.createButton,
-                title
-                  ? { backgroundColor: CrimsonLuxe.primary400 }
-                  : { backgroundColor: CrimsonLuxe.primary500 },
-              ]}
-              onPress={handleCreateEvent}
-            >
-              <Text style={styles.createText}>✓ Create Reminder</Text>
-            </TouchableOpacity>
-          </View>
+          {isEditMode ? (
+            <View style={styles.editButtonContainer}>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={styles.cancelButtonHalf}
+                  onPress={handleCancel}
+                >
+                  <Text style={styles.cancelText}>Clear</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.createButtonHalf,
+                    title
+                      ? { backgroundColor: CrimsonLuxe.primary400 }
+                      : { backgroundColor: CrimsonLuxe.primary500 },
+                  ]}
+                  onPress={handleCreateEvent}
+                >
+                  <Text style={styles.createText}>Update</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={styles.deleteButtonFull}
+                onPress={() => setShowDeleteDialog(true)}
+              >
+                <Text style={styles.deleteText}> Delete</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCancel}
+              >
+                <Text style={styles.cancelText}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.createButton,
+                  title
+                    ? { backgroundColor: CrimsonLuxe.primary400 }
+                    : { backgroundColor: CrimsonLuxe.primary500 },
+                ]}
+                onPress={handleCreateEvent}
+              >
+                <Text style={styles.createText}>✓ Create Reminder</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </TouchableWithoutFeedback>
+
+      <ConfirmDialog
+        visible={showDeleteDialog}
+        title="Delete Reminder"
+        message="Are you sure you want to delete this reminder? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteEvent}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
     </PageLayout>
   );
 };
@@ -637,9 +829,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 30,
+    gap: 8,
+  },
+  editButtonContainer: {
+    flexDirection: "column",
+    marginTop: 50,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 15,
   },
   cancelButton: {
-    flex: 0.48,
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  cancelButtonHalf: {
+    flex: 1,
     backgroundColor: "#F5F5F5",
     borderRadius: 8,
     paddingVertical: 14,
@@ -650,13 +860,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   createButton: {
-    flex: 0.48,
+    flex: 1,
+    backgroundColor: "#4F46E5",
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  createButtonHalf: {
+    flex: 1,
     backgroundColor: "#4F46E5",
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
   },
   createText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+  },
+  deleteButtonFull: {
+    width: "100%",
+    backgroundColor: CrimsonLuxe.primary400,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  deleteText: {
     color: "#FFFFFF",
     fontSize: 16,
   },

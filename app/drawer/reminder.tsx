@@ -27,6 +27,12 @@ interface EventItem {
   date: string;
   time: string;
   isOneTime: boolean;
+  description?: string;
+  category?: string;
+  repeatType?: string;
+  interval?: number;
+  weekDays?: string[];
+  customInterval?: string;
 }
 
 const EventsLanding = () => {
@@ -52,11 +58,27 @@ const EventsLanding = () => {
                   minute: "2-digit",
                 })
               : event.time,
+          description: event.description,
+          category: event.category,
+          repeatType: event.repeatType,
+          interval: event.interval,
+          weekDays: event.weekDays,
+          customInterval: event.customInterval,
         }));
 
         const today = new Date().toISOString().split("T")[0];
 
-        const upcoming = formatted.filter((event) => event.date >= today);
+        const isRecurringEventActive = (event: EventItem) => {
+          if (event.isOneTime) {
+            return event.date >= today;
+          }
+
+          return event.date <= today;
+        };
+
+        const upcoming = formatted.filter((event) =>
+          isRecurringEventActive(event)
+        );
         const past = formatted.filter(
           (event) => event.date < today && event.isOneTime
         );
@@ -108,22 +130,56 @@ const EventsLanding = () => {
     }
   };
 
+  const handleEdit = (item: EventItem) => {
+    const eventDate = new Date(item.date);
+
+    const [hours, minutes] = item.time.split(":");
+    const timeDate = new Date();
+    timeDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+    router.push({
+      pathname: "/createEvent",
+      params: {
+        editMode: "true",
+        eventId: item.id,
+        title: item.title,
+        description: item.description || "",
+        date: eventDate.toISOString(),
+        time: timeDate.toISOString(),
+        category: item.category || "Work",
+        isOneTime: item.isOneTime.toString(),
+        repeatType: item.repeatType || "",
+        interval: item.interval?.toString() || "1",
+        weekDays: item.weekDays ? JSON.stringify(item.weekDays) : "[]",
+        customInterval: item.customInterval || "",
+      },
+    });
+  };
+
   if (!loading && data.length == 0) {
     return <NoDataEvents />;
   }
 
-  const renderRightActions = (id: string) => (
-    <TouchableOpacity
-      style={styles.deleteButton}
-      onPress={() => handleDelete(id)}
-    >
-      <Icon name="delete" size={24} color="#fff" />
-    </TouchableOpacity>
+  const renderRightActions = (item: EventItem) => (
+    <View style={styles.swipeActionsContainer}>
+      <TouchableOpacity
+        style={styles.editButton}
+        onPress={() => handleEdit(item)}
+      >
+        <Icon name="edit" size={24} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => handleDelete(item.id)}
+      >
+        <Icon name="delete" size={24} color="#fff" />
+      </TouchableOpacity>
+    </View>
   );
 
   const renderItem = ({ item, index }: any) => {
     return (
-      <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+      <Swipeable renderRightActions={() => renderRightActions(item)}>
         <View style={styles.taskContainer}>
           <View
             style={[
@@ -140,9 +196,9 @@ const EventsLanding = () => {
               <Text style={styles.duration}>{item.time}</Text>
             </View>
             {item.isOneTime ? (
-              <Text style={styles.recurringLabel}>Recurring</Text>
-            ) : (
               <Text style={styles.recurringLabel}>One-time</Text>
+            ) : (
+              <Text style={styles.recurringLabel}>Recurring</Text>
             )}
           </View>
         </View>
@@ -243,15 +299,29 @@ const styles = StyleSheet.create({
     backgroundColor: CrimsonLuxe.primary400 || "#EF4444",
     justifyContent: "center",
     alignItems: "center",
-    width: 60,
-    marginVertical: 8,
-    borderRadius: 10,
+    width: 50,
+    height: "100%",
+    borderRadius: 15,
   },
   recurringLabel: {
     marginTop: 4,
     fontSize: 12,
     fontWeight: "500",
     color: "#3B82F6",
+  },
+  swipeActionsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
+  },
+  editButton: {
+    backgroundColor: "#3B82F6",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 50,
+    height: "100%",
+    borderRadius: 15,
+    marginRight: 5,
   },
 });
 

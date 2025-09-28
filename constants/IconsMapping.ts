@@ -129,7 +129,7 @@ export const getIcon: Record<
     backgroundColor: "#C2185B",
   },
   Other: {
-    icon: "help-circle",
+    icon: "clipboard-list",
     library: "MaterialCommunityIcons",
     color: "#FFFFFF",
     backgroundColor: "#616161",

@@ -90,13 +90,22 @@ export const updateEvent = async (
   const realm = await getRealm();
   try {
     const event = realm.objectForPrimaryKey("Event", id);
+
     if (event) {
       realm.write(() => {
-        Object.assign(event, updates);
+        const filteredUpdates = Object.fromEntries(
+          Object.entries(updates).filter(([_, value]) => value !== undefined)
+        );
+        Object.assign(event, filteredUpdates);
       });
+      return true;
+    } else {
+      return false;
     }
+  } catch (error) {
+    console.error("Error in updateEvent:", error);
+    throw error;
   } finally {
-    // Optional cleanup
   }
 };
 

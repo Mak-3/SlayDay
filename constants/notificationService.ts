@@ -66,14 +66,14 @@ export const scheduleEventNotification = async (
     baseDate.setMinutes(time.getMinutes());
     baseDate.setSeconds(0);
 
-    if (baseDate <= new Date()) {
-      return null;
-    }
-
     const notifications: string[] = [];
 
     // ✅ One-time event
     if (!repeatType) {
+      if (baseDate <= new Date()) {
+        return null;
+      }
+
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: `${title}`,
@@ -93,6 +93,12 @@ export const scheduleEventNotification = async (
 
     // ✅ Daily repeat
     else if (repeatType === "Daily") {
+      let nextOccurrence = new Date(baseDate);
+
+      while (nextOccurrence <= new Date()) {
+        nextOccurrence.setDate(nextOccurrence.getDate() + (interval || 1));
+      }
+
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: `${title}`,
@@ -101,28 +107,88 @@ export const scheduleEventNotification = async (
           data: { eventId, type: "event_reminder" },
         },
         trigger: {
-          hour: baseDate.getHours(),
-          minute: baseDate.getMinutes(),
-          repeats: true,
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: nextOccurrence,
           channelId: "default",
         },
       });
       notifications.push(notificationId);
+
+      for (let i = 1; i < 30; i++) {
+        const futureDate = new Date(nextOccurrence);
+        futureDate.setDate(futureDate.getDate() + i * (interval || 1));
+
+        const futureNotificationId =
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: `${title}`,
+              body: description || "Event reminder",
+              sound: Platform.OS === "ios" ? "notification_sound.wav" : true,
+              data: { eventId, type: "event_reminder" },
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: futureDate,
+              channelId: "default",
+            },
+          });
+        notifications.push(futureNotificationId);
+      }
     }
 
     // ✅ Weekly repeat
     else if (repeatType === "Weekly" && weekDays && weekDays.length > 0) {
+      const weekdayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
       for (const day of weekDays) {
-        const weekdayIndex = [
-          "Sun",
-          "Mon",
-          "Tue",
-          "Wed",
-          "Thu",
-          "Fri",
-          "Sat",
-        ].indexOf(day);
+        const weekdayIndex = weekdayMap.indexOf(day);
         if (weekdayIndex === -1) continue;
+
+        let nextOccurrence = new Date(baseDate);
+        const currentDay = nextOccurrence.getDay();
+        const daysUntilTarget = (weekdayIndex - currentDay + 7) % 7;
+
+        if (daysUntilTarget === 0 && nextOccurrence <= new Date()) {
+          nextOccurrence.setDate(nextOccurrence.getDate() + 7);
+        } else if (daysUntilTarget > 0) {
+          nextOccurrence.setDate(nextOccurrence.getDate() + daysUntilTarget);
+        }
+
+        for (let i = 0; i < 12; i++) {
+          const scheduleDate = new Date(nextOccurrence);
+          scheduleDate.setDate(
+            scheduleDate.getDate() + i * 7 * (interval || 1)
+          );
+
+          const notificationId = await Notifications.scheduleNotificationAsync({
+            content: {
+              title: `${title}`,
+              body: description || "Event reminder",
+              sound: Platform.OS === "ios" ? "notification_sound.wav" : true,
+              data: { eventId, type: "event_reminder" },
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: scheduleDate,
+              channelId: "default",
+            },
+          });
+          notifications.push(notificationId);
+        }
+      }
+    }
+
+    // ✅ Monthly repeat
+    else if (repeatType === "Monthly") {
+      let nextOccurrence = new Date(baseDate);
+
+      while (nextOccurrence <= new Date()) {
+        nextOccurrence.setMonth(nextOccurrence.getMonth() + (interval || 1));
+      }
+
+      for (let i = 0; i < 12; i++) {
+        const scheduleDate = new Date(nextOccurrence);
+        scheduleDate.setMonth(scheduleDate.getMonth() + i * (interval || 1));
 
         const notificationId = await Notifications.scheduleNotificationAsync({
           content: {
@@ -132,10 +198,8 @@ export const scheduleEventNotification = async (
             data: { eventId, type: "event_reminder" },
           },
           trigger: {
-            weekday: weekdayIndex + 1, // Sunday = 1, Monday = 2, ...
-            hour: baseDate.getHours(),
-            minute: baseDate.getMinutes(),
-            repeats: true,
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: scheduleDate,
             channelId: "default",
           },
         });
@@ -143,45 +207,33 @@ export const scheduleEventNotification = async (
       }
     }
 
-    // ✅ Monthly repeat
-    else if (repeatType === "Monthly") {
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `${title}`,
-          body: description || "Event reminder",
-          sound: Platform.OS === "ios" ? "notification_sound.wav" : true,
-          data: { eventId, type: "event_reminder" },
-        },
-        trigger: {
-          day: baseDate.getDate(),
-          hour: baseDate.getHours(),
-          minute: baseDate.getMinutes(),
-          repeats: true,
-          channelId: "default",
-        },
-      });
-      notifications.push(notificationId);
-    }
-
     // ✅ Yearly repeat
     else if (repeatType === "Yearly") {
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `${title}`,
-          body: description || "Event reminder",
-          sound: Platform.OS === "ios" ? "notification_sound.wav" : true,
-          data: { eventId, type: "event_reminder" },
-        },
-        trigger: {
-          month: baseDate.getMonth() + 1,
-          day: baseDate.getDate(),
-          hour: baseDate.getHours(),
-          minute: baseDate.getMinutes(),
-          repeats: true,
-          channelId: "default",
-        },
-      });
-      notifications.push(notificationId);
+      let nextOccurrence = new Date(baseDate);
+
+      while (nextOccurrence <= new Date()) {
+        nextOccurrence.setFullYear(nextOccurrence.getFullYear() + 1);
+      }
+
+      for (let i = 0; i < 5; i++) {
+        const scheduleDate = new Date(nextOccurrence);
+        scheduleDate.setFullYear(scheduleDate.getFullYear() + i);
+
+        const notificationId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `${title}`,
+            body: description || "Event reminder",
+            sound: Platform.OS === "ios" ? "notification_sound.wav" : true,
+            data: { eventId, type: "event_reminder" },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: scheduleDate,
+            channelId: "default",
+          },
+        });
+        notifications.push(notificationId);
+      }
     }
 
     return notifications;

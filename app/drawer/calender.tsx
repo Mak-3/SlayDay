@@ -16,6 +16,7 @@ import NoDataCalender from "@/components/noDataCalender";
 import { cardColors, CrimsonLuxe } from "@/constants/Colors";
 import { getRealm } from "@/db/realm";
 import { renderIcon } from "@/components/renderIcon";
+import { router } from "expo-router";
 
 const generateDates = (centerDate: string) => {
   const dates = [];
@@ -112,6 +113,7 @@ const CalenderScreen = () => {
   const [showPicker, setShowPicker] = useState(false);
   const dateListRef = useRef<FlatList<any>>(null);
   const [events, setEvents] = useState<any[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const onDateChange = (event: any, date?: Date) => {
     setShowPicker(false);
@@ -136,6 +138,30 @@ const CalenderScreen = () => {
     };
     loadEvents();
   }, [selectedDate]);
+
+  const handleToggleDescription = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const handleCardPress = (event: any) => {
+    router.push({
+      pathname: "/createEvent",
+      params: {
+        editMode: "true",
+        eventId: event.id.toString(),
+        title: event.title,
+        description: event.description || "",
+        date: event.date.toISOString(),
+        time: event.time.toISOString(),
+        category: event.category,
+        isOneTime: event.isOneTime.toString(),
+        repeatType: event.repeatType || "",
+        interval: event.interval?.toString() || "1",
+        weekDays: event.weekDays ? JSON.stringify(event.weekDays) : "",
+        customInterval: event.customInterval || "",
+      },
+    });
+  };
 
   return (
     <PageLayout style={styles.container}>
@@ -220,7 +246,7 @@ const CalenderScreen = () => {
                   {dayjs(event.time).format("h:mm A")}
                 </Text>
               </View>
-              <View
+              <TouchableOpacity
                 key={event.id}
                 style={[
                   styles.card,
@@ -229,6 +255,8 @@ const CalenderScreen = () => {
                       cardColors[index % cardColors.length].light,
                   },
                 ]}
+                onPress={() => handleCardPress(event)}
+                activeOpacity={0.7}
               >
                 <View
                   style={{
@@ -248,11 +276,21 @@ const CalenderScreen = () => {
                 </View>
                 <View style={styles.titleWrapper}>
                   <Text style={styles.cardTitle}>{event.title}</Text>
-                  <Text style={styles.cardDescription}>
-                    {event.description}
-                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleToggleDescription(event.id.toString())}
+                  >
+                    <Text
+                      style={styles.cardDescription}
+                      numberOfLines={
+                        expandedId === event.id.toString() ? undefined : 2
+                      }
+                      ellipsizeMode="tail"
+                    >
+                      {event.description || "No description provided."}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
           ))
         ) : (

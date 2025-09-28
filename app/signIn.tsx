@@ -165,7 +165,6 @@ export default function SignInScreen() {
           text2: "Please try again later",
         },
       } as any;
-      console.log(error)
       const { type, text1, text2 } =
         toastConfig[error.code] || toastConfig.default;
       Toast.show({ type, text1, text2, position: "bottom" });
